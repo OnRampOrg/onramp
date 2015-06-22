@@ -1,0 +1,6 @@
+CherryPy==3.7.0
+argparse==1.2.1
+configobj==5.0.6
+pycrypto==2.6.1
+six==1.9.0
+wsgiref==0.1.2
