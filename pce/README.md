@@ -42,4 +42,4 @@ The following directories are automatically created and managed by the OnRamp PC
 
  * ```modules``` : Contains the **deployed** curriculum modules for the PCE.
  * ```users``` : Contains the OnRamp user's working directories.
- * ```log``` : Contains the OnRamp PCE Service logs
+ * ```log``` : Contains the OnRamp PCE Service logs.
