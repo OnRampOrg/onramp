@@ -19,7 +19,7 @@ package_name = 'PCE'
 users_dir = 'users'
 modules_dir = 'modules'
 log_dir = 'log'
-prebuilt_dir = '../PrebuiltProjects'
+prebuilt_dir = '../modules'
 
 if os.path.exists(env_dir):
     print 'Server appears to be already installed.'
@@ -34,15 +34,23 @@ if os.path.exists(env_dir):
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-# FIXME: This section will need to change when module deployment is understood
+# Deploy modules shipped with onramp
 if not os.path.exists(modules_dir):
     os.makedirs(modules_dir)
 
-for root, dirs, files in os.walk(prebuilt_dir):
-    for name in dirs:
-        if not os.path.exists(modules_dir + '/' + name):
-            shutil.copytree(prebuilt_dir + '/' + name, modules_dir + '/' + name)
-##############################################################################
+ret_dir = os.getcwd()
+for name in os.listdir(prebuilt_dir):
+    next_path = os.path.join(prebuilt_dir, name)
+    if os.path.isdir(os.path.join(prebuilt_dir, name)):
+        if name != 'template':
+            new_path = os.path.join(modules_dir, name)
+            if not os.path.exists(new_path):
+                shutil.copytree(next_path, new_path)
+                os.chdir(new_path)
+                # Assuming that modules shipped with onramp will not have
+                # onramp_deploy.py return 1:
+                call(['python', 'bin/onramp_deploy.py'])
+                os.chdir(ret_dir)
 
 # Setup virtual environment
 call(['virtualenv', env_dir])
