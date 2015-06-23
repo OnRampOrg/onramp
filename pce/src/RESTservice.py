@@ -78,7 +78,8 @@ if __name__ == '__main__':
     }
 
     # Load onramp_config.ini and integrate appropriate attrs into cherrpy conf.
-    ini = ConfigObj('../onramp_config.ini', configspec='onramp_config.inispec')
+    ini = ConfigObj('../onramp_pce_config.ini',
+                    configspec='onramp_config.inispec')
     ini.validate(Validator())
     if 'server' in ini.keys():
         for k in ini['server']:
