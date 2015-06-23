@@ -25,6 +25,35 @@ from Crypto.Cipher import AES
 from tools import admin_authenticate, authenticate, decrypt, encrypt, launch_job
 
 
+def _required_attrs(*args):
+    """Decorator to specify and verify receipt of required attrs in HTTP
+    request.
+
+    *args: List of required HTTP request attrs.
+
+    @_required_attrs is only intended to be applied to HTTP method dispatchers
+    (POST, PUT, etc.).
+
+    Example:
+        @_required_attrs('username', 'password')
+        def POST(self, **kwargs):
+            ...
+    """
+    def inner1(f):
+        def inner2(self, **kwargs):
+            keys = kwargs.keys()
+            missing_attrs = filter(lambda x: x not in keys, args)
+            if missing_attrs:
+                retval = 'The following required form fields are missing: '
+                retval += '%s' % str(missing_attrs)
+                self._logger.error(retval)
+                return retval
+            else:
+                return f(self, **kwargs)
+        return inner2
+    return inner1
+
+
 class Service:
     """Provide access to mechanism for uploading and launching new jobs.
 
@@ -187,6 +216,8 @@ class PrebuiltLaunch:
                 self._logger.debug('Copying file %s to %s' % (s,d))
                 shutil.copy2(s, d)
 
+    @_required_attrs('username', 'password', 'projectNum', 'projectName',
+                    'processors')
     def POST(self, **kwargs):
         """Authenticates user and launches a default shipped job.
 
@@ -213,16 +244,6 @@ class PrebuiltLaunch:
             str: Status of job launch.
         """
         self._logger.debug('PrebuiltLaunch.POST() called')
-
-        required_attrs = ['username', 'password', 'projectNum', 'projectName',
-                          'processors']
-
-        missing_attrs = _check_required_attrs(*required_attrs, **kwargs)
-        if missing_attrs:
-            retval = 'The following required form fields are missing: '
-            retval += '%s' % str(missing_attrs)
-            self._logger.error(retval)
-            return retval
 
         username = kwargs['username']
         password = kwargs['password']
