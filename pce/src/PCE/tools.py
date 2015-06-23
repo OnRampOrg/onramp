@@ -21,27 +21,18 @@ from Crypto.Cipher import AES
 
 from subprocess import call, check_output
 
-def launch_job(project_loc, project_name, np, verbose, email, datestamps,
-               email_name, batch_scheduler):
+def launch_job(project_loc, run_name, batch_scheduler, numtasks=4, email=None,
+               **kwargs):
     """Launch a parallel job on the system.
 
     Args:
         project_loc (str): Filesystem path for the root folder of the project.
-        project_name (str): Name for this particular run of the project.
-        np: Number of processors to run the given project on.
-        verbose (str): Pseudo-boolean val indicating whether or not output from
-            the run should be generated in verbose mode. 'true', 'on', '1',
-            't', 'y', and 'yes' all indicate verbose mode. All other values
-            indicate not verbose.
-        email (str): Pseudo-boolean val indicating whether or not output from
-            the run should be emailed. 'true', 'on', '1', 't', 'y', and 'yes'
-            will all set the project to be emailed. All other values will not.
-            email_name is required with email is set.
-        datestamps (str): Pseudo-boolean val indicating whether or not output
-            from the run should be datestamped. 'true', 'on', '1', 't', 'y', and
-            'yes' all set the project output to be datestamped. All other values
-            do not.
-        email_name (str): Email address to send output to, if configured.
+        run_name (str): Name for this particular run of the project.
+        batch_scheduler (str): Identifier of chosen batch_scheduler.
+
+    Kwargs:
+        numtasks: Number of tasks the job should use. Default: 4
+        email (str): If not 'None', email results to this address. Default: None
 
     Returns:
         str: Status message indicating state of job launch, or errors
@@ -50,212 +41,104 @@ def launch_job(project_loc, project_name, np, verbose, email, datestamps,
     logger = logging.getLogger('onramp')
     logger.debug('PCE.tools.launch_job() called')
 
-    def numprocessors(i):
-        try:
-            return int(i)
-        except ValueError as e:
-            return 4
-
-    def eval_checkbox(s):
-        return s.lower() in ['true', 'on', '1', 't', 'y', 'yes']
-
-    # FIXME: project_name can *never* contain whitespaces because of
-    # Makefile.
-
-    np = numprocessors(np)
-    verbose = eval_checkbox(verbose)
-    email = eval_checkbox(email)
-    datestamps = eval_checkbox(datestamps)
-
     # Verify if project_loc exists, if not return with message.
     if not os.path.isdir(project_loc):
         retval = 'Project Location does not exist.'
         logger.error(retval)
         return retval
 
-    #_build_makefile(project_loc)
+    ret_dir = os.getcwd()
 
     # Begin Executing the Job
     os.chdir(project_loc)
-    #call(['printenv'])
-    logger.info('Calling make in %s' % project_loc)
-    call(['make', 'c-mpi'])
+    logger.info('Calling bin/onramp_preprocess.py in %s' % project_loc)
+    call(['python', 'bin/onramp_preprocess.py'])
 
     logger.debug('Server configured to use %s as batch scheduler'
                  % batch_scheduler)
+
     if batch_scheduler == 'SLURM':
-        _build_SLURM_script(project_name, np,
-                           filename=project_loc + '/script.sh')
+        _build_SLURM_script(run_name, numtasks, email,
+                            filename=project_loc + '/script.sh')
         call(['sbatch', 'script.sh'])
     elif batch_scheduler == 'SGE':
-        _build_SGE_script(project_name, np,
+        _build_SGE_script(run_name, numtasks, email,
                           filename=project_loc + 'script.sh')
-        #FIXME: If the output file already exists SGE will simply concatenate
-        # more results into it, therefore we need to create a way to avoid such
-        # an occurance.
         call(['qsub', 'script.sh'])
     else:
         retval = 'Invalid argument for batch_scheulder'
         logger.error(retval)
         return retval
 
-    #FIXME: If the output file is greater than a specific size then we need
-    # to notify the user that their job is complete rather than send them a
-    # massive email/file.
-
-    logger.info('Job %s scheduled' % project_name)
+    os.chdir(ret_dir)
+    logger.info('Job %s scheduled' % run_name)
     return 'Complete!'
 
-def _build_makefile(project_loc):
-    """Generate default makefile at project location.
-
-    Scan project_loc for C source and header files and use them to construct a
-    makefile formatted as expected by launch_job(). Assumes the existence of a
-    base makefile at ../../../Makefile relative to project_loc.
-    
-    ***FIXME: Method is currently hardcoded to name the main program
-        'hello-mpi'. This should be changed, but currently, a strong possibility
-        exists that this method will be no longer needed.
-
-    Args:
-        project_loc (str): Filesystem path for the root folder of the project.
-    """
-    logger = logging.getLogger('onramp')
-    logger.debug('PCE.tools._build_makefile() called')
-    ret_dir = os.getcwd()
-    os.chdir(project_loc)
-    header_files = glob.glob('*.h')
-
-    # Check if this is a c or cpp project and either load c files or cpp
-    # files. Maybe we can load both c and cpp files?
-    src_files = glob.glob('*.c')
-
-    if (len(src_files) <= 0):
-        # Return an error status to the web application
-        logger.error('No source files found at %s' % project_loc)
-        return 'Failed to find any source files!'
-
-    # Create the project's Makefile
-    src_str = ' '.join(src_files)
-    header_str = ' '.join(header_files)
-
-    file = open('Makefile', 'w+b')
-    if makefile != '':
-        # Use the Makefile provided by the user.
-        write(makefile)
-    else:
-        # Use the default Makefile.
-        write('# $\Id$')
-        write('PROGRAM = hello-mpi') #+ project_name)
-
-        # FIXME: Double check source and header files. They may include
-        # spaces within the filename.
-        write('CSRCS = ' + src_str)
-        write('INCS = ' + header_str)
-        write('CLEAN = $(PROGRAM).c-mpi')
-        write('all: c-mpi')
-        write('c-mpi: $(CSRCS) $(INCS) $(PROGRAM).c-mpi')
-        write('$(PROGRAM).c-mpi: $(CSRCS) $(INCS)')
-        write('include ../../../Makefile')
-
-    file.close()
-    os.chdir(ret_dir)
-    logger.info('%s written' % project_loc + '/Makefile')
-
-def _build_SLURM_script(project_name, numtasks, filename='script.sh',
-                       email=None, datestamps=False, verbose=False):
+def _build_SLURM_script(run_name, numtasks, email, filename='script.sh'):
     """Build a SLURM formatted batch script for the job.
 
     Build prologue and epilogue sections of the batch script which surround the
-    run section of the script. The run script is generated by output to STDOUT
-    of setup.py found in the root directory of the project to be run. All three
-    sections are put together and written to single file per args.
+    run section of the script. The run section of the script consists solely of
+    a call to 'python bin/onramp_run.py' from the path specified by
+    run_name.
 
     Args:
-        project_name (str): Name for the particular run of the job.
-        numtasks: Number of tasks to run
+        run_name (str): Name for the particular run of the job.
+        numtasks: Number of tasks the job should use. Default: 4
+        email (str): If not 'None', email results to this address. Default: None
     
     Keyword Args:
         filename (str): Name of the generated file. Default: 'script.sh'.
-        email (str): Email address to send job output to. If None, batch script
-            will not be configured to send email. Default: None.
-        datestamps (bool): If True, datestamp the output. Default: False.
-        verbose (bool): If True, output wil be verbose. Default: False.
     """
     logger = logging.getLogger('onramp')
     logger.debug('PCE.tools._build_SLURM_script() called')
+
     contents = '#!/bin/bash\n'
     contents += '\n'
     contents += '###################################\n'
     contents += '# Slurm Submission options\n'
     contents += '#\n'
-    contents += '#SBATCH --job-name=' + project_name + '\n'
+    contents += '#SBATCH --job-name=' + run_name + '\n'
     contents += '#SBATCH -o Results/output.txt\n'
     contents += '#SBATCH -n ' + str(numtasks) + '\n'
     if email:
         logger.debug('%s configured for email reporting to %s'
-                     % (project_name, email))
+                     % (run_name, email))
         contents += '#SBATCH --mail-user=' + email + '\n'
     contents += '###################################\n'
     contents += '\n'
-
-    if datestamps:
-        logger.debug('%s configured for datestamps' % project_name)
-        contents += 'date\n'
-
-    # FIXME: This needs to be communicated to CWD/setup.py:
-    #if verbose:
-    #    v = ' -v'
-    #else:
-    #    v = ''
-
-    run_section = check_output(['../../../src/env/bin/python', 'setup.py'])
-    logger.debug('Run section given by project:\n%s' % run_section)
-    contents += run_section
-
-    if datestamps:
-        contents += 'date\n'
-
-    contents += '\n'
-    if email:
-        contents += '#$ -m be\n'
-        contents += '#$ -M ' + email+ '\n'
+    contents += 'python bin/onramp_run.py\n'
 
     script_file = open(filename, 'w')
     script_file.write(contents)
     script_file.close()
-    logger.info('SLURM script written for %s' % project_name)
+    logger.info('SLURM script written for %s' % run_name)
 
-def _build_SGE_script(project_name, np, filename='script.sh', email=None,
-                     datestamps=None, verbose=False):
-    """Build a Sun Grid Engine formatted batch script for the job.
+def _build_SGE_script(run_name, numtasks, email, filename='script.sh'):
+    """Build a SGE formatted batch script for the job.
 
     Build prologue and epilogue sections of the batch script which surround the
-    run section of the script. The run script is generated by this method. All
-    three sections are put together and written to single file per args.
+    run section of the script. The run section of the script consists solely of
+    a call to 'python bin/onramp_run.py' from the path specified by
+    run_name.
 
     Args:
-        project_name (str): Name for the particular run of the job.
-        numtasks: Number of tasks to run
+        run_name (str): Name for the particular run of the job.
+        numtasks: Number of tasks the job should use. Default: 4
+        email (str): If not 'None', email results to this address. Default: None
     
     Keyword Args:
         filename (str): Name of the generated file. Default: 'script.sh'.
-        email (str): Email address to send job output to. If None, batch script
-            will not be configured to send email. Default: None.
-        datestamps (bool): If True, datestamp the output. Default: False.
-        verbose (bool): If True, output wil be verbose. Default: False.
-    
-    ***FIXME: Function needs to be updated to use modules' setup.py for run
-        section.
     """
     logger = logging.getLogger('onramp')
     logger.debug('PCE.tools._build_SGE_script() called')
+
     contents = '#!/bin/bash\n'
     contents += '###################################\n'
     contents += '# SGE Submission options\n'
     contents += '#\n'
     contents += '# Name of the job\n'
-    contents += '#$ -N ' + project_name + '\n'
+    contents += '#$ -N ' + run_name + '\n'
     contents += '#\n'
     contents += '# Changes the working directory to where the job has been \n'
     contents += '# submitted, otherwise uses the home directory\n'
@@ -284,34 +167,18 @@ def _build_SGE_script(project_name, np, filename='script.sh', email=None,
     contents += '#$ -S /bin/bash\n'
     contents += '###################################\n'
     contents += '\n'
-
-    if datestamps:
-        logger.debug('%s configured for datestamps' % project_name)
-        contents += 'date\n'
-
-    # FIXME: This needs to be communicated to CWD/setup.py:
-    #if verbose:
-    #    v = ' -v'
-    #else:
-    #    v = ''
-
-    contents += 'mpirun' + v + ' -np ' + str(np)
-    contents += ' ' + project_name + '.c-mpi' + '\n'
-
-    if datestamps:
-        contents += 'date\n'
-
+    contents += 'python bin/onramp_run.py\n'
     contents += '\n'
     if email:
         logger.debug('%s configured for email reporting to %s'
-                     % (project_name, email))
+                     % (run_name, email))
         contents += '#$ -m be\n'
         contents += '#$ -M ' + email + '\n'
 
     script_file = open(filename, 'w')
     script_file.write(contents)
     script_file.close()
-    logger.info('SGE script written for %s' % project_name)
+    logger.info('SGE script written for %s' % run_name)
 
 
 def encrypt(message, key):

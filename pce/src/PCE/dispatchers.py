@@ -187,40 +187,48 @@ class PrebuiltLaunch:
                 self._logger.debug('Copying file %s to %s' % (s,d))
                 shutil.copy2(s, d)
 
-    def POST(self, username, password, projectNum, projectName, processors,
-             emailResults, emailName, verbose, dateStamps, makefile,
-             **kwargs):
+    def POST(self, **kwargs):
         """Authenticates user and launches a default shipped job.
 
-        Args:
+        Kwargs:
+        -- Required kwargs:
             username (str): Username of submitting user.
             password (str): Password of submitting user.
+            projectNum: Project number.
+                **FIXME: Update to use project_name
+                instead.
             projectName (str): Name for this particular run of the project.
+                **FIXME: Update to use run_name instead.
             processors: Number of processors to run the given project on.
-            verbose (str): Pseudo-boolean val indicating whether or not output from
-                the run should be generated in verbose mode. 'true', 'on', '1',
-                't', 'y', and 'yes' all indicate verbose mode. All other values
-                indicate not verbose.
+                **FIXME: Should be num_tasks, as that's what's really needed.
+
+        -- Optional kwargs (Required if email notifications desired)
             emailResults (str): Pseudo-boolean val indicating whether or not
                 output from the run should be emailed. 'true', 'on', '1', 't',
                 'y', and 'yes' will all set the project to be emailed. All other
                 values will not. emailName is required with email is set.
-            dateStamps (str): Pseudo-boolean val indicating whether or not output
-                from the run should be datestamped. 'true', 'on', '1', 't', 'y', and
-                'yes' all set the project output to be datestamped. All other values
-                do not.
             emailName (str): Email address to send output to, if configured.
-            makefile: ***FIXME: DEPRECATED
-            **kwargs: Representations of files to be added to the project of the
-                form:
-                    kwargs['kwarg1'].filename: Name of the file.
-                    kwargs['kwarg1'].content_type: MIME-type of the file.
-                    kwargs['kwarg1'].file: The file.
 
         Returns:
             str: Status of job launch.
         """
         self._logger.debug('PrebuiltLaunch.POST() called')
+
+        required_attrs = ['username', 'password', 'projectNum', 'projectName',
+                          'processors']
+
+        missing_attrs = _check_required_attrs(*required_attrs, **kwargs)
+        if missing_attrs:
+            retval = 'The following required form fields are missing: '
+            retval += '%s' % str(missing_attrs)
+            self._logger.error(retval)
+            return retval
+
+        username = kwargs['username']
+        password = kwargs['password']
+        projectNum = kwargs['projectNum']
+        projectName = kwargs['projectName']
+        processors = kwargs['processors']
 
         path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
         base_dir = path + '/users/' + username
@@ -238,9 +246,9 @@ class PrebuiltLaunch:
         self._logger.info('Making results directory: %s' % results_dir)
         call(['mkdir', '-p', results_dir])
 
-        # Use a prebuilt project if specified, otherwise use the user's own
-        # project files.
+        # FIXME: Update the following to use project_name instead of projectNum.
         if int(projectNum) >= 0:
+            # Copy module to user's dir.
             prebuilt_proj_dir = self._get_prebuilt_proj_dir(projectNum)
             if prebuilt_proj_dir == 'Error':
                 retval = 'Unable to find and launch the specified '
@@ -254,22 +262,23 @@ class PrebuiltLaunch:
                                  project_dir))
             self._copy_tree(prebuilt_dir + '/' + prebuilt_proj_dir, project_dir)
         else:
-            self._logger.info('Copying user-uploaded files')
-            for f in kwargs.itervalues():
-                filename = project_dir + '/' + f.filename
-                self._logger.debug('Writing file: %s' % filename)
-                datafile = open(filename, 'w')
-                while True:
-                    data = f.file.read(8192)
-                    if not data:
-                        break
-                    datafile.write(data)
-                datafile.close()
+            retval = 'Invalid projectNum value: %s' % projectNum
+            self._logger.error(retval)
+            return retval
+
+        #TODO: Store kwargs to module/conf/yet-to-be-determined-filename.ini
+        # right here.
 
         self._logger.info('Launching job: %s' % projectName)
-        launch_job(project_dir, projectName, processors, verbose,
-                   emailResults, dateStamps, emailName,
-                   self.conf['cluster']['batch_scheduler'])
+        if ('emailResults' in kwargs.keys()
+            and kwargs['emailResults'] == 'true'
+            and 'emailName' in kwargs.keys()):
+                launch_job(project_dir, projectName,
+                           self.conf['cluster']['batch_scheduler'], processors,
+                           email=kwargs['emailName'])
+        else:
+            launch_job(project_dir, projectName,
+                       self.conf['cluster']['batch_scheduler'], processors)
 
         self._logger.info('User %s launched job %s', (username, projectName))
         return ('Launched a new job with ' + username)
@@ -529,6 +538,12 @@ class Login:
 
         self._logger.info('Admin %s logged in' % username)
         return 'Admin'
+
+
+def _check_required_attrs(*args, **kwargs):
+    """Return list of args not in kwargs.keys()."""
+    keys = kwargs.keys()
+    return filter(lambda x: x not in keys, args)
 
 
 if __name__ == '__main__':
