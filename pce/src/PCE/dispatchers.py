@@ -45,7 +45,7 @@ def _required_attrs(*args):
             missing_attrs = filter(lambda x: x not in keys, args)
             if missing_attrs:
                 retval = 'The following required form fields are missing: '
-                retval += '%s' % str(missing_attrs)
+                retval += ', '.join(missing_attrs)
                 self._logger.error(retval)
                 return retval
             else:
