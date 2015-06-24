@@ -48,10 +48,57 @@ def _required_attrs(*args):
                 retval += ', '.join(missing_attrs)
                 self._logger.error(retval)
                 return retval
-            else:
-                return f(self, **kwargs)
+            return f(self, **kwargs)
         return inner2
     return inner1
+
+
+def _auth_required(f):
+    """Decorator to perform authentication prior to execution of decorated
+    function.
+
+    Args:
+        f (func): Function requiring an authenticated user.
+
+    NOTE: Raises KeyError if 'username' or 'password' are missing from kwargs.
+    """
+    def inner(self, **kwargs):
+        path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
+        base_dir = path + '/users/' + kwargs['username']
+        self._logger.debug('Authenticating user: %s' % kwargs['username'])
+        auth_response = authenticate(base_dir, kwargs['username'],
+                                     kwargs['password'])
+        if auth_response:
+            self._logger.warning('Failed auth_response: %s' % auth_response)
+            return auth_response
+
+        return f(self, **kwargs)
+    return inner
+
+
+def _admin_auth_required(f):
+    """Decorator to perform authentication of admin user prior to execution of
+    decorated function.
+
+    Args:
+        f (func): Function requiring an authenticated admin user.
+
+    NOTE: Raises KeyError if 'username' or 'password' are missing from kwargs.
+    """
+    def inner(self, **kwargs):
+        path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
+        base_dir = path + '/users/' + kwargs['username']
+        self._logger.debug('Authenticating admin user: %s'
+                           % kwargs['username'])
+        auth_response = admin_authenticate(base_dir, kwargs['username'],
+                                           kwargs['password'])
+        if auth_response:
+            self._logger.warning('Failed admin auth_response: %s'
+                                 % auth_response)
+            return auth_response
+
+        return f(self, **kwargs)
+    return inner
 
 
 class Service:
@@ -193,6 +240,8 @@ class PrebuiltLaunch:
         POST: Launches a job.
     """
     exposed = True
+    POST_required_attrs = ['username', 'password', 'projectNum', 'projectName',
+                           'processors']
 
     def __init__(self, conf):
         """Instantiate and set self.conf."""
@@ -216,8 +265,8 @@ class PrebuiltLaunch:
                 self._logger.debug('Copying file %s to %s' % (s,d))
                 shutil.copy2(s, d)
 
-    @_required_attrs('username', 'password', 'projectNum', 'projectName',
-                    'processors')
+    @_required_attrs(*POST_required_attrs)
+    @_auth_required
     def POST(self, **kwargs):
         """Authenticates user and launches a default shipped job.
 
@@ -254,12 +303,6 @@ class PrebuiltLaunch:
         path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
         base_dir = path + '/users/' + username
         prebuilt_dir = path + '/modules'
-
-        self._logger.debug('Authenticating user: %s' % username)
-        auth_response = authenticate(base_dir, username, password);
-        if auth_response is not None:
-            self._logger.warning('Failed auth_response: %s' % auth_response)
-            return auth_response
 
         project_dir = base_dir + '/' + projectName
         results_dir = project_dir + '/' + 'Results'
