@@ -10,6 +10,7 @@ Exports:
     Login: Authenticate users.
 """
 
+import copy
 import glob
 import logging
 import os
@@ -40,7 +41,7 @@ def _required_attrs(*args):
             ...
     """
     def inner1(f):
-        def inner2(self, **kwargs):
+        def inner2(self, *fargs, **kwargs):
             keys = kwargs.keys()
             missing_attrs = filter(lambda x: x not in keys, args)
             if missing_attrs:
@@ -48,7 +49,7 @@ def _required_attrs(*args):
                 retval += ', '.join(missing_attrs)
                 self._logger.error(retval)
                 return retval
-            return f(self, **kwargs)
+            return f(self, *fargs, **kwargs)
         return inner2
     return inner1
 
@@ -62,7 +63,7 @@ def _auth_required(f):
 
     NOTE: Raises KeyError if 'username' or 'password' are missing from kwargs.
     """
-    def inner(self, **kwargs):
+    def inner(self, *args, **kwargs):
         path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
         base_dir = path + '/users/' + kwargs['username']
         self._logger.debug('Authenticating user: %s' % kwargs['username'])
@@ -72,7 +73,7 @@ def _auth_required(f):
             self._logger.warning('Failed auth_response: %s' % auth_response)
             return auth_response
 
-        return f(self, **kwargs)
+        return f(self, *args, **kwargs)
     return inner
 
 
@@ -85,7 +86,7 @@ def _admin_auth_required(f):
 
     NOTE: Raises KeyError if 'username' or 'password' are missing from kwargs.
     """
-    def inner(self, **kwargs):
+    def inner(self, *args, **kwargs):
         path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
         base_dir = path + '/users/' + kwargs['username']
         self._logger.debug('Authenticating admin user: %s'
@@ -97,8 +98,25 @@ def _admin_auth_required(f):
                                  % auth_response)
             return auth_response
 
-        return f(self, **kwargs)
+        return f(self, *args, **kwargs)
     return inner
+
+
+def _santitize_dict(d):
+    """Return copy of d with specified keys deleted.
+
+    Args:
+        d (dict): Dictionary to make a sanitized copy of.
+
+    Returns:
+        dict: Copy of d with specified keys deleted.
+    """
+    keys_to_del = ['password', 'files']
+
+    new = copy.deepcopy(d)
+    for k in filter(lambda x: x in d.keys(), keys_to_del):
+        new.pop(k)
+    return new
 
 
 class Service:
@@ -112,40 +130,52 @@ class Service:
         POST: Uploads and launches a new job.
     """
     exposed = True
+    POST_required_attrs = ['username', 'password', 'projectNum', 'projectName',
+                           'processors', 'files']
 
     def __init__(self, conf):
         """Instantiate and set self.conf."""
         self.conf = conf
         self._logger = logging.getLogger('onramp')
 
-    def _setup(self, base_dir, projectName, processors, verbose, emailResults,
-              dateStamps, emailName, **kwargs):
+    @_required_attrs(*POST_required_attrs)
+    @_auth_required
+    def _setup(self, base_dir, **kwargs):
         """Creates and launches new job located at base_dir/projectName.
 
         Args:
-            project_loc (str): Filesystem path for the reqesting user's dir.
+            base_dir (str): Filesystem path for the reqesting user's dir.
+
+        Kwargs:
+        -- Required kwargs:
+            username (str): Username of submitting user.
+            password (str): Password of submitting user.
+            projectNum: Project number.
+                **FIXME: Update to use project_name
+                instead.
             projectName (str): Name for this particular run of the project.
+                **FIXME: Update to use run_name instead.
             processors: Number of processors to run the given project on.
-            verbose (str): Pseudo-boolean val indicating whether or not output from
-                the run should be generated in verbose mode. 'true', 'on', '1',
-                't', 'y', and 'yes' all indicate verbose mode. All other values
-                indicate not verbose.
+                **FIXME: Should be num_tasks, as that's what's really needed.
+            files: Dict of files to be uploaded into the new project. Format:
+                files['key1'].filename: Name of file.
+                files['key1'].content_type: MIME-type of file.
+                files['key1'].file: The file.
+
+        -- Optional kwargs (Required if email notifications desired)
             emailResults (str): Pseudo-boolean val indicating whether or not
                 output from the run should be emailed. 'true', 'on', '1', 't',
                 'y', and 'yes' will all set the project to be emailed. All other
                 values will not. emailName is required with email is set.
-            dateStamps (str): Pseudo-boolean val indicating whether or not output
-                from the run should be datestamped. 'true', 'on', '1', 't', 'y', and
-                'yes' all set the project output to be datestamped. All other values
-                do not.
             emailName (str): Email address to send output to, if configured.
-            **kwargs: Representations of files to be added to the project of the
-                form:
-                    kwargs['kwarg1'].filename: Name of the file.
-                    kwargs['kwarg1'].content_type: MIME-type of the file.
-                    kwargs['kwarg1'].file: The file.
-
         """
+        username = kwargs['username']
+        password = kwargs['password']
+        projectNum = kwargs['projectNum']
+        projectName = kwargs['projectName']
+        processors = kwargs['processors']
+        files = kwargs['files']
+
         self._logger.debug('Service._setup() called')
         project_dir = base_dir + '/' + projectName
         results_dir = project_dir + '/Results'
@@ -154,7 +184,7 @@ class Service:
         call(['mkdir', '-p', results_dir])
 
         self._logger.info('Copying user-uploaded files')
-        for f in kwargs.itervalues():
+        for f in files.itervalues():
             filename = project_dir + '/' + f.filename
             self._logger.debug('Writing file: %s' % filename)
             datafile = open(filename, 'w')
@@ -165,65 +195,66 @@ class Service:
                 datafile.write(data)
             datafile.close()
 
-        self._logger.info('Launching job: %s' % projectName)
-        launch_job(project_dir, projectName, processors, verbose,
-                   emailResults, dateStamps, emailName,
-                   self.conf['cluster']['batch_scheduler'])
+        #TODO: Store _sanitize_dict(kwargs) to
+        # module/conf/to-be-determined-filename.ini right here.
 
-    def POST(self, username, password, projectName, processors, verbose,
-             emailResults, dateStamps, emailName, **kwargs):
+        self._logger.info('Launching job: %s' % projectName)
+        if('emailResults' in kwargs.keys()
+           and kwargs['emailResults'] == 'true'
+           and 'emailName' in kwargs.keys()):
+                launch_job(project_dir, projectName,
+                           self.conf['cluster']['batch_scheduler'], processors,
+                           email=kwargs['emailName'])
+        else:
+            launch_job(project_dir, projectName,
+                       self.conf['cluster']['batch_scheduler'], processors)
+
+    @_required_attrs(*POST_required_attrs)
+    @_auth_required
+    def POST(self, **kwargs):
         """Authenticates user, forks, creates and launches new job located at
         base_dir/projectName.
 
-        Args:
+        **FIXME: REQUIRES UPDATE OF WEB CLIENT!!!
+            - **kwargs previously contained files for upload from user. Now
+              file dict needs to be passed under the 'files' attr.
+
+        Kwargs:
+        -- Required kwargs:
             username (str): Username of submitting user.
             password (str): Password of submitting user.
+            projectNum: Project number.
+                **FIXME: Update to use project_name
+                instead.
             projectName (str): Name for this particular run of the project.
+                **FIXME: Update to use run_name instead.
             processors: Number of processors to run the given project on.
-            verbose (str): Pseudo-boolean val indicating whether or not output from
-                the run should be generated in verbose mode. 'true', 'on', '1',
-                't', 'y', and 'yes' all indicate verbose mode. All other values
-                indicate not verbose.
+                **FIXME: Should be num_tasks, as that's what's really needed.
+            files: Dict of files to be uploaded into the new project.
+
+        -- Optional kwargs (Required if email notifications desired)
             emailResults (str): Pseudo-boolean val indicating whether or not
                 output from the run should be emailed. 'true', 'on', '1', 't',
                 'y', and 'yes' will all set the project to be emailed. All other
                 values will not. emailName is required with email is set.
-            dateStamps (str): Pseudo-boolean val indicating whether or not output
-                from the run should be datestamped. 'true', 'on', '1', 't', 'y', and
-                'yes' all set the project output to be datestamped. All other values
-                do not.
             emailName (str): Email address to send output to, if configured.
-            **kwargs: Representations of files to be added to the project of the
-                form:
-                    kwargs['kwarg1'].filename: Name of the file.
-                    kwargs['kwarg1'].content_type: MIME-type of the file.
-                    kwargs['kwarg1'].file: The file.
 
         Returns:
             str: Status of job launch.
 
         """
+        username = kwargs['username']
+        projectName = kwargs['projectName']
+
         self._logger.debug('Service.POST() called')
         path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
         base_dir = path + '/users/' + username
 
-        self._logger.debug('Authenticating user: %s' % username)
-        auth_response = authenticate(base_dir, username, password);
-        if auth_response is not None:
-            self._logger.warning('Failed auth_response: %s' % auth_response)
-            return auth_response
-
-        p = Process(target=self._setup,
-                    args=(base_dir, projectName, processors, verbose,
-                          emailResults, dateStamps, emailName),
-                    kwargs=kwargs)
-
+        p = Process(target=self._setup, args=(base_dir,),
+                    kwargs=_sanitize_dict(kwargs))
         p.daemon = True
         self._logger.debug('Starting new process with target Service._setup()')
         p.start()
-        # Join if we would like to wait for newJob to return.  We generally
-        # don't want this as we are creating a new process.
-        #p.join()
 
         self._logger.info('User %s launched job %s', (username, projectName))
         return ('Launched a new job with ' + username)
@@ -293,6 +324,7 @@ class PrebuiltLaunch:
             str: Status of job launch.
         """
         self._logger.debug('PrebuiltLaunch.POST() called')
+        self._logger.debug('kwargs: %s' % str(kwargs))
 
         username = kwargs['username']
         password = kwargs['password']
@@ -330,19 +362,21 @@ class PrebuiltLaunch:
             self._logger.error(retval)
             return retval
 
-        #TODO: Store kwargs to module/conf/yet-to-be-determined-filename.ini
-        # right here.
+        #TODO: Store _sanitize_dict(kwargs) to
+        # module/conf/to-be-determined-filename.ini right here.
 
         self._logger.info('Launching job: %s' % projectName)
-        if ('emailResults' in kwargs.keys()
-            and kwargs['emailResults'] == 'true'
-            and 'emailName' in kwargs.keys()):
+        if('emailResults' in kwargs.keys()
+           and kwargs['emailResults'] == 'true'
+           and 'emailName' in kwargs.keys()):
                 launch_job(project_dir, projectName,
-                           self.conf['cluster']['batch_scheduler'], processors,
-                           email=kwargs['emailName'])
+                           self.conf['cluster']['batch_scheduler'],
+                           num_tasks=processors, email=kwargs['emailName'],
+                           **_sanitize_dict(kwargs))
         else:
             launch_job(project_dir, projectName,
-                       self.conf['cluster']['batch_scheduler'], processors)
+                       self.conf['cluster']['batch_scheduler'],
+                       num_tasks=processors, **_sanitize_dict(kwargs))
 
         self._logger.info('User %s launched job %s', (username, projectName))
         return ('Launched a new job with ' + username)
