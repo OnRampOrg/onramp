@@ -415,6 +415,7 @@ class Request:
         base_dir = path + '/users/' + username
 
         data = {}
+        ret_dir = os.getcwd()
 
         for folder in os.listdir(base_dir):
             project_dir = base_dir + '/' + folder
@@ -437,6 +438,9 @@ class Request:
 
             if results != '':
                 data[folder] = results
+
+        self._logger.debug('Changing CWD to: %s' % ret_dir)
+        os.chdir(ret_dir)
 
         if not data:
             self._logger.info('No results found for user %s' % username)
