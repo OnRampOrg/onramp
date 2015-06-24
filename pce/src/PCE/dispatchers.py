@@ -88,11 +88,11 @@ def _admin_auth_required(f):
     """
     def inner(self, *args, **kwargs):
         path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
-        base_dir = path + '/users/' + kwargs['username']
+        base_dir = path + '/users/' + kwargs['adminUsername']
         self._logger.debug('Authenticating admin user: %s'
-                           % kwargs['username'])
-        auth_response = admin_authenticate(base_dir, kwargs['username'],
-                                           kwargs['password'])
+                           % kwargs['adminUsername'])
+        auth_response = admin_authenticate(base_dir, kwargs['adminUsername'],
+                                           kwargs['adminPassword'])
         if auth_response:
             self._logger.warning('Failed admin auth_response: %s'
                                  % auth_response)
@@ -398,6 +398,7 @@ class Request:
         self.conf = conf
         self._logger = logging.getLogger('onramp')
 
+    @_auth_required
     def POST(self, username, password):
         """Authenticate user and return status of all jobs submitted by user.
 
@@ -412,12 +413,6 @@ class Request:
         self._logger.debug('Request.POST() called')
         path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
         base_dir = path + '/users/' + username
-
-        self._logger.debug('Authenticating user: %s' % username)
-        auth_response = authenticate(base_dir, username, password);
-        if auth_response is not None:
-            self._logger.warning('Failed auth_response: %s' % auth_response)
-            return auth_response
 
         data = {}
 
@@ -470,6 +465,7 @@ class ClusterDetails:
         self.conf = conf
         self._logger = logging.getLogger('onramp')
 
+    @_auth_required
     def POST(self, username, password):
         """Authenticate user and return attrs/status of cluster.
 
@@ -484,12 +480,6 @@ class ClusterDetails:
         self._logger.debug('ClusterDetails.POST() called')
         path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
         base_dir = path + '/users/' + username
-
-        self._logger.debug('Authenticating user: %s' % username)
-        auth_response = authenticate(base_dir, username, password);
-        if auth_response is not None:
-            self._logger.warning('Failed auth_response: %s' % auth_response)
-            return auth_response
 
         data = {}
 
@@ -526,6 +516,7 @@ class UserSetup:
         self.conf = conf
         self._logger = logging.getLogger('onramp')
 
+    @_admin_auth_required
     def POST(self, adminUsername, adminPassword, username, password, isAdmin):
         """Authenticate admin and create new user.
 
@@ -541,16 +532,9 @@ class UserSetup:
         """
         self._logger.debug('UserSetup.POST() called')
         path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
-        admin_dir = path + '/users/' + adminUsername
+        base_dir = path + '/users/' + username
 
         self._logger.debug('Authenticating admin user %s' % adminUsername)
-        auth_response = admin_authenticate(admin_dir, adminUsername,
-                                           adminPassword);
-        if auth_response is not None:
-            self._logger.debug('Failed admin auth_response: %s' % adminUsername)
-            return auth_response
-
-        base_dir = path + '/users/' + username
 
         # Return if user directory already exists.
         if os.path.isdir(base_dir):
