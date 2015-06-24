@@ -371,12 +371,11 @@ class PrebuiltLaunch:
            and 'emailName' in kwargs.keys()):
                 launch_job(project_dir, projectName,
                            self.conf['cluster']['batch_scheduler'],
-                           num_tasks=processors, email=kwargs['emailName'],
-                           **_sanitize_dict(kwargs))
+                           num_tasks=processors, email=kwargs['emailName'])
         else:
             launch_job(project_dir, projectName,
                        self.conf['cluster']['batch_scheduler'],
-                       num_tasks=processors, **_sanitize_dict(kwargs))
+                       num_tasks=processors)
 
         self._logger.info('User %s launched job %s', (username, projectName))
         return ('Launched a new job with ' + username)
