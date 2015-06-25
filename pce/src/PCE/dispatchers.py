@@ -280,9 +280,11 @@ class PrebuiltLaunch:
         self._logger = logging.getLogger('onramp')
 
     def _get_prebuilt_proj_dir(self, x):
+        # FIXME: This has to go. We should do this my project name instead.
         return {
             '0': 'HelloMPI',
             '1': 'AreaUnderCurve',
+            '2': 'testmodule',
         }.get(x, 'Error')
 
     def _copy_tree(self, src, dst):
