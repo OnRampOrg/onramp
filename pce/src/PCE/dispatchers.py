@@ -339,6 +339,11 @@ class PrebuiltLaunch:
         project_dir = base_dir + '/' + projectName
         results_dir = project_dir + '/' + 'Results'
 
+        if os.path.isdir(project_dir):
+            retval = 'A job with this name already exists.'
+            self._logger.info(retval)
+            return retval
+
         self._logger.info('Making results directory: %s' % results_dir)
         call(['mkdir', '-p', results_dir])
 
