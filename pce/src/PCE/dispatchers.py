@@ -1,13 +1,7 @@
-"""Service classes encapsulating onramp REST server functionality under HTTP
-methods.
+"""Dispatchers implementing the OnRamp PCE API.
 
 Exports:
-    Service: Upload, launch, and get status of parallel jobs.
-    PrebuiltLaunch: Launch a prebuilt parallel job.
-    Request: Get results from previously run parallel jobs.
-    ClusterDetails: Cluster attrs, status, etc.
-    UserSetup: Create new users.
-    Login: Authenticate users.
+    Modules: View, add, update, and remove PCE educational modules.
 """
 
 import copy
