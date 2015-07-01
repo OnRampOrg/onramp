@@ -14,7 +14,7 @@ from configobj import ConfigObj
 from validate import Validator
 
 from PCE.dispatchers import Service, Login, PrebuiltLaunch, Request, \
-                            ClusterDetails, UserSetup
+                            ClusterDetails, UserSetup, Modules
 
 
 def _CORS():
@@ -124,6 +124,7 @@ if __name__ == '__main__':
     cherrypy.tree.mount(Request(ini), '/parallellaunch/request', conf)
     cherrypy.tree.mount(ClusterDetails(ini), '/parallellaunch/clusterdetails', conf)
     cherrypy.tree.mount(UserSetup(ini), '/parallellaunch/usersetup', conf)
+    cherrypy.tree.mount(Modules(ini), '/modules', conf)
 
     logger.info('Starting cherrypy engine')
     cherrypy.engine.start()
