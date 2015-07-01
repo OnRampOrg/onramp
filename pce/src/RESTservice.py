@@ -13,8 +13,7 @@ from cherrypy.process.plugins import Daemonizer, PIDFile
 from configobj import ConfigObj
 from validate import Validator
 
-from PCE.dispatchers import Service, Login, PrebuiltLaunch, Request, \
-                            ClusterDetails, UserSetup, Modules
+from PCE.dispatchers import Modules
 
 
 def _CORS():
@@ -118,12 +117,6 @@ if __name__ == '__main__':
 
     Daemonizer(cherrypy.engine).subscribe()
     cherrypy.tools.CORS = cherrypy.Tool('before_finalize', _CORS)
-    cherrypy.tree.mount(Service(ini), '/parallellaunch/service', conf)
-    cherrypy.tree.mount(Login(ini), '/parallellaunch/login', conf)
-    cherrypy.tree.mount(PrebuiltLaunch(ini), '/parallellaunch/prebuiltlaunch', conf)
-    cherrypy.tree.mount(Request(ini), '/parallellaunch/request', conf)
-    cherrypy.tree.mount(ClusterDetails(ini), '/parallellaunch/clusterdetails', conf)
-    cherrypy.tree.mount(UserSetup(ini), '/parallellaunch/usersetup', conf)
     cherrypy.tree.mount(Modules(ini), '/modules', conf)
 
     logger.info('Starting cherrypy engine')
