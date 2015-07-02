@@ -100,10 +100,14 @@ class _PCEResourceBase:
                          + str(conf['server']['socket_port'])
                          + '/api/')
 
-    def JSON_response(self, status_code=0, status_msg='Success', **kwargs):
+    def JSON_response(self, id=None, url=True, status_code=0,
+                      status_msg='Success', **kwargs):
         """Construct JSON response from default and provided attrs.
 
         Kwargs:
+            id: If not none, set response value for 'url' to the url for
+                specific resource specified by id.
+            url (bool): If false, set response value for 'url' to None.
             status_code (int): Status code of response.
             status_msg (str): Status message.
             **kwargs (dict): Key/value pairs to include in the JSON response.
@@ -111,7 +115,10 @@ class _PCEResourceBase:
         retval = {}
         retval['status_code'] = status_code
         retval['status_msg'] = status_msg
-        retval['url'] = self._build_url()
+        if url:
+            retval['url'] = self._build_url(module=id)
+        else:
+            retval['url'] = None
         retval['api_root'] = self.api_root
         retval.update(kwargs)
         return json.dumps(retval)
@@ -121,11 +128,20 @@ class Modules(_PCEResourceBase):
     """Provide API for PCE educational modules resource.
     
     Methods:
-        GET: Returns list of installed PCE educational modules.
+        GET: Returns list of installed PCE educational modules or detail view
+            for specific PCE educational module.
     """
-    def GET(self, **kwargs):
-        """Return list of installed PCE educational modules."""
+    def GET(self, id=None, **kwargs):
+        """Return list of installed PCE educational modules or detail view for
+        specific PCE educational module.
+
+        Kwargs:
+            id: Id for the specific resource requested. If none, will return
+                list of all members in resource class.
+            **kwargs (dict): Key/value request query params.
+        """
         self.logger.debug('Modules.GET() called')
+        self.logger.debug('id: %s' % id)
 
         path = os.path.dirname(os.path.abspath(__file__)) + '/../../modules'
         if not os.path.isdir(path):
@@ -133,13 +149,31 @@ class Modules(_PCEResourceBase):
             self.logger.error(msg)
             return self.JSON_response(status_code=-1, status_msg=msg)
 
-        modules = {
-            name: {'url': self._build_url(module=name)}
-            for name in os.listdir(path)
-        }
+        if id is None:
+            modules = {
+                name: self._build_module(name)
+                for name in os.listdir(path)
+            }
+            self.logger.debug('Returning list of modules')
+            return self.JSON_response(modules=modules)
 
-        self.logger.debug('Returning list of modules')
-        return self.JSON_response(modules=modules)
+        if not os.path.isdir(os.path.join(path, id)):
+            msg = 'Module %s does not exist' % id
+            self.logger.warn(msg)
+            return self.JSON_response(status_code=-2, status_msg=msg, url=False)
+
+        self.logger.debug('Returning module %s' % id) 
+        return self.JSON_response(id=id, module=self._build_module(id))
+
+    def _build_module(self, module):
+        """Return dict rep of PCE educational module.
+
+        Args:
+            module: Identifier of the module.
+        """
+        return {
+            'url': self._build_url(module=module)
+        }
 
     def _build_url(self, module=None):
         """Return URL for given module, or module base.
