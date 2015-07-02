@@ -13,7 +13,7 @@ from cherrypy.process.plugins import Daemonizer, PIDFile
 from configobj import ConfigObj
 from validate import Validator
 
-from PCE.dispatchers import Modules
+from PCE.dispatchers import Jobs, Modules
 
 
 def _CORS():
@@ -118,6 +118,7 @@ if __name__ == '__main__':
     Daemonizer(cherrypy.engine).subscribe()
     cherrypy.tools.CORS = cherrypy.Tool('before_finalize', _CORS)
     cherrypy.tree.mount(Modules(ini), '/modules', conf)
+    cherrypy.tree.mount(Jobs(ini), '/jobs', conf)
 
     logger.info('Starting cherrypy engine')
     cherrypy.engine.start()

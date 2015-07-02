@@ -19,7 +19,7 @@ import os
 from Crypto import Random
 from Crypto.Cipher import AES
 
-from subprocess import call, check_output
+from subprocess import CalledProcessError, call, check_output
 
 def launch_job(project_loc, run_name, batch_scheduler, numtasks=4, email=None,
                **kwargs):
@@ -43,16 +43,19 @@ def launch_job(project_loc, run_name, batch_scheduler, numtasks=4, email=None,
 
     # Verify if project_loc exists, if not return with message.
     if not os.path.isdir(project_loc):
-        retval = 'Project Location does not exist.'
-        logger.error(retval)
-        return retval
+        msg = 'Project Location does not exist.'
+        logger.error(msg)
+        return {
+            'status_code': -6,
+            'status_msg': msg
+        }
 
     ret_dir = os.getcwd()
 
     # Begin Executing the Job
     os.chdir(project_loc)
     logger.info('Calling bin/onramp_preprocess.py in %s' % project_loc)
-    call(['python', 'bin/onramp_preprocess.py'])
+    call(['../../../../src/env/bin/python', 'bin/onramp_preprocess.py'])
 
     logger.debug('Server configured to use %s as batch scheduler'
                  % batch_scheduler)
@@ -60,19 +63,69 @@ def launch_job(project_loc, run_name, batch_scheduler, numtasks=4, email=None,
     if batch_scheduler == 'SLURM':
         _build_SLURM_script(run_name, numtasks, email,
                             filename=project_loc + '/script.sh')
-        call(['sbatch', 'script.sh'])
+
+        try:
+            batch_output = check_output(['sbatch', 'script.sh'])
+        except CalledProcessError as e:
+            msg = 'Job scheduling call failed'
+            logger.error(msg)
+            os.chdir(ret_dir)
+            return {
+                'status_code': -4,
+                'status_msg': msg,
+                'return_code': e.returncode,
+                'output': e.output
+            }
+
+        output_fields = batch_output.strip().split()
+
+        if 'Submitted batch job' != ' '.join(output_fields[:-1]):
+            msg = 'Unexpeted output from sbatch'
+            self.logger.error(msg)
+            return {
+                'status_code': -7,
+                'status_msg': msg
+            }
+
+        try:
+            job_num = int(output_fields[3:][0])
+        except ValueError, IndexError:
+            msg = 'Unexpeted output from sbatch'
+            self.logger.error(msg)
+            return {
+                'status_code': -7,
+                'status_msg': msg
+            }
+
     elif batch_scheduler == 'SGE':
         _build_SGE_script(run_name, numtasks, email,
                           filename=project_loc + 'script.sh')
-        call(['qsub', 'script.sh'])
+        try:
+            batch_output = check_output(['qsub', 'script.sh'])
+        except CalledProcessError as e:
+            msg = 'Job scheduling call failed'
+            logger.error(msg)
+            os.chdir(ret_dir)
+            return {
+                'status_code': -4,
+                'status_msg': msg,
+                'return_code': e.returncode,
+                'output': e.output
+            }
+
     else:
-        retval = 'Invalid argument for batch_scheulder'
-        logger.error(retval)
-        return retval
+        msg = 'Invalid argument for batch_scheulder'
+        logger.warn(msg)
+        os.chdir(ret_dir)
+        return {
+            'status_code': -5,
+            'status_msg': msg
+        }
 
     os.chdir(ret_dir)
-    logger.info('Job %s scheduled' % run_name)
-    return 'Complete!'
+    msg = 'Job %s scheduled as job_num: %s' % (run_name, job_num)
+    logger.info(msg)
+    return {'status_code': 0, 'status_msg': msg, 'job_num': job_num}
 
 def _build_SLURM_script(run_name, numtasks, email, filename='script.sh'):
     """Build a SLURM formatted batch script for the job.
@@ -99,7 +152,7 @@ def _build_SLURM_script(run_name, numtasks, email, filename='script.sh'):
     contents += '# Slurm Submission options\n'
     contents += '#\n'
     contents += '#SBATCH --job-name=' + run_name + '\n'
-    contents += '#SBATCH -o Results/output.txt\n'
+    contents += '#SBATCH -o ../Results/output.txt\n'
     contents += '#SBATCH -n ' + str(numtasks) + '\n'
     if email:
         logger.debug('%s configured for email reporting to %s'
@@ -155,7 +208,7 @@ def _build_SGE_script(run_name, numtasks, email, filename='script.sh'):
     contents += '#$ -r y\n'
     contents += '#\n'
     contents += '# Define the output file\n'
-    contents += '#$ -o Results/output.txt\n'
+    contents += '#$ -o ../Results/output.txt\n'
     contents += '#\n'
     ## qsub will wait for the job to complete before exiting:
     # contents += '#$ -sync y\n'

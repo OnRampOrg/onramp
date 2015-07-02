@@ -2,7 +2,6 @@
 
 Exports:
     setup: Setup the testing environment.
-    teardown: Cleanup the testing environment.
     pce_url: Build the full URL for the resource at a specified endpoint.
     pce_post: Execute a POST request to a given endpoint with given params.
     pce_get: Execute a GET request to a given endpoint with given params.
@@ -216,7 +215,49 @@ class ModulesEndpointTest(_JSONResourceTest):
         self.assertNotEqual(mod['url'], '/modules/')
 
 
-if __name__ == '__main__':
-    setup()
-    unittest.main()
-    teardown()
+class JobsEndpointTest(_JSONResourceTest):
+    """Test the API for PCE educational modules.
+
+    Class attrs:
+        modules_dir (str): Relative path to deployed modules base dir.
+        testmodule_dir (str): Relative path to deployed testing module dir.
+    
+    Methods:
+        test_POST: Test resource response to various POST requests.
+    """
+    def setUp(self):
+        self.username = test_ini['username']
+        self.run_name = test_ini['run_name']
+        self.modules_dir = '../../modules'
+        self.testmodule_dir = self.modules_dir + '/testmodule'
+        self.run_dir = '../../users/%s/%s' % (self.username, self.run_name)
+        """Setup the testing environment for modules testing."""
+        shutil.copytree('testmodule', self.testmodule_dir)
+        ret_dir = os.getcwd()
+        os.chdir(self.testmodule_dir)
+        call(['python', 'bin/onramp_deploy.py'])
+        os.chdir(ret_dir)
+    
+    def tearDown(self):
+        """Cleanup the testing environment from modules testing."""
+        if(os.path.isdir(self.testmodule_dir)):
+            shutil.rmtree(self.testmodule_dir)
+
+        if(os.path.isdir(self.run_dir)):
+            shutil.rmtree(self.run_dir)
+
+    def test_POST(self):
+        """Test resource response to various POST requests."""
+        # Request under normal conditions:
+        r = pce_post('jobs/', username=self.username, module_name='testmodule',
+                     run_name=self.run_name)
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_base_JSON_attrs(d)
+        self.assertIn(u'job_num', d.keys())
+        self.assertEqual(d['status_code'], 0)
+        test_str = 'Job %s_%s scheduled as job_num: ' % (self.username, self.run_name)
+        self.assertTrue(d['status_msg'].startswith(test_str))
+        fields = d['status_msg'].split(test_str)
+        self.assertEqual(len(fields), 2)
+        self.assertEqual(int(fields[1]), d['job_num'])
