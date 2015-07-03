@@ -157,7 +157,7 @@ class Jobs(_PCEResourceBase):
             return self.JSON_response(status_code=-2, status_msg=msg, url=False)
         if os.path.isdir(run_dir):
             # FIXME: Should return HTTP status 400.
-            msg = 'A job with this name already exists.'
+            msg = 'A job with this name already exists'
             self.logger.warn(msg)
             return self.JSON_response(id=id, status_code=-3,
                                       status_msg=msg)
