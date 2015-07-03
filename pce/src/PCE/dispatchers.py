@@ -152,9 +152,9 @@ class Jobs(_PCEResourceBase):
             return self.JSON_response(status_code=-1, status_msg=msg)
         if not os.path.isdir(mod_dir):
             # FIXME: Should return HTTP status 404.
-            msg = 'Module %s does not exist' % id
+            msg = 'Module %s does not exist' % module_name
             self.logger.warn(msg)
-            return self.JSON_response(status_code=-2, status_msg=msg, url=False)
+            return self.JSON_response(status_code=-2, status_msg=msg)
         if os.path.isdir(run_dir):
             # FIXME: Should return HTTP status 400.
             msg = 'A job with this name already exists'
