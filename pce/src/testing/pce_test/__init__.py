@@ -69,20 +69,26 @@ def pce_get(endpoint, **kwargs):
 class _JSONResourceTest(unittest.TestCase):
     """Encapsulate functionality/attrs common to all JSON response testing.
 
+    Class Attrs:
+        base_response_fields (list): Set of all fields that should be present in
+            every response in all tests conducted by a _JSONResourceTest subclass.
+
     Methods:
         check_base_JSON_attrs: Check attrs that should be consistent accross all
             API JSON responses.
     """
+    base_response_fields = ['status_code', 'status_msg', 'url', 'api_root']
+
     def check_base_JSON_attrs(self, obj):
         """Check attrs that should be consistent accross all API JSON responses.
 
         Args:
             obj (dict): Response object to check.
         """
-        self.assertIn('status_code', obj.keys())
-        self.assertIn('status_msg', obj.keys())
-        self.assertIn('url', obj.keys())
-        self.assertIn('api_root', obj.keys())
+        keys = obj.keys()
+        for field in self.base_response_fields:
+            self.assertIn(field, keys)
+
         self.assertTrue(obj['api_root'].endswith('/api/'))
 
 
@@ -248,6 +254,10 @@ class JobsEndpointTest(_JSONResourceTest):
 
     def test_POST(self):
         """Test resource response to various POST requests."""
+        rel_url = '/jobs/%s_%s/' % (self.username, self.run_name)
+        success_response_fields = [u'job_num']
+        error_response_fields = []
+
         # Request under normal conditions:
         r = pce_post('jobs/', username=self.username, module_name='testmodule',
                      run_name=self.run_name)
@@ -261,3 +271,31 @@ class JobsEndpointTest(_JSONResourceTest):
         fields = d['status_msg'].split(test_str)
         self.assertEqual(len(fields), 2)
         self.assertEqual(int(fields[1]), d['job_num'])
+        self.assertTrue(os.path.isdir(self.run_dir))
+        self.assertTrue(os.path.isdir(self.run_dir + '/Results'))
+        self.assertTrue(os.path.isdir(self.run_dir + '/testmodule'))
+        self.assertTrue(d['url'].endswith(rel_url))
+        fields = success_response_fields + self.base_response_fields
+        for k in d.keys():
+            self.assertIn(k, fields)
+        time.sleep(1)
+        self.assertTrue(os.path.isfile(self.run_dir + '/Results/output.txt'))
+        with open(self.run_dir + '/Results/output.txt', 'r') as f:
+            output = f.read()
+            expected = ('Testing output from testmodule.Testing output from '
+                        'testmodule.Testing output from testmodule.Testing '
+                        'output from testmodule.')
+            self.assertEqual(output, expected)
+
+        # Request with same attrs as previously run job:
+        r = pce_post('jobs/', username=self.username, module_name='testmodule',
+                     run_name=self.run_name)
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_base_JSON_attrs(d)
+        self.assertEqual(d['status_code'], -3)
+        self.assertEqual(d['status_msg'], 'A job with this name already exists')
+        self.assertTrue(d['url'].endswith(rel_url))
+        fields = error_response_fields + self.base_response_fields
+        for k in d.keys():
+            self.assertIn(k, fields)
