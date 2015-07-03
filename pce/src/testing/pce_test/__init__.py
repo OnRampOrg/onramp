@@ -299,3 +299,37 @@ class JobsEndpointTest(_JSONResourceTest):
         fields = error_response_fields + self.base_response_fields
         for k in d.keys():
             self.assertIn(k, fields)
+
+        # FIXME: Figure out a way to test the following:
+        # - Execution of batch schedule call fails.
+        # - Output from batch schedule call not formatted as expected.
+        # - Bad batch scheduler optoin in config (though this should be caught
+        #   by the Validator when config is loaded.
+
+        # Check to make sure no exceptions and proper response when module not
+        # found:
+        shutil.rmtree(self.modules_dir)
+        os.mkdir(self.modules_dir)
+        r = pce_post('jobs/', username=self.username, module_name='testmodule',
+                     run_name=self.run_name)
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_base_JSON_attrs(d)
+        self.assertEqual(d['status_code'], -2)
+        self.assertEqual(d['status_msg'], 'Module testmodule does not exist')
+        self.assertTrue(d['url'].endswith('/jobs/'))
+        self.assertNotIn('module', d.keys())
+        self.assertNotIn('modules', d.keys())
+
+        # Check proper status code and message given when modules dir missing:
+        shutil.rmtree(self.modules_dir)
+        r = pce_post('jobs/', username=self.username, module_name='testmodule',
+                     run_name=self.run_name)
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_base_JSON_attrs(d)
+        self.assertEqual(d['status_code'], -1)
+        self.assertEqual(d['status_msg'], 'Modules root folder does not exist')
+        self.assertTrue(d['url'].endswith('/jobs/'))
+        self.assertNotIn('modules', d.keys())
+        self.assertNotIn('module', d.keys())
