@@ -48,12 +48,8 @@ def pce_post(endpoint, **kwargs):
 
     Kwargs: HTML formfield key/value pairs to use for the request.
     """
-    fields = {
-        'username': test_ini['username'],
-        'password': test_ini['password']
-    }
-    fields.update(kwargs)
-    return requests.post(pce_url(endpoint), data=fields)
+    return requests.post(pce_url(endpoint), data=json.dumps(kwargs),
+                         headers={'content-type': 'application/json'})
 
 def pce_get(endpoint, **kwargs):
     """Execute a GET to the specified endpoint.
@@ -299,6 +295,74 @@ class JobsEndpointTest(_JSONResourceTest):
         fields = error_response_fields + self.base_response_fields
         for k in d.keys():
             self.assertIn(k, fields)
+
+        # Requests with missing params:
+        r = pce_post('jobs/', module_name='testmodule', run_name=self.run_name)
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_base_JSON_attrs(d)
+        self.assertEqual(d['status_code'], -8)
+        msg = "The following paramaters were expected but not supplied: username"
+        self.assertEqual(d['status_msg'], msg)
+
+        r = pce_post('jobs/', username=self.username, module_name='testmodule')
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_base_JSON_attrs(d)
+        self.assertEqual(d['status_code'], -8)
+        msg = "The following paramaters were expected but not supplied: run_name"
+        self.assertEqual(d['status_msg'], msg)
+
+        r = pce_post('jobs/', username=self.username, run_name=self.run_name)
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_base_JSON_attrs(d)
+        self.assertEqual(d['status_code'], -8)
+        msg = "The following paramaters were expected but not supplied: module_name"
+        self.assertEqual(d['status_msg'], msg)
+
+        r = pce_post('jobs/', module_name='testmodule')
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_base_JSON_attrs(d)
+        self.assertEqual(d['status_code'], -8)
+        msg = "The following paramaters were expected but not supplied"
+        parts = d['status_msg'].split(': ')
+        self.assertEqual(parts[0], msg)
+        expected = ['username', 'run_name']
+        found = parts[1].split(', ')
+        for item in expected:
+            self.assertIn(item, found)
+        for item in found:
+            self.assertIn(item, expected)
+
+        r = pce_post('jobs/', username=self.username)
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_base_JSON_attrs(d)
+        self.assertEqual(d['status_code'], -8)
+        parts = d['status_msg'].split(': ')
+        self.assertEqual(parts[0], msg)
+        expected = ['module_name', 'run_name']
+        found = parts[1].split(', ')
+        for item in expected:
+            self.assertIn(item, found)
+        for item in found:
+            self.assertIn(item, expected)
+
+        r = pce_post('jobs/', run_name=self.run_name)
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_base_JSON_attrs(d)
+        self.assertEqual(d['status_code'], -8)
+        parts = d['status_msg'].split(': ')
+        self.assertEqual(parts[0], msg)
+        expected = ['username', 'module_name']
+        found = parts[1].split(', ')
+        for item in expected:
+            self.assertIn(item, found)
+        for item in found:
+            self.assertIn(item, expected)
 
         # FIXME: Figure out a way to test the following:
         # - Execution of batch schedule call fails.

@@ -14,10 +14,35 @@ import shutil
 from multiprocessing import Process
 from subprocess import call
 
+import cherrypy
 from Crypto import Random
 from Crypto.Cipher import AES
 
 from tools import admin_authenticate, authenticate, decrypt, encrypt, launch_job
+
+def required_params(*args):
+    """Validate contents of JSON request body.
+
+    *args: Parameters that are required to be provided in the JSON body of the
+        request.
+    """
+    def inner1(f):
+        def inner2(self):
+            data = cherrypy.request.json
+            missing_attrs = filter(lambda x: x not in data.keys(), args)
+
+            if missing_attrs:
+                msg = ('The following paramaters were expected but not '
+                       'supplied: %s' % ', '.join(missing_attrs))
+                self.logger.warn(msg)
+                cherrypy.response.status = 400
+                return self.JSON_response(status_code=-8, status_msg=msg,
+                                  required_params=args)
+
+            self.logger.debug('Request params validated.')
+            return f(self, **data)
+        return inner2
+    return inner1
 
 
 def _auth_required(f):
@@ -82,6 +107,7 @@ class _PCEResourceBase:
 
     Methods:
         JSON_response: Constructs JSON reponse from default and provided attrs.
+        validate_JSON_request: Validates JSON request data.
     """
     exposed = True
 
@@ -131,6 +157,8 @@ class Jobs(_PCEResourceBase):
     Methods:
         POST: Launch a new job.
     """
+    @cherrypy.tools.json_in()
+    @required_params('module_name', 'run_name', 'username')
     def POST(self, module_name, run_name, username, **kwargs):
         # FIXME: User dir should have been previously created, not created here.
         # Once Users endpoint is implemented, remove creation from here, and
