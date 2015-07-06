@@ -182,7 +182,112 @@ class Jobs(_PCEResourceBase):
 
     Methods:
         POST: Launch a new job.
+        GET: Get status/results/info about previously launched job.
     """
+
+    def GET(self, id, **kwargs):
+        self.logger.debug('Jobs.GET() called')
+
+        try:
+            username, run_name = id.split('_')
+        except ValueError:
+            msg = 'Invalid job id given'
+            self.logger.warn(msg)
+            cherrypy.response.status = 404
+            return self.JSON_response(status_code=-8, status_msg=msg, url=False)
+
+        path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
+        run_dir = path + '/users/' + username + '/' + run_name
+        if not os.path.isdir(run_dir):
+            msg = 'Invalid job id given'
+            self.logger.warn(msg)
+            cherrypy.response.status = 404
+            return self.JSON_response(status_code=-8, status_msg=msg, url=False)
+
+        # FIXME: There's a race condition between here and the postprocess
+        # script call.
+        # FIXME 2: Error response if file not found
+        run_info = ConfigObj(run_dir + '/run_info')
+
+        # FIXME: This section is dependent on self.conf settings. --------------
+        # SLURM
+        try:
+            job_info = check_output(['scontrol', 'show', 'job',
+                                     run_info['job_num']])
+        except CalledProcessError as e:
+            msg = 'Job info call failed'
+            self.logger.error(msg)
+            cherrypy.response.status = 500
+            return self.JSON_response(status_code=-10, status_msg=msg,
+                                      return_code=e.returncode,
+                                      output=e.output, id=id)
+
+        job_state = job_info.split('JobState=')[1].split()[0]
+        if job_state == 'RUNNING':
+            job_state = 'Running'
+        elif job_state == 'COMPLETED':
+            job_state = 'Done'
+        elif job_state == 'PENDING':
+            job_state = 'Queued'
+        # ----------------------------------------------------------------------
+
+        # FIXME: There's a race condition between here and the setup of
+        # run_info.
+        if job_state == 'Done' and run_info['job_state'] != 'Done':
+            # Run module's bin/onramp_postprocess.py
+            ret_dir = os.getcwd()
+            os.cwd(run_dir + '/' + run_info['module_name'])
+            call(['../../../src/env/bin/python', 'bin/onramp_postprocess.py'])
+            os.cwd(ret_dir)
+            run_info['job_state'] = 'Done'
+            with open(run_dir + '/run_info', 'w') as f:
+                run_info.write(file_object=f)
+
+        job_status = None
+        if job_state == 'Running':
+            # Run module's bin/onramp_status.py
+            ret_dir = os.getcwd()
+            os.cwd(run_dir + '/' + run_info['module_name'])
+
+            try:
+                job_status = check_output(['../../../src/env/bin/python',
+                                           'bin/onramp_status.py'])
+            except CalledProcessError as e:
+                msg = 'onramp_status call failed'
+                self.logger.error(msg)
+                cherrypy.response.status = 500
+                return self.JSON_response(status_code=-11, status_msg=msg,
+                                          return_code=e.returncode,
+                                          output=e.output, id=id)
+            os.cwd(ret_dir)
+
+        if job_state == 'Done':
+            run_filename = run_dir + '/Results/output.txt'
+            if not os.path.isfile(run_filename):
+                msg = 'Job finished, but no output file'
+                self.logger.error(msg)
+                cherrypy.response.status = 500
+                return self.JSON_response(status_code=-12, status_msg=msg,
+                                          id=id)
+
+            job_output = None
+            with open(run_filename, 'r') as f:
+                job_output = f.read()
+
+        job_data = {
+            'user': username,
+            'module_name': run_info['module_name'],
+            'run_name': run_name
+        }
+
+        if job_state == 'Running' and job_status:
+            job_data['job_status'] = job_status
+        if job_state == 'Done' and job_output:
+            job_data['job_output'] = job_output
+
+        return self.JSON_response(status_code=0, status_msg=job_state,
+                                  id=id, **job_data)
+
     @cherrypy.tools.json_in()
     @validation_required
     def POST(self, module_name, run_name, username, **kwargs):
