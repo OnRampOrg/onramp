@@ -200,19 +200,19 @@ class Jobs(_PCEResourceBase):
         results_dir = run_dir + '/' + 'Results'
 
         if not os.path.isdir(modules_dir):
-            # FIXME: Should return HTTP status 500.
             msg = 'Modules root folder does not exist'
             self.logger.error(msg)
+            cherrypy.response.status = 500
             return self.JSON_response(status_code=-1, status_msg=msg)
         if not os.path.isdir(mod_dir):
-            # FIXME: Should return HTTP status 404.
             msg = 'Module %s does not exist' % module_name
             self.logger.warn(msg)
+            cherrypy.response.status = 404
             return self.JSON_response(status_code=-2, status_msg=msg)
         if os.path.isdir(run_dir):
-            # FIXME: Should return HTTP status 400.
             msg = 'A job with this name already exists'
             self.logger.warn(msg)
+            cherrypy.response.status = 400
             return self.JSON_response(id=id, status_code=-3,
                                       status_msg=msg)
 
@@ -229,6 +229,13 @@ class Jobs(_PCEResourceBase):
         self.logger.info('Launching job: %s' % id)
         launch_result = launch_job(run_dir + '/' + module_name, id,
                                    self.conf['cluster']['batch_scheduler'])
+
+        if launch_result['status_code'] in [-4, -7]:
+            cherrypy.response.status = 500
+        if launch_result['status_code'] in [-5]:
+            cherrypy.response.status = 400
+        if launch_result['status_code'] in [-6]:
+            cherrypy.response.status = 404
 
         # FIXME: Should return 500 for some othe launch_result possibilities.
         return self.JSON_response(id=id, **launch_result)
@@ -266,9 +273,9 @@ class Modules(_PCEResourceBase):
 
         path = os.path.dirname(os.path.abspath(__file__)) + '/../../modules'
         if not os.path.isdir(path):
-            # FIXME: Should return HTTP status 500.
             msg = 'Modules root folder does not exist'
             self.logger.error(msg)
+            cherrypy.response.status = 500
             return self.JSON_response(status_code=-1, status_msg=msg)
 
         if id is None:
@@ -280,9 +287,9 @@ class Modules(_PCEResourceBase):
             return self.JSON_response(modules=modules)
 
         if not os.path.isdir(os.path.join(path, id)):
-            # FIXME: Should return HTTP status 404.
             msg = 'Module %s does not exist' % id
             self.logger.warn(msg)
+            cherrypy.response.status = 404
             return self.JSON_response(status_code=-2, status_msg=msg, url=False)
 
         self.logger.debug('Returning module %s' % id) 

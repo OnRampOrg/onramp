@@ -155,7 +155,7 @@ class ModulesEndpointTest(_JSONResourceTest):
         # Check proper status code and message given when modules dir missing:
         shutil.rmtree(self.modules_dir)
         r = pce_get('modules/')
-        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.status_code, 500)
         d = r.json()
         self.check_base_JSON_attrs(d)
         self.assertEqual(d['status_code'], -1)
@@ -184,7 +184,7 @@ class ModulesEndpointTest(_JSONResourceTest):
         shutil.rmtree(self.modules_dir)
         os.mkdir(self.modules_dir)
         r = pce_get('modules/testmodule/')
-        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.status_code, 404)
         d = r.json()
         self.check_base_JSON_attrs(d)
         self.assertEqual(d['status_code'], -2)
@@ -196,7 +196,7 @@ class ModulesEndpointTest(_JSONResourceTest):
         # Check proper status code and message given when modules dir missing:
         shutil.rmtree(self.modules_dir)
         r = pce_get('modules/testmodule/')
-        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.status_code, 500)
         d = r.json()
         self.check_base_JSON_attrs(d)
         self.assertEqual(d['status_code'], -1)
@@ -286,7 +286,7 @@ class JobsEndpointTest(_JSONResourceTest):
         # Request with same attrs as previously run job:
         r = pce_post('jobs/', username=self.username, module_name='testmodule',
                      run_name=self.run_name)
-        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.status_code, 400)
         d = r.json()
         self.check_base_JSON_attrs(d)
         self.assertEqual(d['status_code'], -3)
@@ -380,7 +380,7 @@ class JobsEndpointTest(_JSONResourceTest):
         os.mkdir(self.modules_dir)
         r = pce_post('jobs/', username=self.username, module_name='testmodule',
                      run_name=self.run_name)
-        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.status_code, 404)
         d = r.json()
         self.check_base_JSON_attrs(d)
         self.assertEqual(d['status_code'], -2)
@@ -393,7 +393,7 @@ class JobsEndpointTest(_JSONResourceTest):
         shutil.rmtree(self.modules_dir)
         r = pce_post('jobs/', username=self.username, module_name='testmodule',
                      run_name=self.run_name)
-        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.status_code, 500)
         d = r.json()
         self.check_base_JSON_attrs(d)
         self.assertEqual(d['status_code'], -1)
