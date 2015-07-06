@@ -2,6 +2,8 @@
 
 Exports:
     Modules: View, add, update, and remove PCE educational modules.
+    Jobs: Launch, update, remove, and get status of PCE jobs.
+    validation_required: Validate rx'd user input to PCE dispatchers.
 """
 
 import copy
@@ -15,34 +17,58 @@ from multiprocessing import Process
 from subprocess import call
 
 import cherrypy
+from configobj import ConfigObj
 from Crypto import Random
 from Crypto.Cipher import AES
+from validate import Validator
 
 from tools import admin_authenticate, authenticate, decrypt, encrypt, launch_job
 
-def required_params(*args):
+def validation_required(f):
     """Validate contents of JSON request body.
 
-    *args: Parameters that are required to be provided in the JSON body of the
-        request.
+    Function is intented to be used as a decorator for methods of
+    _PCEResourceBase subclasses. Function will load the configspec file
+    'pce/src/configspecs/CLASSNAME_METHODNAME.inputspec'.
+
+    Args:
+        f (func): The method requiring input validation.
+
+    NOTE: Introspection is used to determine the proper configspec file to use.
+        For this reason, validation_required must be the last decorator applied
+        to the receiving method.
     """
-    def inner1(f):
-        def inner2(self):
-            data = cherrypy.request.json
-            missing_attrs = filter(lambda x: x not in data.keys(), args)
+    def inner(self):
+        self.logger.debug('Validating input to %s.%s'
+                          % (self.__class__.__name__, f.__name__))
 
-            if missing_attrs:
-                msg = ('The following paramaters were expected but not '
-                       'supplied: %s' % ', '.join(missing_attrs))
-                self.logger.warn(msg)
-                cherrypy.response.status = 400
-                return self.JSON_response(status_code=-8, status_msg=msg,
-                                  required_params=args)
+        data = cherrypy.request.json
+        path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
+        configspec = (path + '/src/configspecs/%s_%s.inputspec'
+                      % (self.__class__.__name__, f.__name__))
 
-            self.logger.debug('Request params validated.')
-            return f(self, **data)
-        return inner2
-    return inner1
+        try:
+            conf = ConfigObj(data, configspec=configspec)
+            result = conf.validate(Validator())
+        except IOError as ie:
+            self.logger.error(str(ie))
+            cherrypy.response.status = 500
+            return self.JSON_response(status_code=-8, status_msg=str(ie))
+        except ValueError as ve:
+            self.logger.warn(str(ve))
+            cherrypy.response.status = 400
+            return self.JSON_response(status_code=-8, status_msg=str(ve))
+            
+        if isinstance(result, dict):
+            invalid_params = filter(lambda x: not result[x], result)
+            msg = ('An invalid value was received for the following required '
+                   'parameter(s): %s' % ', '.join(invalid_params))
+            self.logger.warn(msg)
+            cherrypy.response.status = 400
+            return self.JSON_response(status_code=-8, status_msg=msg)
+
+        return f(self, **data)
+    return inner
 
 
 def _auth_required(f):
@@ -158,7 +184,7 @@ class Jobs(_PCEResourceBase):
         POST: Launch a new job.
     """
     @cherrypy.tools.json_in()
-    @required_params('module_name', 'run_name', 'username')
+    @validation_required
     def POST(self, module_name, run_name, username, **kwargs):
         # FIXME: User dir should have been previously created, not created here.
         # Once Users endpoint is implemented, remove creation from here, and

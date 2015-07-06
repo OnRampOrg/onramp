@@ -302,7 +302,8 @@ class JobsEndpointTest(_JSONResourceTest):
         d = r.json()
         self.check_base_JSON_attrs(d)
         self.assertEqual(d['status_code'], -8)
-        msg = "The following paramaters were expected but not supplied: username"
+        msg = ('An invalid value was received for the following required '
+               'parameter(s): username')
         self.assertEqual(d['status_msg'], msg)
 
         r = pce_post('jobs/', username=self.username, module_name='testmodule')
@@ -310,7 +311,8 @@ class JobsEndpointTest(_JSONResourceTest):
         d = r.json()
         self.check_base_JSON_attrs(d)
         self.assertEqual(d['status_code'], -8)
-        msg = "The following paramaters were expected but not supplied: run_name"
+        msg = ('An invalid value was received for the following required '
+               'parameter(s): run_name')
         self.assertEqual(d['status_msg'], msg)
 
         r = pce_post('jobs/', username=self.username, run_name=self.run_name)
@@ -318,7 +320,8 @@ class JobsEndpointTest(_JSONResourceTest):
         d = r.json()
         self.check_base_JSON_attrs(d)
         self.assertEqual(d['status_code'], -8)
-        msg = "The following paramaters were expected but not supplied: module_name"
+        msg = ('An invalid value was received for the following required '
+               'parameter(s): module_name')
         self.assertEqual(d['status_msg'], msg)
 
         r = pce_post('jobs/', module_name='testmodule')
@@ -326,7 +329,8 @@ class JobsEndpointTest(_JSONResourceTest):
         d = r.json()
         self.check_base_JSON_attrs(d)
         self.assertEqual(d['status_code'], -8)
-        msg = "The following paramaters were expected but not supplied"
+        msg = ('An invalid value was received for the following required '
+               'parameter(s)')
         parts = d['status_msg'].split(': ')
         self.assertEqual(parts[0], msg)
         expected = ['username', 'run_name']
