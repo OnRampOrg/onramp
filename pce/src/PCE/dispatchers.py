@@ -342,6 +342,8 @@ class Jobs(_PCEResourceBase):
         if launch_result['status_code'] in [-6]:
             cherrypy.response.status = 404
 
+        # FIXME: write the run_info file here
+
         return self.JSON_response(id=id, **launch_result)
 
     def _build_url(self, id=None):
