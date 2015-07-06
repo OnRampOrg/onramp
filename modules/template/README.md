@@ -29,7 +29,7 @@ The ```src``` directory contains all of the source code for your project. You ha
 ---------------------
 ## Required Supporting Scripts
 
-The ```bin``` directory contains a few OnRamp support scripts that you will need to complete for your curriculum module. They are activated and used at different times in the life-cycle of a curriculum module.
+The ```bin``` directory contains a few OnRamp support scripts that you will need to complete for your curriculum module. They are activated and used at different times in the life-cycle of a curriculum module. Each script will be executed with the module's root directory as the current working directory.
 
  * **One-Time Module Deployment on a PCE**
    * ```bin/onramp_deploy.py``` : 

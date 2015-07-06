@@ -10,26 +10,26 @@ This directory contains the code necessary to setup a new OnRamp Parallel Comput
  
 	```
 	// Start the OnRamp PCE Service
- 	$ python onramp_pce_service.py start
+ 	$ ./onramp_pce_service.py start
 	```
 	```
  	// Stop the OnRamp PCE Service
- 	$ python onramp_pce_service.py stop
+ 	$ ./onramp_pce_service.py stop
 	```
 	```
  	// Restart the OnRamp PCE Service
- 	$ python onramp_pce_service.py restart
+ 	$ ./onramp_pce_service.py restart
 	```
 	```
  	// Check the status of the OnRamp PCE Service
- 	$ python onramp_pce_service.py status
+ 	$ ./onramp_pce_service.py status
  	```
  	
- * [onramp\_pce\_setup.sh](onramp_pce_setup.sh) : A one-time setup script that will assist the user with deploying the OnRamp PCE Service on a new machine.
+ * [onramp\_pce\_setup.py](onramp_pce_setup.py) : A one-time setup script that will assist the user with deploying the OnRamp PCE Service on a new machine.
 
 	```
 	// Setup the OnRamp PCE Service on this PCE
- 	$ ./onramp_pce_setup.sh
+ 	$ ./onramp_pce_setup.py
 	```
 	
  * [docs](docs/) : Documentation about the PCE that should be provided to the OnRamp users.
@@ -42,3 +42,4 @@ The following directories are automatically created and managed by the OnRamp PC
 
  * ```modules``` : Contains the **deployed** curriculum modules for the PCE.
  * ```users``` : Contains the OnRamp user's working directories.
+ * ```log``` : Contains the OnRamp PCE Service logs.

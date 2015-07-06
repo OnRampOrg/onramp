@@ -1,0 +1,20 @@
+*.log
+*.aux
+*synctex.gz
+*.out
+*.bbl
+*.blg
+.DS_Store
+
+# Vim tmp/swap files
+*~
+*.swp
+*.swo
+
+# Generated files
+*.pyc
+pce/users
+pce/modules
+pce/log
+pce/src/env
+pce/src/.*.pid
