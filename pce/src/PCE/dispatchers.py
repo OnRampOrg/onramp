@@ -53,7 +53,7 @@ def validation_required(f):
         except IOError as ie:
             self.logger.error(str(ie))
             cherrypy.response.status = 500
-            return self.JSON_response(status_code=-8, status_msg=str(ie))
+            return self.JSON_response(status_code=-9, status_msg=str(ie))
         except ValueError as ve:
             self.logger.warn(str(ve))
             cherrypy.response.status = 400
@@ -237,7 +237,6 @@ class Jobs(_PCEResourceBase):
         if launch_result['status_code'] in [-6]:
             cherrypy.response.status = 404
 
-        # FIXME: Should return 500 for some othe launch_result possibilities.
         return self.JSON_response(id=id, **launch_result)
 
     def _build_url(self, id=None):

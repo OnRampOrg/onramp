@@ -373,6 +373,7 @@ class JobsEndpointTest(_JSONResourceTest):
         # - Output from batch schedule call not formatted as expected.
         # - Bad batch scheduler optoin in config (though this should be caught
         #   by the Validator when config is loaded.
+        # - Missing inputspec file
 
         # Check to make sure no exceptions and proper response when module not
         # found:
