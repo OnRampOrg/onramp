@@ -4,6 +4,10 @@ Exports:
     Modules: View, add, update, and remove PCE educational modules.
     Jobs: Launch, update, remove, and get status of PCE jobs.
     validation_required: Validate rx'd user input to PCE dispatchers.
+    auth_required: Verify user credentials prior to executing method decorated
+        by this function.
+    admin_auth_required: Verify admin credentials prior to executing method
+        decorated by this function.
 """
 
 import copy
@@ -71,7 +75,7 @@ def validation_required(f):
     return inner
 
 
-def _auth_required(f):
+def auth_required(f):
     """Decorator to perform authentication prior to execution of decorated
     function.
 
@@ -94,7 +98,7 @@ def _auth_required(f):
     return inner
 
 
-def _admin_auth_required(f):
+def admin_auth_required(f):
     """Decorator to perform authentication of admin user prior to execution of
     decorated function.
 
@@ -186,6 +190,12 @@ class Jobs(_PCEResourceBase):
     """
 
     def GET(self, id, **kwargs):
+        """Get status/results/info about a previously launched job.
+
+        Args:
+            id (str): Identifier for the particular job. Format:
+                USERNAME_RUNNAME.
+        """
         self.logger.debug('Jobs.GET() called')
 
         try:
@@ -291,6 +301,16 @@ class Jobs(_PCEResourceBase):
     @cherrypy.tools.json_in()
     @validation_required
     def POST(self, module_name, run_name, username, **kwargs):
+        """Launch a new job with the given paramaters.
+
+        Args:
+            username (str): Username of user submitting the job.
+            module_name (str): Name of the module to be run.
+            run_name (str): Unique (per-user) name for the run.
+
+        **Kwargs: Additional optional job configuration paramaters. Not
+            currently implemented/documented.
+        """
         # FIXME: User dir should have been previously created, not created here.
         # Once Users endpoint is implemented, remove creation from here, and
         # test each request to ensure that user dir already exists.
