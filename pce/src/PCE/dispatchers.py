@@ -357,12 +357,20 @@ class Jobs(_PCEResourceBase):
 
         if launch_result['status_code'] in [-4, -7]:
             cherrypy.response.status = 500
-        if launch_result['status_code'] in [-5]:
+        elif launch_result['status_code'] in [-5]:
             cherrypy.response.status = 400
-        if launch_result['status_code'] in [-6]:
+        elif launch_result['status_code'] in [-6]:
             cherrypy.response.status = 404
-
-        # FIXME: write the run_info file here
+        else:
+            # Store some run state.
+            run_info = {
+                'job_num': launch_result['job_num'],
+                'job_state': 'Queued',
+                'module_name': module_name
+            }
+            run_conf = ConfigObj(run_info)
+            with open(run_dir + '/run_info', 'w') as f:
+                run_conf.write(f)
 
         return self.JSON_response(id=id, **launch_result)
 

@@ -270,6 +270,15 @@ class JobsEndpointTest(_JSONResourceTest):
         self.assertTrue(os.path.isdir(self.run_dir))
         self.assertTrue(os.path.isdir(self.run_dir + '/Results'))
         self.assertTrue(os.path.isdir(self.run_dir + '/testmodule'))
+        self.assertTrue(os.path.isfile(self.run_dir + '/run_info'))
+        conf = ConfigObj(self.run_dir + '/run_info')
+        conf_keys = conf.keys()
+        self.assertIn('job_num', conf_keys)
+        self.assertIn('job_state', conf_keys)
+        self.assertIn('module_name', conf_keys)
+        self.assertEqual(conf['job_num'], str(d['job_num']))
+        self.assertEqual(conf['job_state'], 'Queued')
+        self.assertEqual(conf['module_name'], 'testmodule')
         self.assertTrue(d['url'].endswith(rel_url))
         fields = success_response_fields + self.base_response_fields
         for k in d.keys():
