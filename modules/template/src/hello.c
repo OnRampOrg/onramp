@@ -6,17 +6,30 @@
  */
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include "mpi.h"
 
 int main(int argc, char* argv[])
 {
     int rank, size, len;
     char processor[MPI_MAX_PROCESSOR_NAME];
+    char *name = NULL;
 
     /*
      * Initialize the MPI library
      */
     MPI_Init(&argc, &argv);
+
+    /*
+     * Check to see if we have a command line argument for the name
+     */
+    if( argc > 1 ) {
+        name = strdup(argv[1]);
+    }
+    else {
+        name = strdup("World");
+    }
 
     /*
      * Get my 'rank' (unique ID)
@@ -36,12 +49,20 @@ int main(int argc, char* argv[])
     /*
      * Print a message from this process
      */
-    printf("Hello, world! I am %2d of %d on %s!\n", rank, size, processor);
+    printf("Hello, %s! I am %2d of %d on %s!\n", name, rank, size, processor);
 
     /*
      * Shutdown the MPI library before exiting
      */
     MPI_Finalize();
+
+    /*
+     * Cleanup
+     */
+    if( NULL != name ) {
+        free(name);
+        name = NULL;
+    }
 
     return 0;
 }
