@@ -135,14 +135,18 @@ def _mod_test():
     os.mkdir('onramp')
     os.chdir(ret_dir)
     if conf['post_deploy_test']:
-        call([env_py, conf['post_deploy_test']])
+        if 0 != call([env_py, conf['post_deploy_test']]):
+            print 'post_deploy_test failed.'
+            return
 
     # Preprocess.
     os.chdir(deploy_path)
     call([env_py, 'bin/onramp_preprocess.py'])
     os.chdir(ret_dir)
     if conf['post_preprocess_test']:
-        call([env_py, conf['post_preprocess_test']])
+        if 0 != call([env_py, conf['post_preprocess_test']]):
+            print 'post_preprocess_test failed.'
+            return
         
     # Run.
     os.chdir(deploy_path)
@@ -163,7 +167,9 @@ def _mod_test():
 
     os.chdir(ret_dir)
     if conf['post_launch_test']:
-        call([env_py, conf['post_launch_test']])
+        if 0 != call([env_py, conf['post_launch_test']]):
+            print 'post_launch_test failed.'
+            return
         
     # Wait for job to finish, call onramp_status.py when appropriate.
     os.chdir(deploy_path)
@@ -187,14 +193,18 @@ def _mod_test():
                 return
             if conf['post_status_test']:
                 os.chdir(ret_dir)
-                call([env_py, conf['post_status_test']])
+                if 0 != call([env_py, conf['post_status_test']]):
+                    print 'post_status_test failed.'
+                    return
                 os.chdir(deploy_path)
 
     # Postprocess.
     call([env_py, 'bin/onramp_postprocess.py'])
     os.chdir(ret_dir)
     if conf['post_postprocess_test']:
-        call([env_py, conf['post_postprocess_test']])
+        if 0 != call([env_py, conf['post_postprocess_test']]):
+            print 'post_postprocess_test failed.'
+            return
 
     # Print results.
     os.chdir(deploy_path)
