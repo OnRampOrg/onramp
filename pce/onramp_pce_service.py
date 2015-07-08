@@ -126,27 +126,34 @@ def _mod_test():
     #                  configspec='src/configspecs/modtest.inispec')
     deploy_path = os.path.abspath(os.path.expanduser(conf['deploy_path']))
     module_path = os.path.abspath(os.path.expanduser(conf['module_path']))
+    post_deploy_test = os.path.abspath(conf['post_deploy_test'])
+    post_preprocess_test = os.path.abspath(conf['post_preprocess_test'])
+    post_launch_test = os.path.abspath(conf['post_launch_test'])
+    post_status_test = os.path.abspath(conf['post_status_test'])
+    post_postprocess_test = os.path.abspath(conf['post_postprocess_test'])
     shutil.copytree(module_path, deploy_path)
     
     # Deploy.
     os.chdir(deploy_path)
     # FIXME: This needs to be able to handle the 'admin required' situation:
     call([env_py, 'bin/onramp_deploy.py'])
+    if conf['post_deploy_test']:
+        if 0 != call([env_py, post_deploy_test]):
+            print 'post_deploy_test failed.'
+            _modtest_cleanup(conf, deploy_path)
+            return
     os.mkdir('onramp')
     os.chdir(ret_dir)
-    if conf['post_deploy_test']:
-        if 0 != call([env_py, conf['post_deploy_test']]):
-            print 'post_deploy_test failed.'
-            return
 
     # Preprocess.
     os.chdir(deploy_path)
     call([env_py, 'bin/onramp_preprocess.py'])
-    os.chdir(ret_dir)
     if conf['post_preprocess_test']:
-        if 0 != call([env_py, conf['post_preprocess_test']]):
+        if 0 != call([env_py, post_preprocess_test]):
             print 'post_preprocess_test failed.'
+            _modtest_cleanup(conf, deploy_path)
             return
+    os.chdir(ret_dir)
         
     # Run.
     os.chdir(deploy_path)
@@ -160,16 +167,19 @@ def _mod_test():
             job_num = batch_output.strip().split()[3:][0] 
         except (CalledProcessError, ValueError, IndexError):
             print 'Job scheduling call failed or gave unexpected output.'
+            _modtest_cleanup(conf, deploy_path)
             return
     else:
         print "Invalid value given for 'batch_scheduler'."
+        _modtest_cleanup(conf, deploy_path)
         return
 
-    os.chdir(ret_dir)
     if conf['post_launch_test']:
-        if 0 != call([env_py, conf['post_launch_test']]):
+        if 0 != call([env_py, post_launch_test]):
             print 'post_launch_test failed.'
+            _modtest_cleanup(conf, deploy_path)
             return
+    os.chdir(ret_dir)
         
     # Wait for job to finish, call onramp_status.py when appropriate.
     os.chdir(deploy_path)
@@ -183,6 +193,7 @@ def _mod_test():
         (status, job_state) = status_check(job_num)
         if 0 != status:
             print 'Job info call failed.'
+            _modtest_cleanup(conf, deploy_path)
             return
         if job_state == 'Running':
             print 'bin/onramp_status.py output:'
@@ -190,21 +201,22 @@ def _mod_test():
                 print check_output([env_py, 'bin/onramp_status.py'])
             except CalledProcessError:
                 print 'bin/onramp_status.py call failed.'
+                _modtest_cleanup(conf, deploy_path)
                 return
             if conf['post_status_test']:
-                os.chdir(ret_dir)
-                if 0 != call([env_py, conf['post_status_test']]):
+                if 0 != call([env_py, post_status_test]):
                     print 'post_status_test failed.'
+                    _modtest_cleanup(conf, deploy_path)
                     return
-                os.chdir(deploy_path)
 
     # Postprocess.
     call([env_py, 'bin/onramp_postprocess.py'])
-    os.chdir(ret_dir)
     if conf['post_postprocess_test']:
-        if 0 != call([env_py, conf['post_postprocess_test']]):
+        if 0 != call([env_py, post_postprocess_test]):
             print 'post_postprocess_test failed.'
+            _modtest_cleanup(conf, deploy_path)
             return
+    os.chdir(ret_dir)
 
     # Print results.
     os.chdir(deploy_path)
@@ -212,10 +224,24 @@ def _mod_test():
     with open('onramp/output.txt', 'r') as f:
         print f.read()
 
+    _modtest_cleanup(conf, deploy_path)
+
+def _modtest_cleanup(conf, deploy_path):
+    """Remove deployed module if configured in conf passed to modtest.
+    
+    Args:
+        conf (ConfigObj): Modtest configuration.
+        deploy_path (str): Path to remove if configured in conf.
+    """
     if conf['cleanup']:
         shutil.rmtree(deploy_path)
 
 def _SLURM_status(job_num):
+    """Get status of job launched by SLURM
+
+    Args:
+        job_num (int): Job number of job to check status of.
+    """
     try:
         job_info = check_output(['scontrol', 'show', 'job', job_num])
     except CalledProcessError as e:
