@@ -152,7 +152,7 @@ def _build_SLURM_script(run_name, numtasks, email, filename='script.sh'):
     contents += '# Slurm Submission options\n'
     contents += '#\n'
     contents += '#SBATCH --job-name=' + run_name + '\n'
-    contents += '#SBATCH -o ../Results/output.txt\n'
+    contents += '#SBATCH -o onramp/output.txt\n'
     contents += '#SBATCH -n ' + str(numtasks) + '\n'
     if email:
         logger.debug('%s configured for email reporting to %s'
@@ -208,7 +208,7 @@ def _build_SGE_script(run_name, numtasks, email, filename='script.sh'):
     contents += '#$ -r y\n'
     contents += '#\n'
     contents += '# Define the output file\n'
-    contents += '#$ -o ../Results/output.txt\n'
+    contents += '#$ -o onramp/output.txt\n'
     contents += '#\n'
     ## qsub will wait for the job to complete before exiting:
     # contents += '#$ -sync y\n'

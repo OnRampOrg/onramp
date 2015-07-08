@@ -232,7 +232,9 @@ class JobsEndpointTest(_JSONResourceTest):
         self.run_name = test_ini['run_name']
         self.modules_dir = '../../modules'
         self.testmodule_dir = self.modules_dir + '/testmodule'
-        self.run_dir = '../../users/%s/%s' % (self.username, self.run_name)
+        self.run_dir = ('../../users/%s/%s/%s'
+                        % (self.username, 'testmodule', self.run_name))
+        self.run_dir2 = self.run_dir + 'second'
         """Setup the testing environment for modules testing."""
         shutil.copytree('testmodule', self.testmodule_dir)
         ret_dir = os.getcwd()
@@ -247,10 +249,15 @@ class JobsEndpointTest(_JSONResourceTest):
 
         if(os.path.isdir(self.run_dir)):
             shutil.rmtree(self.run_dir)
+        if(os.path.isdir(self.run_dir2)):
+            shutil.rmtree(self.run_dir2)
 
     def test_POST(self):
         """Test resource response to various POST requests."""
-        rel_url = '/jobs/%s_%s/' % (self.username, self.run_name)
+        rel_url = ('/jobs/%s_%s_%s/' 
+                   % (self.username, 'testmodule', self.run_name))
+        rel_url2 = ('/jobs/%s_%s_%s/' 
+                    % (self.username, 'testmodule', self.run_name+'second'))
         success_response_fields = [u'job_num']
         error_response_fields = []
 
@@ -262,16 +269,16 @@ class JobsEndpointTest(_JSONResourceTest):
         self.check_base_JSON_attrs(d)
         self.assertIn(u'job_num', d.keys())
         self.assertEqual(d['status_code'], 0)
-        test_str = 'Job %s_%s scheduled as job_num: ' % (self.username, self.run_name)
+        test_str = ('Job %s_%s_%s scheduled as job_num: '
+                    % (self.username, 'testmodule', self.run_name))
         self.assertTrue(d['status_msg'].startswith(test_str))
         fields = d['status_msg'].split(test_str)
         self.assertEqual(len(fields), 2)
         self.assertEqual(int(fields[1]), d['job_num'])
         self.assertTrue(os.path.isdir(self.run_dir))
-        self.assertTrue(os.path.isdir(self.run_dir + '/Results'))
-        self.assertTrue(os.path.isdir(self.run_dir + '/testmodule'))
-        self.assertTrue(os.path.isfile(self.run_dir + '/run_info'))
-        conf = ConfigObj(self.run_dir + '/run_info')
+        self.assertTrue(os.path.isdir(self.run_dir + '/onramp'))
+        self.assertTrue(os.path.isfile(self.run_dir + '/onramp/run_info'))
+        conf = ConfigObj(self.run_dir + '/onramp/run_info')
         conf_keys = conf.keys()
         self.assertIn('job_num', conf_keys)
         self.assertIn('job_state', conf_keys)
@@ -284,8 +291,8 @@ class JobsEndpointTest(_JSONResourceTest):
         for k in d.keys():
             self.assertIn(k, fields)
         time.sleep(1)
-        self.assertTrue(os.path.isfile(self.run_dir + '/Results/output.txt'))
-        with open(self.run_dir + '/Results/output.txt', 'r') as f:
+        self.assertTrue(os.path.isfile(self.run_dir + '/onramp/output.txt'))
+        with open(self.run_dir + '/onramp/output.txt', 'r') as f:
             output = f.read()
             expected = ('Testing output from testmodule.Testing output from '
                         'testmodule.Testing output from testmodule.Testing '
@@ -304,6 +311,44 @@ class JobsEndpointTest(_JSONResourceTest):
         fields = error_response_fields + self.base_response_fields
         for k in d.keys():
             self.assertIn(k, fields)
+
+        # Request new job w/ same module but different run_name:
+        r = pce_post('jobs/', username=self.username, module_name='testmodule',
+                     run_name=self.run_name+'second')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_base_JSON_attrs(d)
+        self.assertIn(u'job_num', d.keys())
+        self.assertEqual(d['status_code'], 0)
+        test_str = ('Job %s_%s_%s scheduled as job_num: '
+                    % (self.username, 'testmodule', self.run_name+'second'))
+        self.assertTrue(d['status_msg'].startswith(test_str))
+        fields = d['status_msg'].split(test_str)
+        self.assertEqual(len(fields), 2)
+        self.assertEqual(int(fields[1]), d['job_num'])
+        self.assertTrue(os.path.isdir(self.run_dir2))
+        self.assertTrue(os.path.isdir(self.run_dir2 + '/onramp'))
+        self.assertTrue(os.path.isfile(self.run_dir2 + '/onramp/run_info'))
+        conf = ConfigObj(self.run_dir2 + '/onramp/run_info')
+        conf_keys = conf.keys()
+        self.assertIn('job_num', conf_keys)
+        self.assertIn('job_state', conf_keys)
+        self.assertIn('module_name', conf_keys)
+        self.assertEqual(conf['job_num'], str(d['job_num']))
+        self.assertEqual(conf['job_state'], 'Queued')
+        self.assertEqual(conf['module_name'], 'testmodule')
+        self.assertTrue(d['url'].endswith(rel_url2))
+        fields = success_response_fields + self.base_response_fields
+        for k in d.keys():
+            self.assertIn(k, fields)
+        time.sleep(1)
+        self.assertTrue(os.path.isfile(self.run_dir2 + '/onramp/output.txt'))
+        with open(self.run_dir2 + '/onramp/output.txt', 'r') as f:
+            output = f.read()
+            expected = ('Testing output from testmodule.Testing output from '
+                        'testmodule.Testing output from testmodule.Testing '
+                        'output from testmodule.')
+            self.assertEqual(output, expected)
 
         # Requests with missing params:
         r = pce_post('jobs/', module_name='testmodule', run_name=self.run_name)

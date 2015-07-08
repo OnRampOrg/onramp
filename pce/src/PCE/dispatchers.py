@@ -194,12 +194,12 @@ class Jobs(_PCEResourceBase):
 
         Args:
             id (str): Identifier for the particular job. Format:
-                USERNAME_RUNNAME.
+                USERNAME_MODULENAME_RUNNAME.
         """
         self.logger.debug('Jobs.GET() called')
 
         try:
-            username, run_name = id.split('_')
+            (username, module_name, run_name) = id.split('_')
         except ValueError:
             msg = 'Invalid job id given'
             self.logger.warn(msg)
@@ -207,7 +207,8 @@ class Jobs(_PCEResourceBase):
             return self.JSON_response(status_code=-8, status_msg=msg, url=False)
 
         path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
-        run_dir = path + '/users/' + username + '/' + run_name
+        run_dir = (path + '/users/' + username + '/' + module_name + '/'
+                   + run_name)
         if not os.path.isdir(run_dir):
             msg = 'Invalid job id given'
             self.logger.warn(msg)
@@ -217,7 +218,7 @@ class Jobs(_PCEResourceBase):
         # FIXME: There's a race condition between here and the postprocess
         # script call.
         # FIXME 2: Error response if file not found
-        run_info = ConfigObj(run_dir + '/run_info')
+        run_info = ConfigObj(run_dir + '/onramp/run_info')
 
         # FIXME: This section is dependent on self.conf settings. --------------
         # SLURM
@@ -246,18 +247,18 @@ class Jobs(_PCEResourceBase):
         if job_state == 'Done' and run_info['job_state'] != 'Done':
             # Run module's bin/onramp_postprocess.py
             ret_dir = os.getcwd()
-            os.cwd(run_dir + '/' + run_info['module_name'])
+            os.cwd(run_dir)
             call(['../../../src/env/bin/python', 'bin/onramp_postprocess.py'])
             os.cwd(ret_dir)
             run_info['job_state'] = 'Done'
-            with open(run_dir + '/run_info', 'w') as f:
+            with open(run_dir + '/onramp/run_info', 'w') as f:
                 run_info.write(file_object=f)
 
         job_status = None
         if job_state == 'Running':
             # Run module's bin/onramp_status.py
             ret_dir = os.getcwd()
-            os.cwd(run_dir + '/' + run_info['module_name'])
+            os.cwd(run_dir)
 
             try:
                 job_status = check_output(['../../../src/env/bin/python',
@@ -272,7 +273,7 @@ class Jobs(_PCEResourceBase):
             os.cwd(ret_dir)
 
         if job_state == 'Done':
-            run_filename = run_dir + '/Results/output.txt'
+            run_filename = run_dir + '/onramp/output.txt'
             if not os.path.isfile(run_filename):
                 msg = 'Job finished, but no output file'
                 self.logger.error(msg)
@@ -316,13 +317,15 @@ class Jobs(_PCEResourceBase):
         # test each request to ensure that user dir already exists.
 
         self.logger.debug('Jobs.POST() called')
-        id = '%s_%s' % (username, run_name)
+        # FIXME: This is going to cause conflicts if '_' is part of username,
+        # module_name, or run_name.
+        id = '%s_%s_%s' % (username, module_name, run_name)
         path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
         user_dir = path + '/users/' + username
         modules_dir = path + '/modules'
         mod_dir = modules_dir + '/' + module_name
-        run_dir = user_dir + '/' + run_name
-        results_dir = run_dir + '/' + 'Results'
+        run_dir = user_dir + '/' + module_name + '/' + run_name
+        onramp_dir = run_dir + '/' + 'onramp'
 
         if not os.path.isdir(modules_dir):
             msg = 'Modules root folder does not exist'
@@ -341,18 +344,18 @@ class Jobs(_PCEResourceBase):
             return self.JSON_response(id=id, status_code=-3,
                                       status_msg=msg)
 
-        self.logger.info('Making results directory: %s' % results_dir)
-        os.makedirs(results_dir, mode=0700)
-
         self.logger.info('Copying project files from %s to %s'
                          % (mod_dir, run_dir))
-        shutil.copytree(mod_dir, run_dir + '/' + module_name)
+        shutil.copytree(mod_dir, run_dir)
+
+        self.logger.info('Making onramp directory: %s' % onramp_dir)
+        os.makedirs(onramp_dir, mode=0700)
 
         # FIXME: ini_params need to be written to
-        # run_dir/module_name/onramp_runparams.ini here.
+        # run_dir/onramp_runparams.ini here.
 
         self.logger.info('Launching job: %s' % id)
-        launch_result = launch_job(run_dir + '/' + module_name, id,
+        launch_result = launch_job(run_dir, id,
                                    self.conf['cluster']['batch_scheduler'])
 
         if launch_result['status_code'] in [-4, -7]:
@@ -369,7 +372,7 @@ class Jobs(_PCEResourceBase):
                 'module_name': module_name
             }
             run_conf = ConfigObj(run_info)
-            with open(run_dir + '/run_info', 'w') as f:
+            with open(onramp_dir + '/run_info', 'w') as f:
                 run_conf.write(f)
 
         return self.JSON_response(id=id, **launch_result)
