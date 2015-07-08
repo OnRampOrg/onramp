@@ -25,6 +25,7 @@ from subprocess import call, check_output
 from tempfile import TemporaryFile
 
 from configobj import ConfigObj
+from validate import Validator
 
 from PCE import tools
 
@@ -120,10 +121,8 @@ def _mod_test():
     os.chdir('../')
     ret_dir = os.getcwd()
     env_py = os.path.abspath('src/env/bin/python')
-    conf = ConfigObj(sys.argv[2])
-    # FIXME: Change to this line after moreREST gets merged.
-    # conf = ConfigObj(sys.argv[2],
-    #                  configspec='src/configspecs/modtest.inispec')
+    conf = ConfigObj(sys.argv[2], configspec='src/configspecs/modtest.inispec')
+    conf.validate(Validator())
     deploy_path = os.path.abspath(os.path.expanduser(conf['deploy_path']))
     module_path = os.path.abspath(os.path.expanduser(conf['module_path']))
     post_deploy_test = os.path.abspath(conf['post_deploy_test'])
@@ -184,9 +183,9 @@ def _mod_test():
     # Wait for job to finish, call onramp_status.py when appropriate.
     os.chdir(deploy_path)
     if conf['results_check_sleep']:
-        sleep_time = int(conf['results_check_sleep'])
+        sleep_time = conf['results_check_sleep']
     else:
-        sleep_time = 5
+        sleep_time = 5.0
     job_state = 'Queued'
     while job_state != 'Done':
         time.sleep(sleep_time)

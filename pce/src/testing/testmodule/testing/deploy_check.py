@@ -12,7 +12,7 @@ Note: Indication of error is not required, that is, if it's desired that the
 """
 import os, sys
 
-print 'deploy_test.py running...'
+print 'deploy_check.py running...'
 print os.getcwd()
 
 files = ['bin/onramp_preprocess.py',
@@ -29,4 +29,4 @@ if os.path.isdir('onramp'):
     print 'Module contents include forbidden dir: onramp/.'
     sys.exit(-1)
 
-print 'deploy_test.py passes.'
+print 'deploy_check.py passes.'
