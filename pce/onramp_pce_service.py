@@ -1,13 +1,32 @@
-#!/usr/bin/env python
+#!src/env/bin/python
 """Control the onramp REST server.
 
-Usage: ./onramp_service.py start|stop|restart
-"""
+Usage: ./onramp_service.py COMMAND [COMMAND_ARGS]
 
+Commands:
+    start
+        Starts the OnRamp PCE Server.
+
+    stop
+        Stops the OnRamp PCE Server.
+
+    restart
+        Restarts the OnRamp PCE Server.
+
+    modtest TEST_CONFIG_FILE
+        Tests the contents of an OnRamp Educational module as specified by
+        params in TEST_CONFIG_FILE.
+"""
 import os
+import shutil
 import sys
-from subprocess import call
+import time
+from subprocess import call, check_output
 from tempfile import TemporaryFile
+
+from configobj import ConfigObj
+
+import PCE
 
 _pidfile = '.onrampRESTservice.pid'
 _src_dir = 'src'
@@ -93,10 +112,113 @@ def _stop():
 
     call(['kill', str(pid)])
 
+def _mod_test():
+    """Test contents of OnRamp Educational module.
+
+    Note: Requires sys.argv[2] to be filename of module test config file.
+    """
+    ret_dir = os.getcwd()
+    env_py = os.path.abspath('src/env/bin/python')
+    conf = ConfigObj(sys.argv[2])
+    # FIXME: Change to this line after moreREST gets merged.
+    # conf = ConfigObj(sys.argv[2],
+    #                  configspec='src/configspecs/modtest.inispec')
+    if not os.path.exists(conf['deploy_path']):
+        os.makedirs(conf['deploy_path'])
+    shutil.copytree(conf['module_path'], conf['deploy_path'])
+    
+    # Deploy.
+    os.chdir(conf['deploy_path'])
+    # FIXME: This needs to be able to handle the 'admin required' situation:
+    call([env_py, 'bin/onramp_deploy.py'])
+    os.chdir(ret_dir)
+    if conf['post_deploy_test']:
+        call([env_py, conf['post_deploy_test']])
+
+    # Preprocess.
+    os.chdir(conf['deploy_path'])
+    call([env_py, 'bin/onramp_preprocess.py'])
+    os.chdir(ret_dir)
+    if conf['post_preprocess_test']:
+        call([env_py, conf['post_preprocess_test']])
+        
+    # Run.
+    os.chdir(conf['deploy_path'])
+
+    if conf['batch_scheduler'] == 'SLURM':
+        status_check = _SLURM_status
+        PCE._build_SLURM_script('modtest', conf['num_tasks'], None,
+                                filename='script.sh')
+        try:
+            batch_output = check_output(['sbatch', 'script.sh'])
+            job_num = batch_output.strip().split()[3:][0] 
+        except (CalledProcessError, ValueError, IndexError):
+            print 'Job scheduling call failed or gave unexpected output.'
+            return
+    else:
+        print "Invalid value given for 'batch_scheduler'."
+        return
+
+    os.chdir(ret_dir)
+    if conf['post_launch_test']:
+        call([env_py, conf['post_launch_test']])
+        
+    # Wait for job to finish, call onramp_status.py when appropriate.
+    os.chdir(conf['deploy_path'])
+    job_state = 'Queued'
+    while job_state != 'Done':
+        time.sleep(5)
+        (status, job_state) = status_check(job_num)
+        if 0 != status:
+            print 'Job info call failed.'
+            return
+        if job_state == 'Running':
+            print 'bin/onramp_status.py output:'
+            try:
+                print check_output([env_py, 'bin/onramp_status.py'])
+            except CalledProcessError:
+                print 'bin/onramp_status.py call failed.'
+                return
+            if conf['post_status_test']:
+                os.chdir(ret_dir)
+                call([env_py, conf['post_status_test']])
+                os.chdir(conf['deploy_path'])
+
+    # Postprocess.
+    call([env_py, 'bin/onramp_postprocess.py'])
+    os.chdir(ret_dir)
+    if conf['post_postprocess_test']:
+        call([env_py, conf['post_postprocess_test']])
+
+    # Print results.
+    os.chdir(conf['deploy_path'])
+    print 'Results:'
+    with open('Results/output.txt', 'r') as f:
+        print f.read()
+
+def _SLURM_status(job_num):
+    try:
+        job_info = check_output(['scontrol', 'show', 'job', job_num])
+    except CalledProcessError as e:
+        return (-1, '')
+
+    job_state = job_info.split('JobState=')[1].split()[0]
+    if job_state == 'RUNNING':
+        job_state = 'Running'
+    elif job_state == 'COMPLETED':
+        job_state = 'Done'
+    elif job_state == 'PENDING':
+        job_state = 'Queued'
+    else:
+        return (-1, '')
+    
+    return (0, job_state)
+
 switch = {
     'start': _start,
     'restart': _restart,
-    'stop': _stop
+    'stop': _stop,
+    'modtest': _mod_test
 }
 
 if __name__ == '__main__':
