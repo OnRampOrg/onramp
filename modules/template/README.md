@@ -9,10 +9,10 @@ The ```config``` directory contains a series of configuration files, described b
 
  * ```config/onramp_metadata.ini``` : Metadata information about your curriculum module (e.g., Author, Title, Description).
  * ```config/onramp.ini``` : Any setup/deployment requirements that OnRamp needs to be aware of when using your module.
- * ```config/onramp_uioptions.ini``` : User interaction configuration. This file describes how the end user will interact with your curriculum module.
+ * ```config/onramp_uioptions.spec``` : User interaction configuration. This file describes how the end user will interact with your curriculum module. Written in [configspec](https://configobj.readthedocs.org/en/latest/configobj.html#validation). Descriptions of the keys (if needed) can be listed in the ```config/onramp_metadata.ini``` file.
   * List of files to make visible after the run (regular expressions allowed)
   * List of web form parameters (e.g., block size, number of steps) that change the behavior of the application run. Additional validation criteria should be specified (see the section on [configspec](https://configobj.readthedocs.org/en/latest/configobj.html#validation) in the ```configobj``` documentation)
-  	 * This will become a submission form on the web interface which will validate the input parameters before sending the resulting key/value pairs to the ```onramp_*``` scripts for this curriculum module.
+  	 * This will become a submission form on the web interface which will validate the input parameters before sending the resulting key/value pairs to the ```onramp_*``` scripts for this curriculum module. The file returned from the server will be a configobj file named ```onramp_runparams.ini```.
 
 ---------------------
 ## Documentation
