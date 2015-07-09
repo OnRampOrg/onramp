@@ -53,7 +53,7 @@ for name in os.listdir(prebuilt_dir):
                 os.chdir(ret_dir)
 
 # Setup virtual environment
-call(['virtualenv', env_dir])
+call(['virtualenv', '-p', 'python2.7', env_dir])
 call([env_dir + '/bin/pip', 'install', '-r', source_dir + '/requirements.txt'])
 
 # Link PCE to virtual environment
