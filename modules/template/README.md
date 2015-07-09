@@ -27,6 +27,11 @@ OnRamp will cache a copy of this subdirectory on the OnRamp server after module 
 The ```src``` directory contains all of the source code for your project. You have complete flexibility over the contents of this directory and its structure.
 
 ---------------------
+## PCE Runtime State/Output
+
+The ```onramp``` directory must not exist in the module's root folder. The PCE environment will create and use this directory to store job output and runtime state. Upon job completion, job results will be saved to ```onramp/output.txt```.
+
+---------------------
 ## Required Supporting Scripts
 
 The ```bin``` directory contains a few OnRamp support scripts that you will need to complete for your curriculum module. They are activated and used at different times in the life-cycle of a curriculum module. Each script will be executed with the module's root directory as the current working directory.
