@@ -15,7 +15,7 @@ import re
 #
 
 # Read in the output file
-lines = [line.rstrip('\n') for line in open('onramp/output.txt')]
+lines = [line.rstrip('\n') for line in open('output.txt')]
 
 # If the file is empty then nothing to do
 if len(lines) <= 0:
