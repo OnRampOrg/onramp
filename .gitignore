@@ -18,3 +18,9 @@ pce/modules
 pce/log
 pce/src/env
 pce/src/.*.pid
+
+server/users
+server/pce
+server/log
+server/src/env
+
