@@ -1,1 +1,1 @@
-print 'HelloMPI/bin/onramp_preprocess.py has been called'
+print 'testmodule/bin/onramp_preprocess.py has been called'
