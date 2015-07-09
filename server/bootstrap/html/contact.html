@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 
+<!-- Bootstrap Template -->
+
 <html>
 <head>
+    <meta charset="utf-8">
     <title>OnRamp</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <!-- Bootstrap -->
-      <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="dist/css/bootstrap.min.css">
 </head>
-<body role="document">
-
-    <!-- Fixed navbar -->
+<body>
+        <!-- Fixed navbar -->
     
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
@@ -24,26 +25,42 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
+            <li ><a href="user_dashboard.html">Home</a></li>
             <li><a href="about.html">About</a></li>
             <li><a href="myprofile.html">Profile</a></li>
-            <li><a href="contact.html">Contact</a></li>
+            <li class="active"><a href="contact.html">Contact</a></li>
             <li><a href="#help">Help</a></li>
           </ul>
         </div>
       </div>
     </nav>
+    
     <br>
+    
     <div class="container">
         <div class="jumbotron">
-            <h1>User Dashboard</h1>
+            <h1>Contact Us</h1>
         </div>
     </div>
+    
     <div class="container">
-        <h2>some other stuff...</h2>
+        <div class="row">
+            <p>Please let us know what you think!<p>
+            <br>
+            <a href="mailto:">Email address</a>
+        </div>
     </div>
-
+    
+   
+	<!-- footer -->
+	<footer class="footer">
+	  <div class="container">
+		<p>Something in the footer....</p>
+	  </div>
+	</footer>
+	
+	<!-- put all scripty scripts below this line -->
     <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
+    <script src="dist/js/bootstrap.min.js"></script>
 </body>
 </html>
