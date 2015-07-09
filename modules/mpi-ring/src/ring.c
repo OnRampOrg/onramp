@@ -51,6 +51,8 @@ int main(int argc, char *argv[])
                 }
                 else {
                     fprintf(stderr, "Error: -i requires an integer parameter\n");
+                    MPI_Finalize();
+                    return -1;
                 }
             }
             else if( 0 == strncmp("-w", argv[i], 2) ) {
@@ -60,6 +62,8 @@ int main(int argc, char *argv[])
                 }
                 else {
                     fprintf(stderr, "Error: -w requires an integer parameter\n");
+                    MPI_Finalize();
+                    return -2;
                 }
             }
         }
@@ -73,7 +77,7 @@ int main(int argc, char *argv[])
      * message.
      */
     if (0 == rank) {
-        message = max_iters;
+        message = 0;
 
         printf("Process %2d of %2d) [<-- %2d, %2d, %2d -->] Start Ring!\n",
                rank, size, prev, rank, next);
@@ -86,10 +90,10 @@ int main(int argc, char *argv[])
     /*
      * Pass the message around the ring.  The exit mechanism works as
      * follows: the message (a positive integer) is passed around the
-     * ring.  Each time it passes rank 0, it is decremented.  When
-     * each processes receives a message containing a 0 value, it
+     * ring.  Each time it passes rank 0, it is incremented.  When
+     * each processes receives a message containing a max value, it
      * passes the message on to the next process and then quits.  By
-     * passing the 0 message first, every process gets the 0 message
+     * passing the message first, every process gets the final message
      * and can quit normally.
      */
     while (1) {
@@ -102,14 +106,16 @@ int main(int argc, char *argv[])
         if( max_iters == message && 0 != rank ) {
             printf("Process %2d of %2d) [<-- %2d, %2d, %2d -->] Recv/Send Checking in!\n",
                    rank, size, prev, rank, next);
+
             usleep(sim_work); // simulate some work during checkin
         }
 
-        // Each time rank 0 sees the marker decrement it
+        // Each time rank 0 sees the marker increment it
         if (0 == rank) {
-            --message;
-            printf("Process %2d of %2d) [<-- %2d, %2d, %2d -->] Decrement value %3d of %3d\n",
+            ++message;
+            printf("Process %2d of %2d) [<-- %2d, %2d, %2d -->] Increment value %3d of %3d\n",
                    rank, size, prev, rank, next, message, max_iters);
+
             usleep(sim_work); // simulate some work
         }
 
@@ -118,7 +124,7 @@ int main(int argc, char *argv[])
                  next, tag, MPI_COMM_WORLD);
 
         // If all done then cleanup
-        if (0 >= message) {
+        if (max_iters <= message) {
             printf("Process %2d of %2d) [<-- %2d, %2d, %2d -->] Exiting\n",
                    rank, size, prev, rank, next);
             break;
