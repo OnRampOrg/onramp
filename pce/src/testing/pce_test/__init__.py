@@ -276,9 +276,9 @@ class JobsEndpointTest(_JSONResourceTest):
         self.assertEqual(len(fields), 2)
         self.assertEqual(int(fields[1]), d['job_num'])
         self.assertTrue(os.path.isdir(self.run_dir))
-        self.assertTrue(os.path.isdir(self.run_dir + '/onramp'))
-        self.assertTrue(os.path.isfile(self.run_dir + '/onramp/run_info'))
-        conf = ConfigObj(self.run_dir + '/onramp/run_info')
+        self.assertTrue(os.path.isdir(self.run_dir + '/.onramp'))
+        self.assertTrue(os.path.isfile(self.run_dir + '/.onramp/run_info'))
+        conf = ConfigObj(self.run_dir + '/.onramp/run_info')
         conf_keys = conf.keys()
         self.assertIn('job_num', conf_keys)
         self.assertIn('job_state', conf_keys)
@@ -286,13 +286,14 @@ class JobsEndpointTest(_JSONResourceTest):
         self.assertEqual(conf['job_num'], str(d['job_num']))
         self.assertEqual(conf['job_state'], 'Queued')
         self.assertEqual(conf['module_name'], 'testmodule')
+        self.assertTrue(os.path.isfile(self.run_dir + '/script.sh'))
         self.assertTrue(d['url'].endswith(rel_url))
         fields = success_response_fields + self.base_response_fields
         for k in d.keys():
             self.assertIn(k, fields)
         time.sleep(1)
-        self.assertTrue(os.path.isfile(self.run_dir + '/onramp/output.txt'))
-        with open(self.run_dir + '/onramp/output.txt', 'r') as f:
+        self.assertTrue(os.path.isfile(self.run_dir + '/output.txt'))
+        with open(self.run_dir + '/output.txt', 'r') as f:
             output = f.read()
             expected = ('Testing output from testmodule.Testing output from '
                         'testmodule.Testing output from testmodule.Testing '
@@ -327,9 +328,9 @@ class JobsEndpointTest(_JSONResourceTest):
         self.assertEqual(len(fields), 2)
         self.assertEqual(int(fields[1]), d['job_num'])
         self.assertTrue(os.path.isdir(self.run_dir2))
-        self.assertTrue(os.path.isdir(self.run_dir2 + '/onramp'))
-        self.assertTrue(os.path.isfile(self.run_dir2 + '/onramp/run_info'))
-        conf = ConfigObj(self.run_dir2 + '/onramp/run_info')
+        self.assertTrue(os.path.isdir(self.run_dir2 + '/.onramp'))
+        self.assertTrue(os.path.isfile(self.run_dir2 + '/.onramp/run_info'))
+        conf = ConfigObj(self.run_dir2 + '/.onramp/run_info')
         conf_keys = conf.keys()
         self.assertIn('job_num', conf_keys)
         self.assertIn('job_state', conf_keys)
@@ -337,13 +338,14 @@ class JobsEndpointTest(_JSONResourceTest):
         self.assertEqual(conf['job_num'], str(d['job_num']))
         self.assertEqual(conf['job_state'], 'Queued')
         self.assertEqual(conf['module_name'], 'testmodule')
+        self.assertTrue(os.path.isfile(self.run_dir + '/script.sh'))
         self.assertTrue(d['url'].endswith(rel_url2))
         fields = success_response_fields + self.base_response_fields
         for k in d.keys():
             self.assertIn(k, fields)
         time.sleep(1)
-        self.assertTrue(os.path.isfile(self.run_dir2 + '/onramp/output.txt'))
-        with open(self.run_dir2 + '/onramp/output.txt', 'r') as f:
+        self.assertTrue(os.path.isfile(self.run_dir2 + '/output.txt'))
+        with open(self.run_dir2 + '/output.txt', 'r') as f:
             output = f.read()
             expected = ('Testing output from testmodule.Testing output from '
                         'testmodule.Testing output from testmodule.Testing '
