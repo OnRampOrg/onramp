@@ -27,9 +27,21 @@ OnRamp will cache a copy of this subdirectory on the OnRamp server after module 
 The ```src``` directory contains all of the source code for your project. You have complete flexibility over the contents of this directory and its structure.
 
 ---------------------
-## PCE Runtime State/Output
+## Reserved Directories/Files
 
-The ```onramp``` directory must not exist in the module's root folder. The PCE environment will create and use this directory to store job output and runtime state. Upon job completion, job results will be saved to ```onramp/output.txt```.
+The following paths in the modules's root directory will be written to by the OnRamp PCE service and are, thus, reserved:
+
+ * ```output.txt``` :
+ Job output will be written here upon job completion.
+
+ * ```script.sh``` :
+ The PCE-generated batch script will be written here at launch.
+
+ * ```onramp_runparams.ini``` :
+ User submitted values for config options defined in ```config/onramp_uioptions.spec``` will be written here at launch.
+
+ * ```.onramp/``` :
+ Used by the PCE service to maintain state between HTTP requests.
 
 ---------------------
 ## Required Supporting Scripts

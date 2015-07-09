@@ -218,7 +218,7 @@ class Jobs(_PCEResourceBase):
         # FIXME: There's a race condition between here and the postprocess
         # script call.
         # FIXME 2: Error response if file not found
-        run_info = ConfigObj(run_dir + '/onramp/run_info')
+        run_info = ConfigObj(run_dir + '/.onramp/run_info')
 
         # FIXME: This section is dependent on self.conf settings. --------------
         # SLURM
@@ -251,7 +251,7 @@ class Jobs(_PCEResourceBase):
             call(['../../../src/env/bin/python', 'bin/onramp_postprocess.py'])
             os.cwd(ret_dir)
             run_info['job_state'] = 'Done'
-            with open(run_dir + '/onramp/run_info', 'w') as f:
+            with open(run_dir + '/.onramp/run_info', 'w') as f:
                 run_info.write(file_object=f)
 
         job_status = None
@@ -273,7 +273,7 @@ class Jobs(_PCEResourceBase):
             os.cwd(ret_dir)
 
         if job_state == 'Done':
-            run_filename = run_dir + '/onramp/output.txt'
+            run_filename = run_dir + '/output.txt'
             if not os.path.isfile(run_filename):
                 msg = 'Job finished, but no output file'
                 self.logger.error(msg)
@@ -325,7 +325,7 @@ class Jobs(_PCEResourceBase):
         modules_dir = path + '/modules'
         mod_dir = modules_dir + '/' + module_name
         run_dir = user_dir + '/' + module_name + '/' + run_name
-        onramp_dir = run_dir + '/' + 'onramp'
+        onramp_dir = run_dir + '/.onramp'
 
         if not os.path.isdir(modules_dir):
             msg = 'Modules root folder does not exist'
