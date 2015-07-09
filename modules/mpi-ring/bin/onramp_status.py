@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+
+#
+# Curriculum Module Status Script
+# - Run while the job is running
+# - Run -outside- of the allocation
+# - onramp_run_params.ini file is available in current working directory
+#
+import sys
+
+#
+# Display any special message you want the user to see, or leave blank if nothing.
+# Please restrict status messages to 1 line of text.
+#
+
+#
+# Exit successfully
+#
+sys.exit(0)
