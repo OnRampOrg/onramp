@@ -220,7 +220,7 @@ def _mod_test():
     # Print results.
     os.chdir(deploy_path)
     print 'Results:'
-    with open('onramp/output.txt', 'r') as f:
+    with open('output.txt', 'r') as f:
         print f.read()
 
     _modtest_cleanup(conf, deploy_path)
