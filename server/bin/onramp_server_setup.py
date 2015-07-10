@@ -17,16 +17,20 @@ from subprocess import call
 package_name = 'Server'
 source_dir = 'src'
 env_dir = source_dir + '/env'
-tmp_users_dir = 'users'
-tmp_pce_dir = 'pce'
+tmp_users_dir = 'tmp/users'
+tmp_pce_dir = 'tmp/pce'
 log_dir = 'log'
 
 
+###################################################
 #
 # Check if we have already done this
 #
 if os.path.exists(env_dir):
-    print 'Server appears to be already installed.'
+    print "=" * 70
+    print 'Warning: Server appears to be already installed.'
+    print "=" * 70
+
     response = raw_input('(R)emove and re-install or (A)bort? ')
     if response != 'R':
         sys.exit('Aborted')
@@ -35,6 +39,10 @@ if os.path.exists(env_dir):
     shutil.rmtree(tmp_users_dir, True)
     shutil.rmtree(tmp_pce_dir, True)
 
+###################################################
+print "=" * 70
+print "Status: Creating Directory Structure"
+print "=" * 70
 #
 # Create the log directory
 #
@@ -51,6 +59,11 @@ if not os.path.exists(tmp_pce_dir):
     os.makedirs(tmp_pce_dir)
 
 
+###################################################
+print "=" * 70
+print "Status: Setup the virtual environment"
+print "        This may take a while..."
+print "=" * 70
 #
 # Setup virtual environment
 #
@@ -66,3 +79,11 @@ call(['cp', '-rs', cwd + '/' + source_dir + '/' + package_name,
 
 # Use virtual environment to complete server setup
 call([env_dir + '/bin/python', source_dir + '/stage_two.py'])
+
+
+###################################################
+print "=" * 70
+print "Status: Setup Complete"
+print "=" * 70
+
+sys.exit(0)
