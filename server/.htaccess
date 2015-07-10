@@ -1,3 +1,3 @@
 RewriteEngine on
-#RewriteRule ^html/(.*) $1 [last]
-RewriteRule ^(.*) http://127.0.0.1:9092/$1 [proxy]
+#RewriteRule ^(.*) $1 [last]
+RewriteRule ^api(.*) http://127.0.0.1:9092/$1 [proxy]
