@@ -4,6 +4,7 @@ Exports:
     Root: Root directoy
 """
 
+import pprint
 import copy
 import glob
 import logging
@@ -46,12 +47,15 @@ class _ServerResourceBase:
         """
         self.conf = conf
         self.logger = logging.getLogger('onramp')
-        self.url_base = (conf['server']['socket_host'] + ':'
-                          + str(conf['server']['socket_port'])
-                          + '/' + self.__class__.__name__.lower() + '/')
-        self.api_root = (conf['server']['socket_host'] + ':'
-                         + str(conf['server']['socket_port'])
-                         + '/api/')
+
+        server = None
+        if 'url_docroot' in conf['server'].keys():
+            server = conf['server']['url_docroot']
+        else:
+            server = conf['server']['socket_host'] + ':' + str(conf['server']['socket_port'])
+
+        self.url_base = (server + '/' + self.__class__.__name__.lower() + '/')
+        self.api_root = (server + '/api/')
 
     def JSON_response(self, id=None, url=True, status_code=0,
                       status_msg='Success', **kwargs):
@@ -87,5 +91,7 @@ class Root(_ServerResourceBase):
         self.logger.debug('id: %s' % id)
         #host = cherrypy.request.headers('Host')
         host = cherrypy.request.headers.get('Host', None)
+        host = self.api_root
+        #host = str(cherrypy.request.headers)
         return "OnRamp Server is running... (%s)" % host
 
