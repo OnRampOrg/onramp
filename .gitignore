@@ -23,4 +23,5 @@ server/tmp/users
 server/tmp/pce
 server/log
 server/src/env
+server/src/.*.pid
 

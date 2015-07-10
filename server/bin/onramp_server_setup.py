@@ -14,7 +14,7 @@ import sys
 from subprocess import call
 
 
-package_name = 'Server'
+package_name = 'OnRampServer'
 source_dir = 'src'
 env_dir = source_dir + '/env'
 tmp_users_dir = 'tmp/users'
