@@ -30,5 +30,12 @@ np =
 #
 nodes = 
 
-[hello]
-name = string(max=32,default="World")
+[pi]
+#
+# Number of rectangular elements
+#
+elements = 
+#
+# Number of OpenMP threads
+#
+threads = 

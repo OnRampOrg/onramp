@@ -23,7 +23,7 @@ config    = ConfigObj(conf_file)
 # Run my program
 #
 os.chdir('src')
-call(['mpirun', '-np', config['onramp']['np'], 'hello', config['hello']['name']])
+call(['mpirun', '-np', config['onramp']['np'], './pi-hybrid', '-n', config['pi']['elements'], '-t', config['pi']['threads']])
 
 
 # Exit 0 if all is ok

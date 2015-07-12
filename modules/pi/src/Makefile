@@ -1,26 +1,44 @@
+# DESCRIPTION: Makefile for pi program
+# AUTHOR: Jason Regina
+# REVISION: 5 July 2015
 #
-# Generic Makefile for the sample MPI program
-#
-# J. Hursey
-#
+# Code Prefix
+PREFIX=pi-
 
-# Use the MPI wrapper compiler
-CC=mpicc
-
-CFLAGS=-Wall -g -O0
-
+# Compilers and Flags
+CC=gcc
+MPICC=mpicc
 LDFLAGS=-lm
+EXECUTABLES=$(PREFIX){serial,mpi,openmp,hybrid}
 
-#
-# List all of the binary programs you want to build here
-# Separate each program with a single space
-#
-PROGS=hello
+$(PREFIX)serial: $(PREFIX)serial.c
+	$(CC) $(PREFIX)serial.c $(LDFLAGS) -o $(PREFIX)serial
 
-all: $(PROGS)
+$(PREFIX)mpi: $(PREFIX)mpi.c
+	$(MPICC) $(PREFIX)mpi.c $(LDFLAGS) -o $(PREFIX)mpi
 
-hello: hello.c
-	$(CC) -o hello $(CFLAGS) hello.c
+$(PREFIX)openmp: $(PREFIX)openmp.c
+	$(CC) $(PREFIX)openmp.c -fopenmp $(LDFLAGS) -o $(PREFIX)openmp
+
+$(PREFIX)hybrid: $(PREFIX)hybrid.c
+	$(MPICC) $(PREFIX)hybrid.c -fopenmp $(LDFLAGS) -o $(PREFIX)hybrid
 
 clean:
-	$(RM) $(PROGS) *.o
+	rm -f $(EXECUTABLES) *.o
+
+serial:
+	make $(PREFIX)serial
+
+mpi:
+	make $(PREFIX)mpi
+
+openmp:
+	make $(PREFIX)openmp
+
+hybrid:
+	make $(PREFIX)hybrid
+
+all:
+	make clean
+	make $(EXECUTABLES)
+
