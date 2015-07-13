@@ -11,7 +11,8 @@ Prior to running this script, ensure that onramp/pce/onramp_pce_setup.py has
 been called and that the server is running. Also Ensure ./test_pce_config.ini
 contains the proper settings.
 """
-import nose, sys
+import nose
+import sys
 
 if __name__ == '__main__':
     print (__doc__)
