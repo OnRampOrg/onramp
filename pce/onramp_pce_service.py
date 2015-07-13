@@ -3,7 +3,11 @@
 
 Usage: ./onramp_service.py COMMAND [COMMAND_ARGS]
 
+For detailed usage/arguments/instructions for a specific command:
+    ./onramp_service.py COMMAND -h
+
 Commands:
+
     start
         Starts the OnRamp PCE Server.
 
@@ -13,16 +17,15 @@ Commands:
     restart
         Restarts the OnRamp PCE Server.
 
-    modtest TEST_CONFIG_FILE
-        Tests the contents of an OnRamp Educational module as specified by
-        params in TEST_CONFIG_FILE.
+    modtest
+        Tests the contents of an OnRamp Educational module.
 """
 import argparse
 import os
 import shutil
 import sys
 import time
-from subprocess import call, check_output
+from subprocess import CalledProcessError, call, check_output
 from tempfile import TemporaryFile
 
 from configobj import ConfigObj
@@ -68,8 +71,20 @@ def _getPID():
     return -1
 
 def _start():
-    """If not already running, start the REST server."""
+    """If not already running, start the REST server.
+
+    Usage: onramp_pce_service.py start [-h]
+
+    optional arguments:
+      -h, --help  show this help message and exit
+    """
+    descrip = 'If not already running, start the REST server.'
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py start',
+                                     description=descrip)
+    args = parser.parse_args(args=sys.argv[2:])
+
     print 'Starting REST server...'
+    os.chdir(_src_dir)
     pid = _getPID()
 
     if -2 == pid:
@@ -84,8 +99,20 @@ def _start():
     return
 
 def _restart():
-    """If not stopped, restart the REST server, else start it."""
+    """If not stopped, restart the REST server, else start it.
+
+    Usage: onramp_pce_service.py restart [-h]
+
+    optional arguments:
+      -h, --help  show this help message and exit
+    """
+    descrip = 'If not stopped, restart the REST server, else start it.'
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py restart',
+                                     description=descrip)
+    args = parser.parse_args(args=sys.argv[2:])
+
     print 'Restarting REST server...'
+    os.chdir(_src_dir)
     pid = _getPID()
 
     if -2 == pid:
@@ -101,8 +128,20 @@ def _restart():
     return
 
 def _stop():
-    """If running, stop the REST server."""
+    """If running, stop the REST server.
+
+    Usage: onramp_pce_service.py stop [-h]
+
+    optional arguments:
+      -h, --help  show this help message and exit
+    """
+    descrip = 'If running, stop the REST server.'
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py stop',
+                                     description=descrip)
+    args = parser.parse_args(args=sys.argv[2:])
+
     print 'Stopping REST server...'
+    os.chdir(_src_dir)
     pid = _getPID()
 
     if -2 == pid:
@@ -141,7 +180,6 @@ def _mod_test():
                         help="module's modtest configuration file")
     args = parser.parse_args(args=sys.argv[2:])
 
-    os.chdir('../')
     ret_dir = os.getcwd()
     env_py = os.path.abspath('src/env/bin/python')
 
@@ -172,31 +210,25 @@ def _mod_test():
         results = job_output_file
         params = args
 
-        if os.path.isfile(results):
-            if error:
-                if conf['cleanup']:
-                    print ('modtest is configured to cleanup job files on '
-                           'exit, but there has been an error. Would you like '
-                           'to keep the files for troubleshooting?')
-                    response = raw_input('(Y)es or (N)o? ')
-                    if response == 'Y' or response == 'y':
-                        conf['cleanup'] = False
-                        print ('Output file from job: %s'
-                               % os.path.join(deploy_path, results))
-                else:
-                    print ('Output file from job: %s'
-                           % os.path.join(deploy_path, results))
-            else:
-                if not conf['cleanup']:
-                    print ('Output file from job: %s'
-                           % os.path.join(deploy_path, results))
-        else:
-            print 'No output file found.'
+        if error:
+            if conf['cleanup']:
+                print ('modtest is configured to cleanup job files on '
+                       'exit, but there has been an error. Would you like '
+                       'to keep the files for troubleshooting?')
+                response = raw_input('(Y)es or (N)o? ')
+                if response == 'Y' or response == 'y':
+                    conf['cleanup'] = False
 
         if conf['cleanup']:
             if params.verbose:
                 print 'Removing %s' % deploy_path
             shutil.rmtree(path)
+        else:
+            if os.path.isfile(results):
+                print ('Output file from job: %s'
+                       % os.path.join(deploy_path, results))
+            else:
+                print 'No job output file found.'
 
     def run_section(script=None, test=None, print_output=False):
         py = env_py
@@ -210,10 +242,11 @@ def _mod_test():
                 # FIXME: This needs to be able to handle the 'admin required'
                 # situation when script = 'bin/onramp_deploy'
                 output = check_output([py, script])
-            except CalledProcessError:
+            except CalledProcessError as e:
                 print '%s call failed.' % script
+                print e.output
                 finish(conf, error=True)
-                return
+                return -1
 
         if print_output:
             print output
@@ -225,7 +258,9 @@ def _mod_test():
                 if 0 != call([py, test[1]]):
                     print '%s failed.' % test[0]
                     finish(cfg, error=True)
-                    return
+                    return -1
+
+        return 0
 
     def SLURM_status(job_num):
         try:
@@ -248,7 +283,10 @@ def _mod_test():
         return (0, job_state)
 
     # Deploy.
-    run_section(script='bin/onramp_deploy.py', test=post_deploy_test)
+    result = run_section(script='bin/onramp_deploy.py', test=post_deploy_test)
+    if 0 != result:
+        return
+
     os.mkdir(pce_dir)
     if conf['custom_runparams']:
         if args.verbose:
@@ -256,7 +294,10 @@ def _mod_test():
         shutil.copyfile(custom_runparams, 'onramp_runparams.ini')
 
     # Preprocess.
-    run_section(script='bin/onramp_preprocess.py', test=post_preprocess_test)
+    result = run_section(script='bin/onramp_preprocess.py',
+                         test=post_preprocess_test)
+    if 0 != result:
+        return
         
     # Run.
     if conf['batch_scheduler'] == 'SLURM':
@@ -277,13 +318,17 @@ def _mod_test():
         finish(conf, error=True)
         return
 
-    run_section(test=post_launch_test)
+    result = run_section(test=post_launch_test)
+    if 0 != result:
+        return
         
     # Wait for job to finish, call onramp_status.py when appropriate.
     if args.verbose:
         print 'Waiting/polling job state for completion'
         
     sleep_time = conf['results_check_sleep']
+    if not sleep_time:
+        sleep_time = default_sleep_time
     job_state = 'Queued'
 
     while job_state != 'Done':
@@ -296,11 +341,17 @@ def _mod_test():
             return
 
         if job_state == 'Running':
-            run_section(script='bin/onramp_status.py', test=post_status_test,
-                        print_output=True)
+            result = run_section(script='bin/onramp_status.py',
+                                 test=post_status_test,
+                                 print_output=True)
+            if 0 != result:
+                return
 
     # Postprocess.
-    run_section(script='bin/onramp_postprocess.py', test=post_postprocess_test)
+    result = run_section(script='bin/onramp_postprocess.py',
+                         test=post_postprocess_test)
+    if 0 != result:
+        return
 
     if args.verbose:
         print 'No errors found.'
@@ -315,7 +366,6 @@ switch = {
 }
 
 if __name__ == '__main__':
-    os.chdir(_src_dir)
     try:
         if sys.argv[1] not in switch.keys():
             raise ValueError()
