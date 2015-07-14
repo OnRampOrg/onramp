@@ -18,3 +18,4 @@ pce/modules
 pce/log
 pce/src/env
 pce/src/.*.pid
+pce/src/testing/deploy

@@ -12,6 +12,7 @@ been called and that the server is running. Also Ensure ./test_pce_config.ini
 contains the proper settings.
 """
 import nose
+import sys
 
 if __name__ == '__main__':
     print (__doc__)
