@@ -247,9 +247,9 @@ class Jobs(_PCEResourceBase):
         if job_state == 'Done' and run_info['job_state'] != 'Done':
             # Run module's bin/onramp_postprocess.py
             ret_dir = os.getcwd()
-            os.cwd(run_dir)
+            os.chdir(run_dir)
             call(['../../../src/env/bin/python', 'bin/onramp_postprocess.py'])
-            os.cwd(ret_dir)
+            os.chdir(ret_dir)
             run_info['job_state'] = 'Done'
             with open(run_dir + '/.onramp/run_info', 'w') as f:
                 run_info.write(file_object=f)
@@ -258,7 +258,7 @@ class Jobs(_PCEResourceBase):
         if job_state == 'Running':
             # Run module's bin/onramp_status.py
             ret_dir = os.getcwd()
-            os.cwd(run_dir)
+            os.chdir(run_dir)
 
             try:
                 job_status = check_output(['../../../src/env/bin/python',
@@ -270,7 +270,7 @@ class Jobs(_PCEResourceBase):
                 return self.JSON_response(status_code=-11, status_msg=msg,
                                           return_code=e.returncode,
                                           output=e.output, id=id)
-            os.cwd(ret_dir)
+            os.chdir(ret_dir)
 
         if job_state == 'Done':
             run_filename = run_dir + '/output.txt'
