@@ -19,6 +19,9 @@ Commands:
 
     modtest
         Tests the contents of an OnRamp Educational module.
+
+    shell
+        Initializes an interactive python shell in the OnRamp PCE environment.
 """
 import argparse
 import os
@@ -359,7 +362,7 @@ def _mod_test():
     finish(conf)
 
 def _shell():
-    """Initialize a shell in the OnRamp PCE environment.
+    """Initialize an interactive python shell in the OnRamp PCE environment.
 
     Usage: onramp_pce_service.py shell [-h] [PYTHON_ARGS]
 
