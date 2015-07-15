@@ -281,10 +281,83 @@ class JobsTest(PCEBase):
         self.assertEqual(d['status_code'], -404)
         self.assertEqual(d['status_msg'], 'Resource does not exist')
 
-#    def test_POST(self):
-#        r = pce_post('jobs/')
-#        self.assertEqual(r.status_code, 200)
-#
+    def test_POST(self):
+        missing_msg_prefix = ('An invalid value or no value was received for the '
+                              'following required parameter(s): ')
+
+        r = pce_post('jobs/', mod_id=1, job_id=1, username='testuser')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+
+        r = pce_post('jobs/', job_id=1, username='testuser')
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('mod_id', missing_params)
+
+        r = pce_post('jobs/', mod_id=1, username='testuser')
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('job_id', missing_params)
+
+        r = pce_post('jobs/', mod_id=1, job_id=1)
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('username', missing_params)
+
+        r = pce_post('jobs/', mod_id=1)
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('job_id', missing_params)
+        self.assertIn('username', missing_params)
+
+        r = pce_post('jobs/', job_id=1)
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('mod_id', missing_params)
+        self.assertIn('username', missing_params)
+
+        r = pce_post('jobs/', username='testuser')
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('mod_id', missing_params)
+        self.assertIn('job_id', missing_params)
+
+        r = pce_post('jobs/')
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('mod_id', missing_params)
+        self.assertIn('job_id', missing_params)
+        self.assertIn('username', missing_params)
+
 #    def test_PUT(self):
 #        r = pce_put('jobs/')
 #        self.assertEqual(r.status_code, 400)
@@ -301,6 +374,7 @@ class ParticularJobTest(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
 
     def test_POST(self):
+
         r = pce_post('jobs/1/')
         self.assertEqual(r.status_code, 404)
 

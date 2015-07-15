@@ -147,12 +147,18 @@ class Jobs(_OnRampDispatcher):
             self.logger.warn(msg)
             cherrypy.response.status = 404
             return self.get_response(status_code=-404, status_msg=msg)
+
+        # Return the resource.
         return self.get_response()
 
-    def POST(self, id=None):
+    def POST(self):
         self.log_call('POST')
-        if id:
-            cherrypy.response.status = 400
+        data = cherrypy.request.json
+        result = self.validate_json(data, 'POST')
+        if result:
+            return result
+        
+        # Launch job.
         return self.get_response()
 
     def PUT(self, id):
