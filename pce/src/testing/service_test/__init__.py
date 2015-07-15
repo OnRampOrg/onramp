@@ -6,6 +6,8 @@ import unittest
 from configobj import ConfigObj
 from subprocess import CalledProcessError, check_output
 
+__test__ = False
+
 class TestModtest(unittest.TestCase):
 
     def setUp(self):
