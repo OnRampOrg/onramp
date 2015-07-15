@@ -123,6 +123,8 @@ class Modules(_OnRampDispatcher):
             self.logger.warn(msg)
             cherrypy.response.status = 404
             return self.get_response(status_code=-404, status_msg=msg)
+
+        # Overwrite the resource.
         return self.get_response()
 
     def DELETE(self, id, *args, **kwargs):
@@ -132,12 +134,19 @@ class Modules(_OnRampDispatcher):
             self.logger.warn(msg)
             cherrypy.response.status = 404
             return self.get_response(status_code=-404, status_msg=msg)
+
+        # Delete the resource.
         return self.get_response()
 
 
 class Jobs(_OnRampDispatcher):
-    def GET(self, id):
+    def GET(self, id, *args, **kwargs):
         self.log_call('GET')
+        if args:
+            msg = 'Resource does not exist'
+            self.logger.warn(msg)
+            cherrypy.response.status = 404
+            return self.get_response(status_code=-404, status_msg=msg)
         return self.get_response()
 
     def POST(self, id=None):

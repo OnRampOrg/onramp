@@ -108,15 +108,15 @@ class ModulesTest(PCEBase):
 
         r = pce_get('modules/45/99/')
         self.assertEqual(r.status_code, 404)
-        self.check_json(d)
         d = r.json()
+        self.check_json(d)
         self.assertEqual(d['status_code'], -404)
         self.assertEqual(d['status_msg'], 'Resource does not exist')
 
         r = pce_get('modules/45/99/', test=88)
         self.assertEqual(r.status_code, 404)
-        self.check_json(d)
         d = r.json()
+        self.check_json(d)
         self.assertEqual(d['status_code'], -404)
         self.assertEqual(d['status_msg'], 'Resource does not exist')
 
@@ -263,39 +263,35 @@ class ModulesTest(PCEBase):
         self.assertTrue(d['status_msg'].startswith('Resource does not exist'))
 
 
-class ParticularModuleTest(unittest.TestCase):
-    __test__ = False
-
-    def test_POST(self):
-        r = pce_post('modules/1/')
-        self.assertEqual(r.status_code, 400)
-
-    def test_PUT(self):
-        r = pce_put('modules/1/')
-        self.assertEqual(r.status_code, 200)
-
-    def test_DELETE(self):
-        r = pce_delete('modules/1/')
-        self.assertEqual(r.status_code, 200)
-
-
-class JobsTest(unittest.TestCase):
-    __test__ = False
+class JobsTest(PCEBase):
     def test_GET(self):
         r = pce_get('jobs/')
         self.assertEqual(r.status_code, 404)
 
-    def test_POST(self):
-        r = pce_post('jobs/')
+        r = pce_get('jobs/1/')
         self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
 
-    def test_PUT(self):
-        r = pce_put('jobs/')
-        self.assertEqual(r.status_code, 400)
-
-    def test_DELETE(self):
-        r = pce_delete('jobs/')
+        r = pce_get('jobs/45/99/')
         self.assertEqual(r.status_code, 404)
+        print r.text
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], -404)
+        self.assertEqual(d['status_msg'], 'Resource does not exist')
+
+#    def test_POST(self):
+#        r = pce_post('jobs/')
+#        self.assertEqual(r.status_code, 200)
+#
+#    def test_PUT(self):
+#        r = pce_put('jobs/')
+#        self.assertEqual(r.status_code, 400)
+#
+#    def test_DELETE(self):
+#        r = pce_delete('jobs/')
+#        self.assertEqual(r.status_code, 404)
 
 
 class ParticularJobTest(unittest.TestCase):
