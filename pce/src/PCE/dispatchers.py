@@ -11,8 +11,11 @@ Exports:
 """
 
 import logging
+import os
 
 import cherrypy
+from configobj import ConfigObj
+from validate import Validator
 
 class _OnRampDispatcher:
     exposed = True
@@ -38,25 +41,91 @@ class _OnRampDispatcher:
         self.logger.debug('%s.%s() called' % (self.__class__.__name__,
                                                 func_name))
 
+    def validate_json(self, data, func_name):
+        def _search_dict(d, prefix=''):
+            bad_params = []
+            for item in d.keys():
+                if isinstance(d[item], dict):
+                    bad = _search_dict(d[item], '%s[%s]' % (prefix, item))
+                    bad_params += bad
+                else:
+                    if not d[item]:
+                        bad_params.append('%s%s' % (prefix, item))
+            return bad_params
+            
+        self.logger.debug('Validating input to %s.%s()'
+                          % (self.__class__.__name__, func_name))
+    
+        path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
+        configspec = (path + '/src/configspecs/%s_%s.inputspec'
+                      % (self.__class__.__name__, func_name))
+    
+        try:
+            conf = ConfigObj(data, configspec=configspec)
+            result = conf.validate(Validator())
+            self.logger.debug('Result: %s' % str(result))
+        except IOError as ie:
+            self.logger.error(str(ie))
+            cherrypy.response.status = 500
+            return self.get_response(status_code=-9, status_msg=str(ie))
+        except ValueError as ve:
+            self.logger.warn(str(ve))
+            cherrypy.response.status = 400
+            return self.get_response(status_code=-8, status_msg=str(ve))
+
+        if not result:
+            msg = 'None of the required parameters were given in the request.'
+            self.logger.warn(msg)
+            cherrypy.response.status = 400
+            return self.get_response(status_code=-8, status_msg=msg)
+            
+        if isinstance(result, dict):
+            invalid_params = _search_dict(result)
+            msg = ('An invalid value or no value was received for the '
+                   'following required parameter(s): %s'
+                   % ', '.join(invalid_params))
+            self.logger.warn(msg)
+            cherrypy.response.status = 400
+            return self.get_response(status_code=-8, status_msg=msg)
+    
+        return None
+
 
 class Modules(_OnRampDispatcher):
     def GET(self, id=None, *args, **kwargs):
         self.log_call('GET')
         if args:
+            msg = 'Resource does not exist'
+            self.logger.warn(msg)
             cherrypy.response.status = 404
-            return self.get_response(status_code=-404,
-                                     status_msg='Resource does not exist')
+            return self.get_response(status_code=-404, status_msg=msg)
         return self.get_response()
 
-    def POST(self, id=None, mod_id=None, mod_name=None, location=None,
-             **kwargs):
+    def POST(self, id=None, **kwargs):
 
         self.log_call('POST')
+        self.logger.debug('kwargs: %s' % str(kwargs))
+        self.logger.debug('json: %s' % str(cherrypy.request.json))
         if id:
-            # Module already installed, check params and deploy.
+            # Module already installed, verify id and deploy.
             pass
         else:
             # Module not yet installed, check params and install.
+            data = cherrypy.request.json
+            result = self.validate_json(data, 'POST')
+            if result:
+                return result
+#            if not mod_id or not mod_name or not location:
+#                msg = ('Missing one or more of the following required '
+#                       'parameters: mod_id, mod_name, location')
+#                self.logger.warn(msg)
+#                cherrypy.response.status = 400
+#                return self.get_response(status_code=-400, status_msg=msg)
+#            if 'code' not in location.keys() or 'path' not in location.keys():
+#                msg = 'Bad location parameter given'
+#                self.logger.warn(msg)
+#                cherrypy.response.status = 400
+#                return self.get_response(status_code=-400, status_msg=msg)
             pass
 
         return self.get_response()

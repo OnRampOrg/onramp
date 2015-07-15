@@ -120,10 +120,70 @@ class ModulesTest(PCEBase):
         self.assertEqual(d['status_code'], -404)
         self.assertEqual(d['status_msg'], 'Resource does not exist')
 
-#    def test_POST(self):
-#        r = pce_post('modules/')
-#        self.assertEqual(r.status_code, 200)
-#
+    def test_POST(self):
+        r = pce_post('modules/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+
+        r = pce_post('modules/', mod_id=3, mod_name='testname',
+                     location={'code':0, 'path':'test/path'})
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+
+        r = pce_post('modules/', mod_id=3, mod_name='testname',
+                     location={'code':0, 'path':'test/path'},
+                     dummy_param='dummy')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+
+        r = pce_post('modules/', mod_name='testname',
+                     location={'code':0, 'path':'test/path'})
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+
+        r = pce_post('modules/', mod_id=3,
+                     location={'code':0, 'path':'test/path'})
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+
+        r = pce_post('modules/', mod_id=3, mod_name='testname')
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+
+        r = pce_post('modules/', mod_id=3, mod_name='testname',
+                     location={'path':'test/path'})
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+
+        r = pce_post('modules/', mod_id=3, mod_name='testname',
+                     location={'code':0})
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+
+        r = pce_post('modules/', mod_id=3, mod_name='testname', location={})
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+
+        r = pce_post('modules/', mod_name='testname',
+                     location={'code':0, 'path':'test/path'})
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+
+        r = pce_post('modules/')
+        self.assertEqual(r.status_code, 400)
+        d = r.json()
+        self.check_json(d)
+
 #    def test_PUT(self):
 #        r = pce_put('modules/')
 #        self.assertEqual(r.status_code, 400)
