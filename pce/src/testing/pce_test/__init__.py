@@ -230,13 +230,37 @@ class ModulesTest(PCEBase):
         self.assertEqual(d['status_code'], -404)
         self.assertTrue(d['status_msg'].startswith('Resource does not exist'))
 
-#    def test_PUT(self):
-#        r = pce_put('modules/')
-#        self.assertEqual(r.status_code, 400)
-#
-#    def test_DELETE(self):
-#        r = pce_delete('modules/')
-#        self.assertEqual(r.status_code, 404)
+    def test_PUT(self):
+        r = pce_put('modules/')
+        self.assertEqual(r.status_code, 404)
+
+        r = pce_put('modules/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+
+        r = pce_put('modules/1/1/')
+        self.assertEqual(r.status_code, 404)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], -404)
+        self.assertTrue(d['status_msg'].startswith('Resource does not exist'))
+
+    def test_DELETE(self):
+        r = pce_delete('modules/')
+        self.assertEqual(r.status_code, 404)
+
+        r = pce_delete('modules/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+
+        r = pce_delete('modules/1/1/')
+        self.assertEqual(r.status_code, 404)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], -404)
+        self.assertTrue(d['status_msg'].startswith('Resource does not exist'))
 
 
 class ParticularModuleTest(unittest.TestCase):
