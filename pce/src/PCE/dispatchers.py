@@ -27,10 +27,12 @@ class _OnRampDispatcher:
         self.logger.debug('Initialized %s' % self.__class__.__name__)
 
     def get_response(self, status_code=0, status_msg='Success', **kwargs):
-        return {
+        response = {
             'status_code': status_code,
             'status_msg': status_msg
-        }.update(kwargs)
+        }
+        response.update(kwargs)
+        return response
 
     def log_call(self, func_name):
         self.logger.debug('%s.%s() called' % (self.__class__.__name__,
@@ -38,8 +40,13 @@ class _OnRampDispatcher:
 
 
 class Modules(_OnRampDispatcher):
-    def GET(self, id=None):
+    @cherrypy.tools.json_out()
+    def GET(self, id=None, *args, **kwargs):
         self.log_call('GET')
+        if args:
+            cherrypy.response.status = 404
+            return self.get_response(status_code=-404,
+                                     status_msg='Resource does not exist')
         return self.get_response()
 
     def POST(self, id=None, mod_id=None, mod_name=None, location=None,
@@ -48,9 +55,11 @@ class Modules(_OnRampDispatcher):
         self.log_call('POST')
         if id:
             # Module already installed, check params and deploy.
-
+            pass
         else:
             # Module not yet installed, check params and install.
+            pass
+
         return self.get_response()
 
     def PUT(self, id, mod_id, mod_name):
