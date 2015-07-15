@@ -72,15 +72,15 @@
             <form class="form-signin">
                 <h3 class="form-signin-heading">Please sign in</h3>
                 <label for="inputEmail" class="sr-only">Email address</label>
-                <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
+                <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus data-bind="value: username">
                 <label for="inputPassword" class="sr-only">Password</label>
-                <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+                <input type="password" id="inputPassword" class="form-control" placeholder="Password" required data-bind="value: password">
                 <div class="checkbox">
                     <label>
                         <input type="checkbox" value="remember-me"> Remember me
                     </label>
                 </div>
-                <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+                <button class="btn btn-lg btn-primary btn-block" type="submit" data-bind="click: dummyValidate">Sign in</button>
             </form>
         </div>
     </div>
@@ -88,12 +88,15 @@
         <div class="col-sm-6 col-md-4 col-lg-3">
             <p><a href="user_dashboard.html">Just go to user dashboard</a></p>
             <p><a href="admin_dashboard.html">Just go to admin dashboard</a></p>
-
         </div>
     </div>
     
     <!-- stuff to make it responsive -->   
     <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
     <script src="../js/bootstrap.min.js"></script>
+    <!-- knockout script -->
+    <script src="../js/knockout-3.3.0.js"></script>
+    <!-- my scripts -->
+    <script src="../js/users.js"></script>
 </body>
 </html>
