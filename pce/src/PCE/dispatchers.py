@@ -86,24 +86,15 @@ class _OnRampDispatcher:
 
 
 class Modules(_OnRampDispatcher):
-    def GET(self, id=None, *args, **kwargs):
+    def GET(self, id=None, **kwargs):
         self.log_call('GET')
-        if args:
-            msg = 'Resource does not exist'
-            self.logger.warn(msg)
-            cherrypy.response.status = 404
-            return self.get_response(status_code=-404, status_msg=msg)
 
         # Return the resource.
         return self.get_response()
 
-    def POST(self, id=None, *args, **kwargs):
+    def POST(self, id=None, **kwargs):
         self.log_call('POST')
-        if args:
-            msg = 'Resource does not exist'
-            self.logger.warn(msg)
-            cherrypy.response.status = 404
-            return self.get_response(status_code=-404, status_msg=msg)
+
         if id:
             # Module already installed, verify id and deploy.
             pass
@@ -116,42 +107,27 @@ class Modules(_OnRampDispatcher):
 
         return self.get_response()
 
-    def PUT(self, id, *args, **kwargs):
+    def PUT(self, id, **kwargs):
         self.log_call('PUT')
-        if args:
-            msg = 'Resource does not exist'
-            self.logger.warn(msg)
-            cherrypy.response.status = 404
-            return self.get_response(status_code=-404, status_msg=msg)
 
         # Overwrite the resource.
         return self.get_response()
 
-    def DELETE(self, id, *args, **kwargs):
+    def DELETE(self, id, **kwargs):
         self.log_call('DELETE')
-        if args:
-            msg = 'Resource does not exist'
-            self.logger.warn(msg)
-            cherrypy.response.status = 404
-            return self.get_response(status_code=-404, status_msg=msg)
 
         # Delete the resource.
         return self.get_response()
 
 
 class Jobs(_OnRampDispatcher):
-    def GET(self, id, *args, **kwargs):
+    def GET(self, id, **kwargs):
         self.log_call('GET')
-        if args:
-            msg = 'Resource does not exist'
-            self.logger.warn(msg)
-            cherrypy.response.status = 404
-            return self.get_response(status_code=-404, status_msg=msg)
 
         # Return the resource.
         return self.get_response()
 
-    def POST(self):
+    def POST(self, **kwargs):
         self.log_call('POST')
         data = cherrypy.request.json
         result = self.validate_json(data, 'POST')
@@ -161,16 +137,16 @@ class Jobs(_OnRampDispatcher):
         # Launch job.
         return self.get_response()
 
-    def PUT(self, id):
+    def PUT(self, id, **kwargs):
         self.log_call('PUT')
         return self.get_response()
 
-    def DELETE(self, id):
+    def DELETE(self, id, **kwargs):
         self.log_call('DELETE')
         return self.get_response()
 
 
 class Cluster(_OnRampDispatcher):
-    def GET(self):
+    def GET(self, **kwargs):
         self.log_call('GET')
         return self.get_response()
