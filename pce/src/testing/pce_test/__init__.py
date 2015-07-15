@@ -223,6 +223,13 @@ class ModulesTest(PCEBase):
         self.assertIn('mod_name', missing_params)
         self.assertIn('location', missing_params)
 
+        r = pce_post('modules/1/1/')
+        self.assertEqual(r.status_code, 404)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], -404)
+        self.assertTrue(d['status_msg'].startswith('Resource does not exist'))
+
 #    def test_PUT(self):
 #        r = pce_put('modules/')
 #        self.assertEqual(r.status_code, 400)

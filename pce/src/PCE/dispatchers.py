@@ -93,13 +93,17 @@ class Modules(_OnRampDispatcher):
             self.logger.warn(msg)
             cherrypy.response.status = 404
             return self.get_response(status_code=-404, status_msg=msg)
+
+        # Return the resource.
         return self.get_response()
 
-    def POST(self, id=None, **kwargs):
-
+    def POST(self, id=None, *args, **kwargs):
         self.log_call('POST')
-        self.logger.debug('kwargs: %s' % str(kwargs))
-        self.logger.debug('json: %s' % str(cherrypy.request.json))
+        if args:
+            msg = 'Resource does not exist'
+            self.logger.warn(msg)
+            cherrypy.response.status = 404
+            return self.get_response(status_code=-404, status_msg=msg)
         if id:
             # Module already installed, verify id and deploy.
             pass
@@ -112,12 +116,22 @@ class Modules(_OnRampDispatcher):
 
         return self.get_response()
 
-    def PUT(self, id, mod_id, mod_name):
+    def PUT(self, id, *args, **kwargs):
         self.log_call('PUT')
+        if args:
+            msg = 'Resource does not exist'
+            self.logger.warn(msg)
+            cherrypy.response.status = 404
+            return self.get_response(status_code=-404, status_msg=msg)
         return self.get_response()
 
-    def DELETE(self, id):
+    def DELETE(self, id, *args, **kwargs):
         self.log_call('DELETE')
+        if args:
+            msg = 'Resource does not exist'
+            self.logger.warn(msg)
+            cherrypy.response.status = 404
+            return self.get_response(status_code=-404, status_msg=msg)
         return self.get_response()
 
 
