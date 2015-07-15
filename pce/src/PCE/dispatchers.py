@@ -40,7 +40,6 @@ class _OnRampDispatcher:
 
 
 class Modules(_OnRampDispatcher):
-    @cherrypy.tools.json_out()
     def GET(self, id=None, *args, **kwargs):
         self.log_call('GET')
         if args:
