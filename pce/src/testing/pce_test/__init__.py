@@ -121,6 +121,9 @@ class ModulesTest(PCEBase):
         self.assertEqual(d['status_msg'], 'Resource does not exist')
 
     def test_POST(self):
+        missing_msg_prefix = ('An invalid value or no value was received for the '
+                              'following required parameter(s): ')
+
         r = pce_post('modules/1/')
         self.assertEqual(r.status_code, 200)
         d = r.json()
@@ -144,45 +147,81 @@ class ModulesTest(PCEBase):
         self.assertEqual(r.status_code, 400)
         d = r.json()
         self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('mod_id', missing_params)
 
         r = pce_post('modules/', mod_id=3,
                      location={'code':0, 'path':'test/path'})
         self.assertEqual(r.status_code, 400)
         d = r.json()
         self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('mod_name', missing_params)
 
         r = pce_post('modules/', mod_id=3, mod_name='testname')
         self.assertEqual(r.status_code, 400)
         d = r.json()
         self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('location', missing_params)
 
         r = pce_post('modules/', mod_id=3, mod_name='testname',
                      location={'path':'test/path'})
         self.assertEqual(r.status_code, 400)
         d = r.json()
         self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('[location]code', missing_params)
 
         r = pce_post('modules/', mod_id=3, mod_name='testname',
                      location={'code':0})
         self.assertEqual(r.status_code, 400)
         d = r.json()
         self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('[location]path', missing_params)
 
         r = pce_post('modules/', mod_id=3, mod_name='testname', location={})
         self.assertEqual(r.status_code, 400)
         d = r.json()
         self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('[location]code', missing_params)
+        self.assertIn('[location]path', missing_params)
 
-        r = pce_post('modules/', mod_name='testname',
-                     location={'code':0, 'path':'test/path'})
+        r = pce_post('modules/', location={'path':'test/path'})
         self.assertEqual(r.status_code, 400)
         d = r.json()
         self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('mod_id', missing_params)
+        self.assertIn('mod_name', missing_params)
+        self.assertIn('[location]code', missing_params)
 
         r = pce_post('modules/')
         self.assertEqual(r.status_code, 400)
         d = r.json()
         self.check_json(d)
+        self.assertEqual(d['status_code'], -8)
+        self.assertTrue(d['status_msg'].startswith(missing_msg_prefix))
+        missing_params = d['status_msg'].split(missing_msg_prefix)[1].split(', ')
+        self.assertIn('mod_id', missing_params)
+        self.assertIn('mod_name', missing_params)
+        self.assertIn('location', missing_params)
 
 #    def test_PUT(self):
 #        r = pce_put('modules/')

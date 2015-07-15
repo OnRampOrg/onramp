@@ -62,7 +62,7 @@ class _OnRampDispatcher:
     
         try:
             conf = ConfigObj(data, configspec=configspec)
-            result = conf.validate(Validator())
+            result = conf.validate(Validator(), preserve_errors=True)
             self.logger.debug('Result: %s' % str(result))
         except IOError as ie:
             self.logger.error(str(ie))
@@ -73,12 +73,6 @@ class _OnRampDispatcher:
             cherrypy.response.status = 400
             return self.get_response(status_code=-8, status_msg=str(ve))
 
-        if not result:
-            msg = 'None of the required parameters were given in the request.'
-            self.logger.warn(msg)
-            cherrypy.response.status = 400
-            return self.get_response(status_code=-8, status_msg=msg)
-            
         if isinstance(result, dict):
             invalid_params = _search_dict(result)
             msg = ('An invalid value or no value was received for the '
@@ -115,18 +109,6 @@ class Modules(_OnRampDispatcher):
             result = self.validate_json(data, 'POST')
             if result:
                 return result
-#            if not mod_id or not mod_name or not location:
-#                msg = ('Missing one or more of the following required '
-#                       'parameters: mod_id, mod_name, location')
-#                self.logger.warn(msg)
-#                cherrypy.response.status = 400
-#                return self.get_response(status_code=-400, status_msg=msg)
-#            if 'code' not in location.keys() or 'path' not in location.keys():
-#                msg = 'Bad location parameter given'
-#                self.logger.warn(msg)
-#                cherrypy.response.status = 400
-#                return self.get_response(status_code=-400, status_msg=msg)
-            pass
 
         return self.get_response()
 
