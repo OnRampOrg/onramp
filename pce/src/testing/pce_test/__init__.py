@@ -118,6 +118,21 @@ class ModulesEndpointTest(_JSONResourceTest):
         if(os.path.isdir(self.testmodule_dir)):
             shutil.rmtree(self.testmodule_dir)
 
+    def test_POST(self):
+        r = pce_post('modules/', mod_id=1, mod_name='testmod',
+                     location={'code':0, 'path':'/test/path'})
+        print r.text
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_base_JSON_attrs(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Success')
+        self.assertIn('module', d.keys())
+        self.assertIn('url', d['module'].keys())
+        self.assertTrue(d['module']['url'].endswith('/modules/1/'))
+        self.assertIn('note', d.keys())
+        self.assertEqual(d['note'], 'Not yet implemented!!!')
+
     def test_GET_on_list(self):
         """Test resource response to various GET requests on the list of items.
         """

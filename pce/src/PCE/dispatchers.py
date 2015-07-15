@@ -432,6 +432,22 @@ class Modules(_PCEResourceBase):
         self.logger.debug('Returning module %s' % id) 
         return self.JSON_response(id=id, module=self._build_module(id))
 
+    @cherrypy.tools.json_in()
+    @validation_required
+    def POST(self, mod_id, mod_name, location, **kwargs):
+        """Add/install a new module.
+
+        Args:
+            mod_id: Id # to use for given module.
+            mod_name: Human-readable module name.
+            location (dict): Type/location of new module of the form:
+                {'code': Enumerated type code.
+                 'path': Location of the new module.}
+        """
+        self.logger.debug('Modules.POST() called')
+        return self.JSON_response(id=mod_id, module=self._build_module(mod_id),
+                                  note='Not yet implemented!!!')
+
     def _build_module(self, module):
         """Return dict rep of PCE educational module.
 
@@ -446,9 +462,9 @@ class Modules(_PCEResourceBase):
         """Return URL for given module, or module base.
         
         Kwargs:
-            module (str): Name of module to provide URL for. If 'None', returns
+            id: Id of module to provide URL for. If 'None', returns
                 base URL for modules resource. DEFAULT: None.
         """
         if id:
-            return self.url_base + id + '/'
+            return self.url_base + str(id) + '/'
         return self.url_base
