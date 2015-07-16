@@ -19,6 +19,9 @@ Commands:
 
     modtest
         Tests the contents of an OnRamp Educational module.
+
+    shell
+        Initializes an interactive python shell in the OnRamp PCE environment.
 """
 import argparse
 import os
@@ -358,11 +361,29 @@ def _mod_test():
 
     finish(conf)
 
+def _shell():
+    """Initialize an interactive python shell in the OnRamp PCE environment.
+
+    Usage: onramp_pce_service.py shell [-h] [PYTHON_ARGS]
+
+    optional arguments:
+        -h, --help     show help message and exit
+        PYTHON_ARGS    any arguments accepted by the python interpreter
+    """
+    options = sys.argv[2:]
+    if '-h' in options or '--help' in options:
+        print _shell.__doc__
+        return
+
+    command = ['src/env/bin/python'] + options
+    call(command, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
+
 switch = {
     'start': _start,
     'restart': _restart,
     'stop': _stop,
-    'modtest': _mod_test
+    'modtest': _mod_test,
+    'shell': _shell
 }
 
 if __name__ == '__main__':
