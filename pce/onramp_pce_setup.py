@@ -8,6 +8,7 @@ dependencies need by the REST server, imports default educational modules into
 the environment, and creates a default admin user.
 """
 
+import json
 import os
 import shutil
 import sys
@@ -20,13 +21,14 @@ users_dir = 'users'
 modules_dir = 'modules'
 log_dir = 'log'
 prebuilt_dir = '../modules'
+module_state_dir = 'src/state/modules'
 
 if os.path.exists(env_dir):
     print 'Server appears to be already installed.'
     response = raw_input('(R)emove and re-install or (A)bort? ')
     if response != 'R':
         sys.exit('Aborted')
-    shutil.rmtree(env_dir)
+    shutil.rmtree(env_dir, True)
     shutil.rmtree(users_dir, True)
     shutil.rmtree(modules_dir, True)
     shutil.rmtree(log_dir, True)
@@ -34,23 +36,33 @@ if os.path.exists(env_dir):
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-# Deploy modules shipped with onramp
+# Install modules shipped with onramp
 if not os.path.exists(modules_dir):
     os.makedirs(modules_dir)
+if not os.path.exists(module_state_dir):
+    os.makedirs(module_state_dir)
 
-ret_dir = os.getcwd()
+next_mod_id = 1
 for name in os.listdir(prebuilt_dir):
     next_path = os.path.join(prebuilt_dir, name)
     if os.path.isdir(os.path.join(prebuilt_dir, name)):
-        if name != 'template':
-            new_path = os.path.join(modules_dir, name)
-            if not os.path.exists(new_path):
-                shutil.copytree(next_path, new_path)
-                os.chdir(new_path)
-                # Assuming that modules shipped with onramp will not have
-                # onramp_deploy.py return 1:
-                call(['python', 'bin/onramp_deploy.py'])
-                os.chdir(ret_dir)
+        new_path = os.path.join(modules_dir, name)
+        if not os.path.exists(new_path):
+            shutil.copytree(next_path, new_path)
+            mod_state = {
+                'mod_id': next_mod_id,
+                'mod_name': name,
+                'source_location': {
+                    'code': 1,
+                    'path': os.path.abspath(next_path)
+                },
+                'installed_path': os.path.abspath(new_path),
+                'status': 'not deployed'
+            }
+            with open(os.path.join(module_state_dir, str(next_mod_id)),
+                      'w') as f:
+                f.write(json.dumps(mod_state))
+            next_mod_id += 1
 
 # Setup virtual environment
 call(['virtualenv', '-p', 'python2.7', env_dir])
