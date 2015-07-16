@@ -1,0 +1,6 @@
+mod_id = integer()
+mod_name = string()
+
+[location]
+code = integer()
+path = string()

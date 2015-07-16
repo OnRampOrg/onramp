@@ -13,7 +13,7 @@ from cherrypy.process.plugins import Daemonizer, PIDFile
 from configobj import ConfigObj
 from validate import Validator
 
-from PCE.dispatchers import Jobs, Modules
+from PCE.dispatchers import Cluster, Jobs, Modules
 
 
 def _CORS():
@@ -103,7 +103,8 @@ if __name__ == '__main__':
         'ERROR': logging.ERROR,
         'CRITICAL': logging.CRITICAL
     }
-    logger = logging.getLogger('onramp')
+    log_name = 'onramp'
+    logger = logging.getLogger(log_name)
     logger.setLevel(log_levels[conf['internal']['log_level']])
     handler = logging.FileHandler(conf['internal']['onramp_log_file'])
     handler.setFormatter(
@@ -117,8 +118,9 @@ if __name__ == '__main__':
 
     Daemonizer(cherrypy.engine).subscribe()
     cherrypy.tools.CORS = cherrypy.Tool('before_finalize', _CORS)
-    cherrypy.tree.mount(Modules(ini), '/modules', conf)
-    cherrypy.tree.mount(Jobs(ini), '/jobs', conf)
+    cherrypy.tree.mount(Modules(ini, log_name), '/modules', conf)
+    cherrypy.tree.mount(Jobs(ini, log_name), '/jobs', conf)
+    cherrypy.tree.mount(Cluster(ini, log_name), '/cluster', conf)
 
     logger.info('Starting cherrypy engine')
     cherrypy.engine.start()
