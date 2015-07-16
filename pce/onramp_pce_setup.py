@@ -46,7 +46,7 @@ next_mod_id = 1
 for name in os.listdir(prebuilt_dir):
     next_path = os.path.join(prebuilt_dir, name)
     if os.path.isdir(os.path.join(prebuilt_dir, name)):
-        new_path = os.path.join(modules_dir, name)
+        new_path = os.path.join(modules_dir, '%s_%s' % (name, next_mod_id))
         if not os.path.exists(new_path):
             shutil.copytree(next_path, new_path)
             mod_state = {
