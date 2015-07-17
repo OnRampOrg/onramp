@@ -25,6 +25,9 @@ from Crypto import Random
 from Crypto.Cipher import AES
 from validate import Validator
 
+import OnRampServer.onramppce as onramppce
+import OnRampServer.onrampdb as onrampdb
+
 class _ServerResourceBase:
     """Provide functionality needed by all OnRamp Server resource dispatchers.
 
@@ -60,6 +63,12 @@ class _ServerResourceBase:
 
         self.url_base = (server + '/' + self.__class__.__name__.lower() + '/')
         self.api_root = (server + '/api/')
+
+        # Define the Database - SQLite
+        self.logger.debug("Connecting to the database")
+        rtn = onrampdb.define_database(self.logger, 'sqlite', {'filename' : os.getcwd() + '/../tmp/onramp_sqlite.db'} )
+        if rtn != 0:
+            sys.exit(-1)
 
     def JSON_response(self, id=None, url=True, status_code=0,
                       status_msg='Success', **kwargs):
@@ -143,7 +152,7 @@ class Root(_ServerResourceBase):
     def GET(self, id=None, **kwargs):
         self.logger.debug('Root.GET()')
         if id is not None:
-            raise cherrypy.HTTPError(404, "Not Found.")
+            raise cherrypy.NotFound()
 
         #host = cherrypy.request.headers('Host')
         #host = cherrypy.request.headers.get('Host', None)
@@ -174,19 +183,19 @@ class Users(_ServerResourceBase):
         #
         if user_id is not None:
             if valid_fns['user'](user_id) is False:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
             debug = "Specific User " + user_id
 
         if level is not None:
             if level not in allowed_levels:
-                raise cherrypy.HTTPError(404, "Not Found.")
+                raise cherrypy.NotFound()
             debug += " at " + level
 
         for key, value in kwargs.iteritems():
             if key not in allowed_search:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
             if valid_fns[key](value) is False:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
 
             ids[key] = value
             debug += "("+key+"="+value+")"
@@ -210,7 +219,7 @@ class Users(_ServerResourceBase):
 
         for key, value in kwargs.iteritems():
             if key not in allowed_search:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
             self.logger.debug("Users.POST(): %s=%s" % (key, value) )
 
         return "Users: \n"
@@ -240,19 +249,19 @@ class Workspaces(_ServerResourceBase):
         #
         if workspace_id is not None:
             if valid_fns['workspace'](workspace_id) is False:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
             debug = "Specific Workspace " + workspace_id
 
         if level is not None:
             if level not in allowed_levels:
-                raise cherrypy.HTTPError(404, "Not Found.")
+                raise cherrypy.NotFound()
             debug += " at " + level
 
         for key, value in kwargs.iteritems():
             if key not in allowed_search:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
             if valid_fns[key](value) is False:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
 
             ids[key] = value
             debug += "("+key+"="+value+")"
@@ -292,19 +301,19 @@ class PCEs(_ServerResourceBase):
         #
         if pce_id is not None:
             if valid_fns['pce'](pce_id) is False:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
             debug = "Specific PCE " + pce_id
 
         if level is not None:
             if level not in allowed_levels:
-                raise cherrypy.HTTPError(404, "Not Found.")
+                raise cherrypy.NotFound()
             debug += " at " + level
 
         for key, value in kwargs.iteritems():
             if key not in allowed_search:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
             if valid_fns[key](value) is False:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
 
             ids[key] = value
             debug += "("+key+"="+value+")"
@@ -342,19 +351,19 @@ class Modules(_ServerResourceBase):
         #
         if module_id is not None:
             if valid_fns['module'](module_id) is False:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
             debug = "Specific Module " + module_id
 
         if level is not None:
             if level not in allowed_levels:
-                raise cherrypy.HTTPError(404, "Not Found.")
+                raise cherrypy.NotFound()
             debug += " at " + level
 
         for key, value in kwargs.iteritems():
             if key not in allowed_search:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
             if valid_fns[key](value) is False:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
 
             ids[key] = value
             debug += "("+key+"="+value+")"
@@ -389,19 +398,19 @@ class Jobs(_ServerResourceBase):
         #
         if job_id is not None:
             if valid_fns['job'](job_id) is False:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
             debug = "Specific Job " + job_id
 
         if level is not None:
             if level not in allowed_levels:
-                raise cherrypy.HTTPError(404, "Not Found.")
+                raise cherrypy.NotFound()
             debug += " at " + level
 
         for key, value in kwargs.iteritems():
             if key not in allowed_search:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
             if valid_fns[key](value) is False:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
 
             ids[key] = value
             debug += "("+key+"="+value+")"
@@ -425,7 +434,7 @@ class Jobs(_ServerResourceBase):
 
         for key, value in kwargs.iteritems():
             if key not in allowed_search:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
             self.logger.debug("Jobs.POST(): %s=%s" % (key, value) )
 
         return "Jobs: \n"
@@ -437,24 +446,57 @@ class Jobs(_ServerResourceBase):
         self.logger.debug('Jobs.DELETE()')
 
         if id is None:
-            raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+            raise cherrypy.HTTPError(400)
 
         return "Jobs: "+id+"\n"
 
 class Login(_ServerResourceBase):
 
     # POST /login
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
     def POST(self, id=None, **kwargs):
-        self.logger.debug('Login.POST()')
+        prefix = '[POST /login]'
+        self.logger.debug(prefix)
 
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
+
+        if not hasattr(cherrypy.request, "json"):
+            self.logger.error(prefix + " No json data sent")
+            raise cherrypy.HTTPError(400)
+
+        data = cherrypy.request.json
+
+        #
+        # Make sure the required fields have been specified
+        #
         allowed_search = ["username", "password"]
+        for key in allowed_search:
+            if key not in data:
+                self.logger.error(prefix + " Missing key \"" + key + "\"")
+                raise cherrypy.HTTPError(400, "Bad Request ...")
 
-        for key, value in kwargs.iteritems():
-            if key not in allowed_search:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
-            self.logger.debug("Login.POST(): %s=%s" % (key, value) )
+        #
+        # Ask the database if this is a valid user
+        #
+        self.logger.info(prefix + " Attempt \"" + data["username"] + "\"")
 
-        return "Login: \n"
+        user_id = onrampdb.user_login( data["username"], data["password"])
+
+        if user_id is not None:
+            rtn['auth'] = {'id' : user_id }
+            self.logger.info(prefix + " Attempt \"" + data["username"] + "\" Success")
+        else:
+            self.logger.info(prefix + " Attempt \"" + data["username"] + "\" Failed")
+            raise cherrypy.HTTPError(401)
+
+        #
+        # Tell the user
+        #
+
+        return rtn
 
 class Admin(_ServerResourceBase):
 
@@ -462,28 +504,36 @@ class Admin(_ServerResourceBase):
     #      /admin/pce/:PCEID
     #      /admin/pce/:PCEID/module/:MODULEID
     @cherrypy.popargs('level', 'pce_id', 'mlevel', 'module_id')
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
     def GET(self, level=None, pce_id=None, mlevel=None, module_id=None, **kwargs):
-        self.logger.debug('Admin.GET()' )
+        prefix = '[GET /admin/]'
+        self.logger.debug(prefix)
 
         debug = "Any"
 
         if level != "pce":
-            raise cherrypy.HTTPError(404, "Not Found.")
+            raise cherrypy.NotFound()
+
+        prefix = '[GET /admin/pce]'
 
         if pce_id is None:
-            raise cherrypy.HTTPError(404, "Not Found.")
+            raise cherrypy.NotFound()
         elif self.is_valid_pce(pce_id) is False:
-            raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+            prefix = '[GET /admin/pce/'+str(pce_id)+']'
+            raise cherrypy.HTTPError(400)
+
+        self.logger.debug(prefix)
         debug = "PCE="+pce_id
 
         if mlevel is not None:
             if module_id is None:
-                raise cherrypy.HTTPError(404, "Not Found.")
+                raise cherrypy.NotFound()
             elif self.is_valid_module(module_id) is False:
-                raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+                raise cherrypy.HTTPError(400)
             debug += ", Module="+module_id
 
-        self.logger.debug('Admin.GET(): %s' % debug )
+        self.logger.debug(prefix + ' %s' % debug )
 
         return "Admin: %s\n" % debug
 
@@ -496,8 +546,15 @@ class Admin(_ServerResourceBase):
     #      /admin/pce
     #      /admin/pce/:PCEID/module/:MODULEID
     @cherrypy.popargs('level1', 'level1_id', 'level2', 'level2_id', 'level3_id')
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
     def POST(self, level1=None, level1_id=None, level2=None, level2_id=None, level3_id=None, **kwargs):
-        self.logger.debug('Admin.POST()')
+        prefix = '[POST /admin/]'
+        self.logger.debug(prefix)
+
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
 
         allowed_level1 = {'user' : self.process_user,
                           'module' : self.process_module,
@@ -506,33 +563,62 @@ class Admin(_ServerResourceBase):
                           }
         debug = "Any"
 
+        #
         # Level 1 is required
+        #
         if level1 is None:
-            raise cherrypy.HTTPError(404, "Not Found.")
+            raise cherrypy.NotFound()
         elif level1 not in allowed_level1.keys():
-            raise cherrypy.HTTPError(422, "Unprocessable Entity.")
+            raise cherrypy.HTTPError(400)
+
+        if not hasattr(cherrypy.request, "json"):
+            self.logger.error(prefix + " No json data sent")
+            raise cherrypy.HTTPError(400)
+
+        data = cherrypy.request.json
 
         debug = level1
 
         if level1 == "user" or level1 == "module":
-            allowed_level1[level1]("post", level1_id, kwargs)
+            rdata = allowed_level1[level1]("POST", data, level1_id, kwargs)
         else:
-            allowed_level1[level1]("post", level1_id, level2, level2_id, level3_id, kwargs)
+            rdata = allowed_level1[level1]("POST", data, level1_id, level2, level2_id, level3_id, kwargs)
 
-        return "Admin.POST(): %s\n" % level1
+        rtn[level1] = rdata
 
-    def process_user(self, type, user_id=None, kwargs=None):
-        self.logger.debug('Admin: process_user(%s, %s)' % (type, user_id))
-        return True
+        return rtn
 
-    def process_module(self, type, module_id=None, kwargs=None):
+    def process_user(self, type, data, user_id=None, kwargs=None):
+        prefix = '['+type+' /admin/user]'
+        rdata = {}
+
+        #
+        # Adding a new user
+        #
+        if user_id is None:
+            self.logger.info(prefix + " Adding \"" + data["username"] + "\"")
+            user_id = onrampdb.user_lookup( data["username"] )
+            if user_id is not None:
+                rdata['exists'] = True
+            else:
+                user_id = onrampdb.user_add( data["username"], data["password"] )
+                if user_id is None:
+                    raise cherrypy.HTTPError(400)
+                rdata['exists'] = False
+            rdata['id'] = user_id
+
+        self.logger.debug(prefix + ' process_user(%s, %s)' % (type, user_id))
+
+        return rdata
+
+    def process_module(self, type, data, module_id=None, kwargs=None):
         self.logger.debug('Admin: process_module(%s, %s)' % (type, module_id))
         return True
 
-    def process_workspace(self, type, workspace_id=None, level2=None, level2_id=None, level3_id=None, kwargs=None):
+    def process_workspace(self, type, data, workspace_id=None, level2=None, level2_id=None, level3_id=None, kwargs=None):
         self.logger.debug('Admin: process_workspace(%s, %s)' % (type, workspace_id))
         return True
 
-    def process_pce(self, type, pce_id=None, level2=None, level2_id=None, level3_id=None, kwargs=None):
+    def process_pce(self, type, data, pce_id=None, level2=None, level2_id=None, level3_id=None, kwargs=None):
         self.logger.debug('Admin: process_pce(%s, %s)' % (type, pce_id))
         return True

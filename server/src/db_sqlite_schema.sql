@@ -1,5 +1,6 @@
 --
 -- Schema for our application
+-- sqlite3 tmp/onramp_sqlite.db 
 --
 
 CREATE TABLE user (
@@ -9,9 +10,14 @@ CREATE TABLE user (
     username text not null,
     password text not null,
 
+    is_admin boolean DEFAULT false, -- 1 (true), 0 (false)
+
     -- Constraints
     UNIQUE(username)
 );
+
+-- TODO REMOVE ME
+INSERT INTO user (username, password, is_admin) VALUES ('admin', 'admin123', 1);
 
 CREATE TABLE workspace (
     workspace_id integer primary key autoincrement not null,

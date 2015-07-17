@@ -15,6 +15,7 @@ from configobj import ConfigObj
 from validate import Validator
 
 from OnRampServer.dispatchers import Root, Users, Workspaces, PCEs, Modules, Jobs, Login, Admin
+import OnRampServer.onramppce
 
 def _CORS():
     """Set HTTP Access Control Header to allow cross-site HTTP requests from
@@ -143,3 +144,4 @@ if __name__ == '__main__':
     signal.signal(signal.SIGHUP, _restart_handler)
     logger.debug('Blocking cherrypy engine')
     cherrypy.engine.block()
+
