@@ -32,37 +32,16 @@ if os.path.exists(env_dir):
     shutil.rmtree(users_dir, True)
     shutil.rmtree(modules_dir, True)
     shutil.rmtree(log_dir, True)
+    shutil.rmtree(module_state_dir, True)
 
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-# Install modules shipped with onramp
+# Set up folder structure for modules
 if not os.path.exists(modules_dir):
     os.makedirs(modules_dir)
 if not os.path.exists(module_state_dir):
     os.makedirs(module_state_dir)
-
-next_mod_id = 1
-for name in os.listdir(prebuilt_dir):
-    next_path = os.path.join(prebuilt_dir, name)
-    if os.path.isdir(os.path.join(prebuilt_dir, name)):
-        new_path = os.path.join(modules_dir, '%s_%s' % (name, next_mod_id))
-        if not os.path.exists(new_path):
-            shutil.copytree(next_path, new_path)
-            mod_state = {
-                'mod_id': next_mod_id,
-                'mod_name': name,
-                'source_location': {
-                    'code': 1,
-                    'path': os.path.abspath(next_path)
-                },
-                'installed_path': os.path.abspath(new_path),
-                'status': 'not deployed'
-            }
-            with open(os.path.join(module_state_dir, str(next_mod_id)),
-                      'w') as f:
-                f.write(json.dumps(mod_state))
-            next_mod_id += 1
 
 # Setup virtual environment
 call(['virtualenv', '-p', 'python2.7', env_dir])
