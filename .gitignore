@@ -20,6 +20,7 @@ pce/src/env
 pce/src/.*.pid
 pce/src/testing/deploy
 
+server/tmp
 server/tmp/users
 server/tmp/pce
 server/log

@@ -15,11 +15,14 @@ from subprocess import call
 
 
 package_name = 'OnRampServer'
+
 source_dir = 'src'
-env_dir = source_dir + '/env'
-tmp_users_dir = 'tmp/users'
-tmp_pce_dir = 'tmp/pce'
 log_dir = 'log'
+tmp_dir = 'tmp'
+
+env_dir = source_dir + '/env'
+tmp_users_dir = tmp_dir + '/users'
+tmp_pce_dir   = tmp_dir + '/pce'
 
 
 ###################################################
