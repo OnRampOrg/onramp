@@ -14,7 +14,7 @@ from cherrypy.process.plugins import Daemonizer, PIDFile
 from configobj import ConfigObj
 from validate import Validator
 
-from OnRampServer.dispatchers import Root
+from OnRampServer.dispatchers import Root, Users, Workspaces, PCEs, Modules, Jobs, Login, Admin
 
 def _CORS():
     """Set HTTP Access Control Header to allow cross-site HTTP requests from
@@ -127,7 +127,14 @@ if __name__ == '__main__':
     Daemonizer(cherrypy.engine).subscribe()
     cherrypy.tools.CORS = cherrypy.Tool('before_finalize', _CORS)
 
-    cherrypy.tree.mount(Root(ini), '/', conf)
+    cherrypy.tree.mount(Root(ini),       '/',           conf)
+    cherrypy.tree.mount(Users(ini),      '/users',      conf)
+    cherrypy.tree.mount(Workspaces(ini), '/workspaces', conf)
+    cherrypy.tree.mount(PCEs(ini),       '/pces',       conf)
+    cherrypy.tree.mount(Modules(ini),    '/modules',    conf)
+    cherrypy.tree.mount(Jobs(ini),       '/jobs',       conf)
+    cherrypy.tree.mount(Login(ini),      '/login',      conf)
+    cherrypy.tree.mount(Admin(ini),      '/admin',      conf)
 
     logger.info('Starting cherrypy engine')
     cherrypy.engine.start()
