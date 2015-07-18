@@ -16,8 +16,10 @@ import json
 import os
 import shutil
 import sys
+from subprocess import CalledProcessError, check_output
 
 _mod_state_dir = 'src/state/modules'
+_mod_state_dir = os.path.normpath(os.path.abspath(_mod_state_dir))
 _installed_states = ['Installed', 'Deploy in progress', 'Deploy failed',
                     'Module ready']
 
@@ -146,6 +148,48 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
 
     with ModState(mod_id) as mod_state:
         mod_state['state'] = 'Installed'
+        mod_state['error'] = None
         mod_state['installed_path'] = mod_dir
 
     return (0, 'Module %d installed' % mod_id)
+
+def deploy_module(mod_id, verbose=False):
+    mod_dir = None
+    not_installed_states = ['Available', 'Checkout in Progress',
+                            'Checkout failed']
+
+    with ModState(mod_id) as mod_state:
+        if ('state' not in mod_state.keys()
+            or mod_state['state'] in not_installed_states):
+            return (-1, 'Module %d not installed' % mod_id)
+        if mod_state['state'] == 'Deploy in progress':
+            return (-1, 'Deployment already underway for module %d' % mod_id)
+        mod_state['state'] = 'Deploy in progress'
+        mod_state['error'] = None
+        mod_dir = mod_state['installed_path']
+
+    ret_dir = os.getcwd()
+    os.chdir(mod_dir)
+
+    try:
+        check_output([os.path.join(ret_dir, 'src/env/bin/python'),
+                      'bin/onramp_deploy.py'])
+    except CalledProcessError as e:
+        if e.returncode != 1:
+            with ModState(mod_id) as mod_state:
+                error = ('bin/onramp_deploy.py returned invalid status %d'
+                         % e.returncode)
+                mod_state['state'] = 'Deploy failed'
+                mod_state['error'] = error
+            return (-1, error)
+
+        with ModState(mod_id) as mod_state:
+            mod_state['state'] = 'Admin required'
+            mod_state['error'] = e.output
+            return (1, 'Admin required')
+
+    with ModState(mod_id) as mod_state:
+        mod_state['state'] = 'Module ready'
+        mod_state['error'] = None
+
+    return (0, 'Module %d ready' % mod_id)

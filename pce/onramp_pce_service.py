@@ -39,7 +39,7 @@ from validate import Validator
 from os.path import abspath, expanduser
 
 from PCE import tools
-from PCE.tools.modules import get_source_types, install_module
+from PCE.tools.modules import deploy_module, get_source_types, install_module
 
 _pidfile = '.onrampRESTservice.pid'
 _src_dir = 'src'
@@ -367,11 +367,10 @@ def _mod_test():
 
 def _mod_install():
     """Install an OnRamp educational module from the given location.
+
     Usage: install_module.py [-h] [-v]
                              {local} source_path install_parent_folder mod_id
                              mod_name
-    
-    Install an OnRamp educational module from the given location
     
     positional arguments:
       {local}               type of resource to install from
@@ -411,6 +410,35 @@ def _mod_install():
 
     sys.exit(result)
 
+def _mod_deploy():
+    """Deploy an installed OnRamp educational module.
+
+    Usage: install_module.py [-h] [-v] mod_id
+
+    positional arguments:
+      mod_id         Id of the module
+
+      optional arguments:
+        -h, --help     show this help message and exit
+        -v, --verbose  increase output verbosity
+
+    """
+    descrip = 'Deploy an installed OnRamp educational module.'
+    parser = argparse.ArgumentParser(prog='install_module.py',
+                                     description=descrip)
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='increase output verbosity')
+    parser.add_argument('mod_id', help='Id of the module', type=int)
+    args = parser.parse_args(args=sys.argv[2:])
+
+    result, msg = deploy_module(args.mod_id, verbose=args.verbose)
+
+    if result != 0:
+        sys.stderr.write(msg + '\n')
+    else:
+        print msg
+
+    sys.exit(result)
 
 def _shell():
     """Initialize an interactive python shell in the OnRamp PCE environment.
@@ -435,6 +463,7 @@ switch = {
     'stop': _stop,
     'modtest': _mod_test,
     'modinstall': _mod_install,
+    'moddeploy': _mod_deploy,
     'shell': _shell
 }
 
