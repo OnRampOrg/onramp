@@ -1,5 +1,6 @@
-#!src/env/bin/python
 import argparse
+import errno
+import fcntl
 import json
 import os
 import shutil
@@ -23,13 +24,35 @@ source_handlers = {
     'local': _local_checkout
 }
 
-def fail_install(mod_state=None, msg=None):
-    if mod_state:
-        mod_state['state'] = 'Checkout failed'
-        if msg:
-            mod_state['error'] = msg
-        save_module_state(mod_state)
-    return (-1, msg)
+
+class ModState(dict):
+
+    def __init__(self, id):
+        mod_state_file = os.path.join(mod_state_dir, str(id))
+
+        try:
+            fd = os.open(mod_state_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            fcntl.flock(fd, fcntl.LOCK_EX)
+            self._state_file = os.fdopen(fd, 'w')
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+            self._state_file = open(mod_state_file, 'r+')
+            fcntl.lockf(self._state_file, fcntl.LOCK_EX)
+            self.update(json.loads(self._state_file.read()))
+            self._state_file.seek(0)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self._close()
+
+    def _close(self):
+        self._state_file.write(json.dumps(self))
+        self._state_file.truncate()
+        self._state_file.close()
+
 
 def install_module(source_type, source_path, install_parent_folder, mod_id,
                    mod_name, verbose=False):
@@ -39,43 +62,37 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
     mod_dir = os.path.normpath(os.path.abspath(mod_dir))
     source_abs_path = os.path.normpath(os.path.abspath(source_path))
 
-    if os.path.exists(mod_state_file):
-        mod_state = load_mod_state(mod_id)
-        if not mod_state:
-            return fail_install(msg='Corrupted state for module %d' % mod_id)
-        if mod_state['state'] == 'Checkout in progress':
-            return fail_install(msg='Install already under way for module %d'
-                                    % mod_id)
-        elif mod_state['state'] in installed_states:
-            return fail_install(msg='Module %d already installed' % mod_id)
-    elif os.path.exists(mod_dir):
-        return fail_install(msg='Corrupted state for module %d' % mod_id)
+    with ModState(mod_id) as mod_state:
+        if 'state' in mod_state.keys():
+            if mod_state['state'] == 'Checkout in progress':
+                return (-1, 'Module %d already undergoing install process'
+                            % mod_id)
+            if mod_state['state'] in installed_states:
+                return (-1, 'Module %d already installed' % mod_id)
 
-    # Build state object. Set state to 'Checkout in progress'.
-    mod_state = {
-        'mod_id': mod_id,
-        'mod_name': mod_name,
-        'source_location': {
+        mod_state['mod_id'] = mod_id
+        mod_state['mod_name'] = mod_name
+        mod_state['installed_path'] = mod_dir
+        mod_state['state'] = 'Checkout in progress'
+        mod_state['error'] = None
+        mod_state['source_location'] = {
             'type': source_type,
             'path': source_abs_path
-        },
-        'installed_path': mod_dir,
-        'state': 'Checkout in progress',
-        'error': None
-    }
-
-    with open(mod_state_file, 'w') as f:
-        f.write(json.dumps(mod_state))
+        }
 
     # Checkout module.
     result = source_handlers[source_type](mod_state)
 
     if result:
-        return fail_install(mod_state=mod_state, msg=result)
+        with ModState(mod_id) as mod_state:
+            mod_state['state'] = 'Checkout failed'
+            mod_state['error'] = result
+        return (-2, msg)
 
-    mod_state['status'] = 'Installed'
-    mod_state['installed_path'] = mod_dir
-    save_module_state(mod_state)
+    with ModState(mod_id) as mod_state:
+        mod_state['state'] = 'Installed'
+        mod_state['installed_path'] = mod_dir
+
     return (0, 'Module %d installed' % mod_id)
 
 if __name__ == '__main__':
@@ -96,8 +113,9 @@ if __name__ == '__main__':
     result, msg = install_module(args.source_type, args.source_path,
                                  args.install_parent_folder, args.mod_id,
                                  args.mod_name, verbose=args.verbose)
+
     if result != 0:
-        sys.stderr.write(msg)
+        sys.stderr.write(msg + '\n')
     else:
         print msg
 
