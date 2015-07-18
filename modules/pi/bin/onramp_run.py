@@ -15,14 +15,14 @@ from configobj import ConfigObj
 # Read the configobj values
 #
 # This will always be the name of the file, so fine to hardcode here
-conf_file = "onramp_runparams.ini"
+conf_file = "../onramp_runparams.ini"
 # Already validated the file in our onramp_preprocess.py script - no need to do it again
 config    = ConfigObj(conf_file)
 
 #
 # Run my program
 #
-os.chdir('src')
+os.chdir('../src')
 call(['mpirun', '-np', config['onramp']['np'], './pi-hybrid', '-n', config['pi']['elements'], '-t', config['pi']['threads']])
 
 

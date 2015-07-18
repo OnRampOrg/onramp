@@ -13,7 +13,7 @@ from subprocess import call
 #
 # Change to the 'src' directory
 #
-os.chdir('src')
+os.chdir('../src')
 #
 # Make the program
 #

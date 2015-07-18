@@ -16,9 +16,9 @@ from validate import Validator, ValidateError, is_integer
 #       the validity of the file.
 #
 # This will always be the name of the file, so fine to hardcode here
-conf_file = "onramp_runparams.ini"
+conf_file = "../onramp_runparams.ini"
 
-config    = ConfigObj(conf_file, configspec="config/onramp_uioptions.spec")
+config    = ConfigObj(conf_file, configspec="../config/onramp_uioptions.spec")
 validator = Validator()
 results   = config.validate(validator, preserve_errors=True)
 if results != True:
