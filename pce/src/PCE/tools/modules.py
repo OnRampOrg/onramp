@@ -1,3 +1,14 @@
+"""OnRamp educational module support package.
+
+Provides functionality for installing/deploying educational modules from various
+sources, as well as means of setting/storing/updating module state data.
+
+Exports:
+    ModState: Encapsulation of module state that avoids race conditions.
+    install_module: Installs module on host system.
+    get_source_types: Return list of acceptable module source types (local, git,
+        etc.).
+"""
 import argparse
 import errno
 import fcntl
@@ -6,11 +17,69 @@ import os
 import shutil
 import sys
 
-mod_state_dir = 'src/state/modules'
-installed_states = ['Installed', 'Deploy in progress', 'Deploy failed',
+_mod_state_dir = 'src/state/modules'
+_installed_states = ['Installed', 'Deploy in progress', 'Deploy failed',
                     'Module ready']
 
+class ModState(dict):
+    """Provide access to module state in a way that race conditions are avoided.
+
+    ModState() is only intended to be used in combination with the 'with' python
+    keyword. State parameters are stored/acessed as dict keys.
+    
+    Example:
+
+        with ModState(47) as mod_state:
+            val = mod_state['key1']
+            mod_state['key2'] = 'val2'
+    """
+
+    def __init__(self, id):
+        """Return initialized ModState instance.
+
+        Method works in get-or-create fashion, that is, if state exists for
+        module id, open and return it, else create and return it.
+
+        Args:
+            id (int): Id of the module to get/create state for.
+        """
+        mod_state_file = os.path.join(_mod_state_dir, str(id))
+
+        try:
+            # Raises OSError if file cannot be opened in create mode. If no
+            # error, lock the file descriptor when opened.
+            fd = os.open(mod_state_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            fcntl.flock(fd, fcntl.LOCK_EX)
+            self._state_file = os.fdopen(fd, 'w')
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+            # File already exists. Open and lock it.
+            self._state_file = open(mod_state_file, 'r+')
+            fcntl.lockf(self._state_file, fcntl.LOCK_EX)
+            self.update(json.loads(self._state_file.read()))
+            self._state_file.seek(0)
+
+    def __enter__(self):
+        """Provide entry for use in 'with' statements."""
+        return self
+
+    def __exit__(self, type, value, traceback):
+        """Provide exit for use in 'with' statements."""
+        self._close()
+
+    def _close(self):
+        """Serialize and store state parameters.
+
+        If stored state exists, overwrite it with current instance keys/vals.
+        """
+        self._state_file.write(json.dumps(self))
+        self._state_file.truncate()
+        self._state_file.close()
+
+
 def _local_checkout(mod_state):
+    """Install module located on host file sys."""
     if not os.path.isdir(mod_state['source_location']['path']):
         return ('Source path %s does not exist'
                  % mod_state['source_location']['path'])
@@ -24,40 +93,26 @@ source_handlers = {
     'local': _local_checkout
 }
 
-
-class ModState(dict):
-
-    def __init__(self, id):
-        mod_state_file = os.path.join(mod_state_dir, str(id))
-
-        try:
-            fd = os.open(mod_state_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-            fcntl.flock(fd, fcntl.LOCK_EX)
-            self._state_file = os.fdopen(fd, 'w')
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
-            self._state_file = open(mod_state_file, 'r+')
-            fcntl.lockf(self._state_file, fcntl.LOCK_EX)
-            self.update(json.loads(self._state_file.read()))
-            self._state_file.seek(0)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self._close()
-
-    def _close(self):
-        self._state_file.write(json.dumps(self))
-        self._state_file.truncate()
-        self._state_file.close()
-
+def get_source_types():
+    """Return list of acceptable module source types (local, git, etc.)."""
+    return source_handlers.keys()
 
 def install_module(source_type, source_path, install_parent_folder, mod_id,
                    mod_name, verbose=False):
-    
-    mod_state_file = os.path.join(mod_state_dir, str(mod_id))
+    """Install OnRamp educational module into environment.
+
+    Args:
+        source_type (str): One of PCE.tools.modules.source_handlers.keys().
+        source_path (str): Location to checkout/install/download from at source.
+        install_parent_folder (str): Folder the requested module should be
+            installed under.
+        mod_id (int): Unique integer value to assign to installed moduel.
+        mod_name (str): Human-readable module name to use in foldername
+            generation.
+
+    Kwargs:
+        verbose (bool): Controls level of printed output during installation.
+    """
     mod_dir = os.path.join(install_parent_folder, '%s_%d' % (mod_name, mod_id))
     mod_dir = os.path.normpath(os.path.abspath(mod_dir))
     source_abs_path = os.path.normpath(os.path.abspath(source_path))
@@ -67,7 +122,7 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
             if mod_state['state'] == 'Checkout in progress':
                 return (-1, 'Module %d already undergoing install process'
                             % mod_id)
-            if mod_state['state'] in installed_states:
+            if mod_state['state'] in _installed_states:
                 return (-1, 'Module %d already installed' % mod_id)
 
         mod_state['mod_id'] = mod_id
@@ -94,29 +149,3 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
         mod_state['installed_path'] = mod_dir
 
     return (0, 'Module %d installed' % mod_id)
-
-if __name__ == '__main__':
-    descrip = 'Install an OnRamp educational module from the given location'
-    parser = argparse.ArgumentParser(prog='install_module.py',
-                                     description=descrip)
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help='increase output verbosity')
-    parser.add_argument('source_type', choices=source_handlers.keys(),
-                        help='type of resource to install from')
-    parser.add_argument('source_path', help='source location of the module')
-    parser.add_argument('install_parent_folder',
-                        help='parent folder to install module under')
-    parser.add_argument('mod_id', help='unique id to give module', type=int)
-    parser.add_argument('mod_name', help='name of the module')
-    args = parser.parse_args(args=sys.argv[1:])
-
-    result, msg = install_module(args.source_type, args.source_path,
-                                 args.install_parent_folder, args.mod_id,
-                                 args.mod_name, verbose=args.verbose)
-
-    if result != 0:
-        sys.stderr.write(msg + '\n')
-    else:
-        print msg
-
-    sys.exit(result)

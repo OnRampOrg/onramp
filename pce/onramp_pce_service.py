@@ -18,7 +18,10 @@ Commands:
         Restarts the OnRamp PCE Server.
 
     modtest
-        Tests the contents of an OnRamp Educational module.
+        Tests the contents of an OnRamp educational module.
+
+    modinstall
+        Installs OnRamp educational module into environment.
 
     shell
         Initializes an interactive python shell in the OnRamp PCE environment.
@@ -36,6 +39,7 @@ from validate import Validator
 from os.path import abspath, expanduser
 
 from PCE import tools
+from PCE.tools.modules import get_source_types, install_module
 
 _pidfile = '.onrampRESTservice.pid'
 _src_dir = 'src'
@@ -361,6 +365,53 @@ def _mod_test():
 
     finish(conf)
 
+def _mod_install():
+    """Install an OnRamp educational module from the given location.
+    Usage: install_module.py [-h] [-v]
+                             {local} source_path install_parent_folder mod_id
+                             mod_name
+    
+    Install an OnRamp educational module from the given location
+    
+    positional arguments:
+      {local}               type of resource to install from
+      source_path           source location of the module
+      install_parent_folder
+                            parent folder to install module under
+      mod_id                unique id to give module
+      mod_name              name of the module
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      -v, --verbose         increase output verbosity
+    
+    """
+    descrip = 'Install an OnRamp educational module from the given location.'
+    parser = argparse.ArgumentParser(prog='install_module.py',
+                                     description=descrip)
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='increase output verbosity')
+    parser.add_argument('source_type', choices=get_source_types(),
+                        help='type of resource to install from')
+    parser.add_argument('source_path', help='source location of the module')
+    parser.add_argument('install_parent_folder',
+                        help='parent folder to install module under')
+    parser.add_argument('mod_id', help='unique id to give module', type=int)
+    parser.add_argument('mod_name', help='name of the module')
+    args = parser.parse_args(args=sys.argv[2:])
+
+    result, msg = install_module(args.source_type, args.source_path,
+                                 args.install_parent_folder, args.mod_id,
+                                 args.mod_name, verbose=args.verbose)
+
+    if result != 0:
+        sys.stderr.write(msg + '\n')
+    else:
+        print msg
+
+    sys.exit(result)
+
+
 def _shell():
     """Initialize an interactive python shell in the OnRamp PCE environment.
 
@@ -383,6 +434,7 @@ switch = {
     'restart': _restart,
     'stop': _stop,
     'modtest': _mod_test,
+    'modinstall': _mod_install,
     'shell': _shell
 }
 
