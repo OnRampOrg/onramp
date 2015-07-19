@@ -13,6 +13,8 @@ import cherrypy
 from configobj import ConfigObj
 from validate import Validator
 
+from PCE.tools.modules import get_modules
+
 class _OnRampDispatcher:
     """Base class for OnRamp PCE dispatchers."""
     exposed = True
@@ -131,7 +133,10 @@ class Modules(_OnRampDispatcher):
         self.log_call('GET')
 
         # Return the resource.
-        return self.get_response()
+        if id:
+            return self.get_response(module=get_modules(mod_id=id))
+        else:
+            return self.get_response(modules=get_modules())
 
     def POST(self, id=None, **kwargs):
         """Clone/copy a new module or deploy a previously cloned/copied module.

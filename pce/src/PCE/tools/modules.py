@@ -10,6 +10,7 @@ Exports:
         etc.).
 """
 import argparse
+import copy
 import errno
 import fcntl
 import json
@@ -199,7 +200,7 @@ def deploy_module(mod_id, verbose=False):
 
 def get_modules(mod_id=None):
     if mod_id:
-        with ModState(id) as mod_state:
+        with ModState(mod_id) as mod_state:
             if 'state' in mod_state.keys():
                 return copy.deepcopy(mod_state)
         return {
