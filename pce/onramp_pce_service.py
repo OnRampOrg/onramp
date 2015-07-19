@@ -41,9 +41,8 @@ from os.path import abspath, expanduser
 from PCE import tools
 from PCE.tools.modules import deploy_module, get_source_types, install_module
 
-_pidfile = '.onrampRESTservice.pid'
-_src_dir = 'src'
-_script_name = 'RESTservice.py'
+_pidfile = 'src/.onrampRESTservice.pid'
+_script_name = 'src/RESTservice.py'
 
 def _getPID():
     """Get PID from specified PIDFile.
@@ -91,15 +90,14 @@ def _start():
     args = parser.parse_args(args=sys.argv[2:])
 
     print 'Starting REST server...'
-    os.chdir(_src_dir)
     pid = _getPID()
 
     if -2 == pid:
         # PIDFile not found, thus, server is not running.
-        call(['env/bin/python', 'RESTservice.py'])
+        call(['src/env/bin/python', 'src/RESTservice.py'])
         return
     elif -1 == pid:
-        print "PIDFile '%s' has been corrupted." % _src_dir + '/' +_pidfile
+        print "PIDFile '%s' has been corrupted." % _pidfile
         return
 
     print 'Server appears to be already running.'
@@ -119,7 +117,6 @@ def _restart():
     args = parser.parse_args(args=sys.argv[2:])
 
     print 'Restarting REST server...'
-    os.chdir(_src_dir)
     pid = _getPID()
 
     if -2 == pid:
@@ -128,7 +125,7 @@ def _restart():
         _start()
         return
     elif -1 == pid:
-        print "PIDFile '%s' has been corrupted." % _src_dir + '/' +_pidfile
+        print "PIDFile '%s' has been corrupted." % _pidfile
         return
 
     call(['kill', '-1', str(pid)])
@@ -148,7 +145,6 @@ def _stop():
     args = parser.parse_args(args=sys.argv[2:])
 
     print 'Stopping REST server...'
-    os.chdir(_src_dir)
     pid = _getPID()
 
     if -2 == pid:
@@ -156,7 +152,7 @@ def _stop():
         print 'REST server does not currently appear to be running.'
         return
     elif -1 == pid:
-        print "PIDFile '%s' has been corrupted." % _src_dir + '/' +_pidfile
+        print "PIDFile '%s' has been corrupted." % _pidfile
         return
 
     call(['kill', str(pid)])
