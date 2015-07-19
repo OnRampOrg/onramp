@@ -75,8 +75,9 @@ class ModState(dict):
 
         If stored state exists, overwrite it with current instance keys/vals.
         """
-        self._state_file.write(json.dumps(self))
-        self._state_file.truncate()
+        if 'state' in self.keys() and self['state'] != 'Does not exist':
+            self._state_file.write(json.dumps(self))
+            self._state_file.truncate()
         self._state_file.close()
 
 
@@ -187,9 +188,33 @@ def deploy_module(mod_id, verbose=False):
             mod_state['state'] = 'Admin required'
             mod_state['error'] = e.output
             return (1, 'Admin required')
+    finally:
+        os.chdir(ret_dir)
 
     with ModState(mod_id) as mod_state:
         mod_state['state'] = 'Module ready'
         mod_state['error'] = None
 
     return (0, 'Module %d ready' % mod_id)
+
+def get_modules(mod_id=None):
+    if mod_id:
+        with ModState(id) as mod_state:
+            if 'state' in mod_state.keys():
+                return copy.deepcopy(mod_state)
+        return {
+            'mod_id': mod_id,
+            'mod_name': None,
+            'installed_path': None,
+            'state': 'Does not exist',
+            'error': None,
+            'source_location': None
+        }
+
+    results = []
+    for id in os.listdir(_mod_state_dir):
+        next_mod = {}
+        with ModState(id) as mod_state:
+            next_mod = copy.deepcopy(mod_state)
+        results.append(next_mod)
+    return results
