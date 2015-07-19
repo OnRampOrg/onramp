@@ -108,17 +108,9 @@ class ModulesTest(PCEBase):
 
         r = pce_get('modules/45/99/')
         self.assertEqual(r.status_code, 404)
-        #d = r.json()
-        #self.check_json(d)
-        #self.assertEqual(d['status_code'], -404)
-        #self.assertEqual(d['status_msg'], 'Resource does not exist')
 
         r = pce_get('modules/45/99/', test=88)
         self.assertEqual(r.status_code, 404)
-        #d = r.json()
-        #self.check_json(d)
-        #self.assertEqual(d['status_code'], -404)
-        #self.assertEqual(d['status_msg'], 'Resource does not exist')
 
     def test_POST(self):
         missing_msg_prefix = ('An invalid value or no value was received for the '
