@@ -13,7 +13,7 @@ import cherrypy
 from configobj import ConfigObj
 from validate import Validator
 
-from PCE.tools.modules import get_modules
+from PCE.tools.modules import get_modules, get_available_modules
 
 class _OnRampDispatcher:
     """Base class for OnRamp PCE dispatchers."""
@@ -131,6 +131,9 @@ class Modules(_OnRampDispatcher):
             **kwargs (dict): HTTP query-string parameters. Not currently used.
         """
         self.log_call('GET')
+
+        if 'state' in kwargs.keys() and kwargs['state'] == 'Available':
+            return self.get_response(modules=get_available_modules())
 
         # Return the resource.
         if id:

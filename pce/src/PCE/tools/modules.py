@@ -21,6 +21,8 @@ from subprocess import CalledProcessError, check_output
 
 _mod_state_dir = 'src/state/modules'
 _mod_state_dir = os.path.normpath(os.path.abspath(_mod_state_dir))
+_shipped_mod_dir = '../modules'
+_shipped_mod_dir = os.path.normpath(os.path.abspath(_shipped_mod_dir))
 _installed_states = ['Installed', 'Deploy in progress', 'Deploy failed',
                     'Module ready']
 
@@ -219,3 +221,20 @@ def get_modules(mod_id=None):
             next_mod = copy.deepcopy(mod_state)
         results.append(next_mod)
     return results
+
+def get_available_modules():
+    def verify_module_path(x):
+        return os.path.isdir(os.path.join(_shipped_mod_dir, x))
+
+    return [{
+        'mod_id': None,
+        'mod_name': name,
+        'installed_path': None,
+        'state': 'Available',
+        'error': None,
+        'source_location': {
+            'type': 'local',
+            'path': os.path.join(_shipped_mod_dir, name)
+        }
+    } for name in filter(verify_module_path,
+                         os.listdir(_shipped_mod_dir))]
