@@ -486,7 +486,7 @@ class Login(_ServerResourceBase):
         user_id = onrampdb.user_login( data["username"], data["password"])
 
         if user_id is not None:
-            rtn['auth'] = {'id' : user_id }
+            rtn['auth'] = {'id' : user_id, 'username' : data["username"] }
             self.logger.info(prefix + " Attempt \"" + data["username"] + "\" Success")
         else:
             self.logger.info(prefix + " Attempt \"" + data["username"] + "\" Failed")
@@ -577,6 +577,26 @@ class Admin(_ServerResourceBase):
 
         data = cherrypy.request.json
 
+        #
+        # Check auth
+        # TODO needs improvement
+        #
+        self.logger.debug(prefix + " Checking authorization")
+        if 'auth' not in data.keys():
+            self.logger.debug(prefix + " Authorization Failed: No 'auth' key")
+            raise cherrypy.HTTPError(401)
+        elif 'id' not in data['auth'].keys():
+            self.logger.debug(prefix + " Authorization Failed: No 'id' key in 'auth' set")
+            raise cherrypy.HTTPError(401)
+        elif 'username' not in data['auth'].keys():
+            self.logger.debug(prefix + " Authorization Failed: No 'username' key in 'auth' set")
+            raise cherrypy.HTTPError(401)
+        elif onrampdb.check_user_auth(data['auth']) is False:
+            self.logger.debug(prefix + " Authorization Failed: 'auth' key invalid")
+            raise cherrypy.HTTPError(401)
+        else:
+            self.logger.debug(prefix + " Authorization Success")
+
         debug = level1
 
         if level1 == "user" or level1 == "module":
@@ -594,31 +614,135 @@ class Admin(_ServerResourceBase):
 
         #
         # Adding a new user
+        # /admin/user
         #
         if user_id is None:
             self.logger.info(prefix + " Adding \"" + data["username"] + "\"")
-            user_id = onrampdb.user_lookup( data["username"] )
-            if user_id is not None:
-                rdata['exists'] = True
-            else:
-                user_id = onrampdb.user_add( data["username"], data["password"] )
-                if user_id is None:
-                    raise cherrypy.HTTPError(400)
-                rdata['exists'] = False
-            rdata['id'] = user_id
+            rdata = onrampdb.user_add_if_new( data["username"], data["password"] )
+            user_id = rdata['id']
+        #
+        # Note implemented
+        #
+        else:
+            raise cherrypy.NotFound()
+
 
         self.logger.debug(prefix + ' process_user(%s, %s)' % (type, user_id))
 
         return rdata
 
+    def process_workspace(self, type, data, workspace_id=None, 
+                          level2=None, level2_id=None, level3_id=None, kwargs=None):
+        prefix = '['+type+' /admin/workspace]'
+        rdata = {}
+
+        #
+        # Adding a new workspace
+        # /admin/workspace
+        #
+        if workspace_id is None:
+            self.logger.info(prefix + " Adding \"" + data["name"] + "\"")
+            rdata = onrampdb.workspace_add_if_new( data["name"] )
+            workspace_id = rdata['id']
+        #
+        # Associate a user with a workspace
+        # /admin/workspace/:WID/user/:USERID
+        #
+        elif level2 is not None and level2_id is not None and level3_id is None and level2 == "user":
+            user_id = level2_id
+            prefix = prefix[:-1] + "/" + str(workspace_id) + "/user/" + str(user_id) + "]"
+            self.logger.info(prefix + " Associate user " + str(user_id) + " with workspace "+str(workspace_id))
+
+            # Add the result
+            rdata = onrampdb.workspace_add_user( workspace_id, user_id )
+            if 'error_msg' in rdata.keys():
+                self.logger.info(prefix + " " + rdata['error_msg'])
+                raise cherrypy.HTTPError(400)
+        #
+        # Associate a PCE/Module pair with a workspace
+        # /admin/workspace/:WID/pcemodulepairs/:PCEID/:MODULEID
+        #
+        elif level2 is not None and level2_id is not None and level3_id is not None and level2 == "pcemodulepairs":
+            pce_id = level2_id
+            module_id = level3_id
+            prefix = prefix[:-1] + "/" + str(workspace_id) + "/pcemodulepairs/" + str(pce_id) + "/" + str(module_id)+"]"
+            self.logger.info(prefix + " Associate PCE/Module pair (" + str(pce_id) + ", " + str(module_id) + " with workspace "+str(workspace_id))
+
+            # Add the result
+            rdata = onrampdb.workspace_add_pair( workspace_id, pce_id, module_id )
+            if 'error_msg' in rdata.keys():
+                self.logger.info(prefix + " " + rdata['error_msg'])
+                raise cherrypy.HTTPError(400)
+
+        #
+        # Other not handled
+        #
+        else:
+            self.logger.error(prefix + " Missing one or more arguments (" + level2 + ","+ str(level2_id)+","+str(level3_id) +")")
+            raise cherrypy.NotFound()
+
+        self.logger.debug(prefix + ' process_workspace(%s, %s)' % (type, workspace_id))
+
+        return rdata
+
+    def process_pce(self, type, data, pce_id=None,
+                    level2=None, level2_id=None, level3_id=None, kwargs=None):
+        prefix = '['+type+' /admin/pce]'
+        rdata = {}
+
+        #
+        # Adding a new PCE
+        # /admin/pce
+        #
+        if pce_id is None:
+            self.logger.info(prefix + " Adding \"" + data["name"] + "\"")
+            rdata = onrampdb.pce_add_if_new( data["name"] )
+            pce_id = rdata['id']
+        #
+        # Associate a module with a PCE
+        # /admin/pce/:PCEID/module/:MODULEID
+        #
+        elif level2 is not None and level2_id is not None and level3_id is None and level2 == "module":
+            module_id = level2_id
+            prefix = prefix[:-1] + "/" + str(pce_id) + "/module/" + str(module_id) + "]"
+            self.logger.info(prefix + " Associate module " + str(module_id) + " with PCE "+str(pce_id))
+
+            # Add the result
+            rdata = onrampdb.pce_add_module( pce_id, module_id )
+            if 'error_msg' in rdata.keys():
+                self.logger.info(prefix + " " + rdata['error_msg'])
+                raise cherrypy.HTTPError(400)
+
+        #
+        # Other not handled
+        #
+        else:
+            self.logger.error(prefix + " Missing one or more arguments (" + level2 + ","+ str(level2_id)+","+str(level3_id) +")")
+            raise cherrypy.NotFound()
+
+
+        self.logger.debug(prefix + ' process_pce(%s, %s)' % (type, pce_id))
+
+        return rdata
+
     def process_module(self, type, data, module_id=None, kwargs=None):
-        self.logger.debug('Admin: process_module(%s, %s)' % (type, module_id))
-        return True
+        prefix = '['+type+' /admin/module]'
+        rdata = {}
 
-    def process_workspace(self, type, data, workspace_id=None, level2=None, level2_id=None, level3_id=None, kwargs=None):
-        self.logger.debug('Admin: process_workspace(%s, %s)' % (type, workspace_id))
-        return True
+        #
+        # Adding a new module
+        #
+        if module_id is None:
+            self.logger.info(prefix + " Adding \"" + data["name"] + "\"")
+            rdata = onrampdb.module_add_if_new( data["name"] )
+            module_id = rdata['id']
+        #
+        # Note implemented
+        #
+        else:
+            raise cherrypy.NotFound()
 
-    def process_pce(self, type, data, pce_id=None, level2=None, level2_id=None, level3_id=None, kwargs=None):
-        self.logger.debug('Admin: process_pce(%s, %s)' % (type, pce_id))
-        return True
+        self.logger.debug(prefix + ' process_module(%s, %s)' % (type, module_id))
+
+        return rdata
+

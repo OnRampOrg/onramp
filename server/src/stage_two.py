@@ -36,3 +36,5 @@ conn.executescript(schema)
 
 conn.commit()
 conn.close()
+
+os.system("cp "+db_filename+" "+db_filename+".bak")

@@ -23,6 +23,7 @@ CREATE TABLE workspace (
     workspace_id integer primary key autoincrement not null,
 
     -- Data
+    workspace_name text not null,
     description text DEFAULT ''
 );
 
@@ -30,6 +31,7 @@ CREATE TABLE pce (
     pce_id integer primary key autoincrement not null,
 
     -- Data
+    pce_name text not null,
     description text DEFAULT ''
 );
 
@@ -37,6 +39,7 @@ CREATE TABLE module (
     module_id integer primary key autoincrement not null,
 
     -- Data
+    module_name text not null,
     description text DEFAULT ''
 );
 
@@ -50,6 +53,7 @@ CREATE TABLE job (
     module_id integer,
 
     -- Other data
+    job_name text not null,
 
     -- Constraints
     FOREIGN KEY(user_id) REFERENCES user(user_id),
@@ -60,6 +64,7 @@ CREATE TABLE job (
 
 -- Users that belong to a workspace
 CREATE TABLE user_to_worksapce (
+    uw_pair_id integer primary key autoincrement not null,
     user_id integer,
     workspace_id integer,
 
@@ -83,6 +88,7 @@ CREATE TABLE module_to_pce (
 
 -- Workspaces connected to a PCE / Module pair
 CREATE TABLE workspace_to_pce_module (
+    wpm_pair_id integer primary key autoincrement not null,
     workspace_id integer,
     pm_pair_id integer,
 
