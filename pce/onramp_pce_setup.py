@@ -13,6 +13,7 @@ import os
 import shutil
 import sys
 from subprocess import call
+from tempfile import mkstemp
 
 source_dir = 'src'
 env_dir = source_dir + '/env'
@@ -47,10 +48,27 @@ if not os.path.exists(module_state_dir):
 call(['virtualenv', '-p', 'python2.7', env_dir])
 call([env_dir + '/bin/pip', 'install', '-r', source_dir + '/requirements.txt'])
 
-# Link PCE to virtual environment
-# FIXME: This assumes python2.7. Need to find a way with virtualenv/pip to
-# enforce this.
+# Set pce_root in PCE packagage
 cwd = os.getcwd()
+pce_file = os.path.join(os.path.join(cwd, source_dir),
+                        os.path.join(package_name, '__init__.py'))
+fh, abs_path = mkstemp()
+pce_root_found = False
+with open(abs_path, 'w') as temp_file:
+    with open(pce_file, 'r') as f:
+        for line in f:
+            if line.startswith('pce_root ='):
+                pce_root_found = True
+                temp_file.write("pce_root = '%s'\n" % cwd)
+            else:
+                temp_file.write(line)
+    if not pce_root_found:
+        temp_file.write("pce_root = '%s'\n" % cwd)
+os.close(fh)
+os.remove(pce_file)
+shutil.move(abs_path, pce_file)
+            
+# Link PCE to virtual environment
 call(['cp', '-rs', cwd + '/' + source_dir + '/' + package_name,
       env_dir + '/lib/python2.7/site-packages/' + package_name])
 
