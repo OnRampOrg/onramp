@@ -8,23 +8,29 @@ Exports:
     install_module: Installs module on host system.
     get_source_types: Return list of acceptable module source types (local, git,
         etc.).
+    deploy_module: Deploy an installed OnRamp educational module.
+    get_modules: Return list of tracked modules or single module.
+    get_available_modules: Return list of modules shipped with OnRamp.
 """
 import argparse
 import copy
 import errno
 import fcntl
 import json
+import logging
 import os
 import shutil
 import sys
 from subprocess import CalledProcessError, check_output
 
-_mod_state_dir = 'src/state/modules'
-_mod_state_dir = os.path.normpath(os.path.abspath(_mod_state_dir))
-_shipped_mod_dir = '../modules'
-_shipped_mod_dir = os.path.normpath(os.path.abspath(_shipped_mod_dir))
+from PCE import pce_root
+
+_mod_state_dir = os.path.join(pce_root, 'src/state/modules')
+_shipped_mod_dir = os.path.join(pce_root, '../modules')
+_mod_install_dir = os.path.join(pce_root, 'modules')
 _installed_states = ['Installed', 'Deploy in progress', 'Deploy failed',
                     'Module ready']
+_logger = logging.getLogger('onramp')
 
 class ModState(dict):
     """Provide access to module state in a way that race conditions are avoided.
@@ -84,15 +90,19 @@ class ModState(dict):
         self._state_file.close()
 
 
-def _local_checkout(mod_state):
-    """Install module located on host file sys."""
-    if not os.path.isdir(mod_state['source_location']['path']):
-        return ('Source path %s does not exist'
-                 % mod_state['source_location']['path'])
+def _local_checkout(source_path, install_path):
+    """Install module located on host file sys.
 
-    new_path = os.path.join('modules', '%s_%s'
-                            % (mod_state['mod_name'], mod_state['mod_id']))
-    shutil.copytree(mod_state['source_location']['path'], new_path)
+    Args:
+        source_path (str): Location of root folder of module to be installed.
+        install_path (str): Location to install the new module to.
+    """
+    if not os.path.isdir(source_path):
+        return 'Source path %s does not exist' % source_path
+
+    _logger.debug('Source: %s' % source_path)
+    _logger.debug('New: %s' % install_path)
+    shutil.copytree(source_path, install_path)
     return None
     
 source_handlers = {
@@ -119,9 +129,11 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
     Kwargs:
         verbose (bool): Controls level of printed output during installation.
     """
-    mod_dir = os.path.join(install_parent_folder, '%s_%d' % (mod_name, mod_id))
-    mod_dir = os.path.normpath(os.path.abspath(mod_dir))
+    mod_dir = os.path.join(os.path.join(pce_root, install_parent_folder),
+                           '%s_%s' % (mod_name, mod_id))
     source_abs_path = os.path.normpath(os.path.abspath(source_path))
+    _logger.debug('cwd: %s' % os.getcwd())
+    _logger.debug('source_abs_path: %s' % source_abs_path)
 
     with ModState(mod_id) as mod_state:
         if 'state' in mod_state.keys():
@@ -133,7 +145,7 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
 
         mod_state['mod_id'] = mod_id
         mod_state['mod_name'] = mod_name
-        mod_state['installed_path'] = mod_dir
+        mod_state['installed_path'] = None
         mod_state['state'] = 'Checkout in progress'
         mod_state['error'] = None
         mod_state['source_location'] = {
@@ -142,13 +154,13 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
         }
 
     # Checkout module.
-    result = source_handlers[source_type](mod_state)
+    result = source_handlers[source_type](source_abs_path, mod_dir)
 
     if result:
         with ModState(mod_id) as mod_state:
             mod_state['state'] = 'Checkout failed'
             mod_state['error'] = result
-        return (-2, msg)
+        return (-2, result)
 
     with ModState(mod_id) as mod_state:
         mod_state['state'] = 'Installed'
@@ -158,6 +170,14 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
     return (0, 'Module %d installed' % mod_id)
 
 def deploy_module(mod_id, verbose=False):
+    """Deploy an installed OnRamp educational module.
+
+    Args:
+        mod_id (int): Id of the module to be deployed.
+
+    Kwargs:
+        verbose (bool): Increases status output if True.
+    """
     mod_dir = None
     not_installed_states = ['Available', 'Checkout in Progress',
                             'Checkout failed']
@@ -173,6 +193,7 @@ def deploy_module(mod_id, verbose=False):
         mod_dir = mod_state['installed_path']
 
     ret_dir = os.getcwd()
+    _logger.debug('ret_dir: %s' % ret_dir)
     os.chdir(mod_dir)
 
     try:
@@ -201,6 +222,12 @@ def deploy_module(mod_id, verbose=False):
     return (0, 'Module %d ready' % mod_id)
 
 def get_modules(mod_id=None):
+    """Return list of tracked modules or single module.
+
+    Kwargs:
+        mod_id (int/None): If int, return module resource with corresponding id.
+            If None, return list of all tracked module resources.
+    """
     if mod_id:
         with ModState(mod_id) as mod_state:
             if 'state' in mod_state.keys():
@@ -223,6 +250,7 @@ def get_modules(mod_id=None):
     return results
 
 def get_available_modules():
+    """Return list of modules shipped with OnRamp."""
     def verify_module_path(x):
         return os.path.isdir(os.path.join(_shipped_mod_dir, x))
 
@@ -234,7 +262,7 @@ def get_available_modules():
         'error': None,
         'source_location': {
             'type': 'local',
-            'path': os.path.join(_shipped_mod_dir, name)
+            'path': os.path.normpath(os.path.join(_shipped_mod_dir, name))
         }
     } for name in filter(verify_module_path,
                          os.listdir(_shipped_mod_dir))]

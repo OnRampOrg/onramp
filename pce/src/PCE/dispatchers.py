@@ -8,12 +8,13 @@ Exports:
 
 import logging
 import os
+from multiprocessing import Process
 
 import cherrypy
 from configobj import ConfigObj
 from validate import Validator
 
-from PCE.tools.modules import get_modules, get_available_modules
+from PCE.tools.modules import get_modules, get_available_modules, install_module
 
 class _OnRampDispatcher:
     """Base class for OnRamp PCE dispatchers."""
@@ -100,6 +101,7 @@ class _OnRampDispatcher:
             return self.get_response(status_code=-8, status_msg=str(ve))
 
         if isinstance(result, dict):
+            self.logger.debug('Validate JSON result: %s' % str(result))
             invalid_params = _search_dict(result)
             msg = ('An invalid value or no value was received for the '
                    'following required parameter(s): %s'
@@ -153,15 +155,26 @@ class Modules(_OnRampDispatcher):
 
         if id:
             # Module already installed, verify id and deploy.
-            pass
-        else:
-            # Module not yet installed, check params and install.
-            data = cherrypy.request.json
-            result = self.validate_json(data, 'POST')
-            if result:
-                return result
+            return self.get_response()
 
-        return self.get_response()
+        # Module not yet installed, check params and initiate install.
+        data = cherrypy.request.json
+        result = self.validate_json(data, 'POST')
+        if result:
+            return result
+
+        install_args = (
+            data['source_location']['type'],
+            data['source_location']['path'],
+            'modules',
+            data['mod_id'],
+            data['mod_name']
+        )
+
+        p = Process(target=install_module, args=install_args)
+        p.start()
+
+        return self.get_response(status_msg='Checkout initiated')
 
     def PUT(self, id, **kwargs):
         """Update a specific module.
