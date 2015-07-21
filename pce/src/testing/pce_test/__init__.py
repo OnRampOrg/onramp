@@ -341,6 +341,14 @@ class ModulesTest(PCEBase):
         time.sleep(10)
         self.verify_mod_install(5, 'template')
 
+        # Attempt deploy that should work
+        r = pce_post('modules/5/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Deployment initiated')
+
         # Attempt with missing mod_id
         r = pce_post('modules/', mod_name='testname',
                      source_location={'type':0, 'path':'test/path'})

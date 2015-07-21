@@ -14,7 +14,9 @@ import cherrypy
 from configobj import ConfigObj
 from validate import Validator
 
-from PCE.tools.modules import get_modules, get_available_modules, install_module
+from PCE import pce_root
+from PCE.tools.modules import deploy_module, get_modules, \
+                              get_available_modules, install_module
 
 class _OnRampDispatcher:
     """Base class for OnRamp PCE dispatchers."""
@@ -154,13 +156,30 @@ class Modules(_OnRampDispatcher):
         self.log_call('POST')
 
         if id:
-            # Module already installed, verify id and deploy.
-            return self.get_response()
+            # Verify id and initiate deployment.
+            try:
+                mod_id = int(id)
+            except:
+                cherrypy.response.status = 400
+                msg = 'Invalid module id in url: %s' % id
+                self.logger.warn(msg)
+                return self.get_response(status_code=-8, status_msg=msg)
+                
+            state_file = os.path.join(pce_root, 'src/state/modules/%d' % mod_id)
+            if not os.path.isfile(state_file):
+                msg = 'Module %d not installed' % mod_id
+                self.logger.warn(msg)
+                return self.get_response(status_code=-2, status_msg=msg)
 
-        # Module not yet installed, check params and initiate install.
+            p = Process(target=deploy_module, args=(mod_id,))
+            p.start()
+            return self.get_response(status_msg='Deployment initiated')
+
+        # Check params and initiate install.
         data = cherrypy.request.json
         result = self.validate_json(data, 'POST')
         if result:
+            self.logger.warn(result['status_msg'])
             return result
 
         install_args = (
