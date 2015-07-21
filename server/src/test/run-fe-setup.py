@@ -43,7 +43,6 @@ def do_login():
 
     print "Result: %d: %s" % (r.status_code, r.headers['content-type'])
     user_cred = {}
-    user_cred['id'] = None
 
     if r.status_code == 200:
         result = r.json()
@@ -302,8 +301,8 @@ def associate_pair_with_workspace(admin_cred, module_id, pce_id, workspace_id):
 
 ######################################################
 if __name__ == '__main__':
-    #run_full = False
-    run_full = True
+    run_full = False
+    #run_full = True
 
     if run_full == True:
         _display_header("Reset Database")
@@ -311,8 +310,8 @@ if __name__ == '__main__':
 
     # Login to the system
     admin_cred = do_login()
-    print "Admin USER ID: " + str(admin_cred['id'])
-
+    print "Admin USER ID: " + str(admin_cred['user_id'])
+    user_1_id = add_user(admin_cred, "alice", "notsecret123")
     if run_full == True:
         # Add a User
         user_1_id = add_user(admin_cred, "alice", "notsecret123")

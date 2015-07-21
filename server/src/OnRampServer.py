@@ -14,8 +14,8 @@ from cherrypy.process.plugins import Daemonizer, PIDFile
 from configobj import ConfigObj
 from validate import Validator
 
-from OnRampServer.dispatchers import Root, Users, Workspaces, PCEs, Modules, Jobs, Login, Admin
-import OnRampServer.onramppce
+from webapp.dispatchers import Root, Users, Workspaces, PCEs, Modules, Jobs, Login, Admin
+import webapp.onramppce
 
 def _CORS():
     """Set HTTP Access Control Header to allow cross-site HTTP requests from

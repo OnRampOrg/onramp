@@ -25,8 +25,8 @@ from Crypto import Random
 from Crypto.Cipher import AES
 from validate import Validator
 
-import OnRampServer.onramppce as onramppce
-import OnRampServer.onrampdb as onrampdb
+import webapp.onramppce as onramppce
+import webapp.onrampdb as onrampdb
 
 class _ServerResourceBase:
     """Provide functionality needed by all OnRamp Server resource dispatchers.
@@ -41,9 +41,9 @@ class _ServerResourceBase:
         url_base (str): Base URL for the resource.
 
     Methods:
-        JSON_response: Constructs JSON reponse from default and provided attrs.
-        validate_JSON_request: Validates JSON request data.
+        ...
     """
+
     exposed = True
 
     def __init__(self, conf):
@@ -70,96 +70,42 @@ class _ServerResourceBase:
         if rtn != 0:
             sys.exit(-1)
 
-    def JSON_response(self, id=None, url=True, status_code=0,
-                      status_msg='Success', **kwargs):
-        """Construct JSON response from default and provided attrs.
-
-        Kwargs:
-            id: If not none, set response value for 'url' to the url for
-                specific resource specified by id.
-            url (bool): If false, set response value for 'url' to None.
-            status_code (int): Status code of response.
-            status_msg (str): Status message.
-            **kwargs (dict): Key/value pairs to include in the JSON response.
-        """
-        self.logger.debug('KWARGS: %s' % str(kwargs))
-        retval = {}
-        retval['status_code'] = status_code
-        retval['status_msg'] = status_msg
-        if url:
-            retval['url'] = self._build_url(id=id)
-        else:
-            retval['url'] = None
-        retval['api_root'] = self.api_root
-        retval.update(kwargs)
-        return json.dumps(retval)
-
-    def get_is_valid_fns(self):
-        return {'user' : self.is_valid_user,
-                'workspace' : self.is_valid_workspace,
-                'pce' : self.is_valid_pce,
-                'module' : self.is_valid_module,
-                'job' : self.is_valid_job
+    def _get_is_valid_fns(self):
+        return {'user' :      onrampdb.is_valid_user_id,
+                'workspace' : onrampdb.is_valid_workspace_id,
+                'pce' :       onrampdb.is_valid_pce_id,
+                'module' :    onrampdb.is_valid_module_id,
+                'job' :       onrampdb.is_valid_job_id
                 }
 
-    def is_valid_user(self, user_id=None):
-        if user_id is None:
-            return False
-
-        # TODO
-
+    def _check_auth(self, prefix, auth):
+        if onrampdb.check_user_auth( auth ) is False:
+            self.logger.debug(prefix + " Authorization Failed: 'auth' key invalid")
+            raise cherrypy.HTTPError(401)
         return True
 
-    def is_valid_workspace(self, workspace_id=None):
-        if workspace_id is None:
-            return False
-        # TODO
-        #if int(workspace_id) is not 123:
-        #    return False
-
+    def _update_session(self, auth):
         return True
-
-    def is_valid_pce(self, pce_id=None):
-        if pce_id is None:
-            return False
-
-        # TODO
-
-        return True
-
-    def is_valid_module(self, module_id=None):
-        if module_id is None:
-            return False
-
-        # TODO
-
-        return True
-
-    def is_valid_job(self, job_id=None):
-        if job_id is None:
-            return False
-
-        # TODO
-
-        return True
-
 
 ########################################################
  
+
+########################################################
+# Root
+########################################################
 class Root(_ServerResourceBase):
 
-    @cherrypy.popargs('user')
-    def GET(self, id=None, **kwargs):
+    #
+    # GET / : Server status
+    #
+    def GET(self, **kwargs):
         self.logger.debug('Root.GET()')
-        if id is not None:
-            raise cherrypy.NotFound()
-
-        #host = cherrypy.request.headers('Host')
-        #host = cherrypy.request.headers.get('Host', None)
-        #host = self.api_root
-        #host = str(cherrypy.request.headers)
         return "OnRamp Server is running...\n"
 
+
+########################################################
+# Users
+########################################################
 class Users(_ServerResourceBase):
 
     # GET /users
@@ -173,7 +119,7 @@ class Users(_ServerResourceBase):
 
         allowed_levels = ["workspaces", "jobs"]
         allowed_search = ["workspace", "pce", "module"]
-        valid_fns = self.get_is_valid_fns()
+        valid_fns = self._get_is_valid_fns()
 
         debug = "All"
         ids = {}
@@ -224,6 +170,10 @@ class Users(_ServerResourceBase):
 
         return "Users: \n"
 
+
+########################################################
+# Workspaces
+########################################################
 class Workspaces(_ServerResourceBase):
 
     # GET /workspaces
@@ -239,7 +189,7 @@ class Workspaces(_ServerResourceBase):
 
         allowed_levels = ["doc", "users", "pcemodulepairs", "jobs"]
         allowed_search = ["user", "pce", "module"]
-        valid_fns = self.get_is_valid_fns()
+        valid_fns = self._get_is_valid_fns()
 
         debug = "All"
         ids = {}
@@ -276,6 +226,9 @@ class Workspaces(_ServerResourceBase):
         return "Workspace: %s\n" % debug
 
 
+########################################################
+# PCEs
+########################################################
 class PCEs(_ServerResourceBase):
 
     # GET /pces
@@ -291,7 +244,7 @@ class PCEs(_ServerResourceBase):
 
         allowed_levels = ["doc", "workspaces", "modules", "jobs"]
         allowed_search = ["user", "workspace", "module"]
-        valid_fns = self.get_is_valid_fns()
+        valid_fns = self._get_is_valid_fns()
 
         debug = "All"
         ids = {}
@@ -327,6 +280,10 @@ class PCEs(_ServerResourceBase):
 
         return "PCE: %s\n" % debug
 
+
+########################################################
+# Modules
+########################################################
 class Modules(_ServerResourceBase):
 
     # GET /modules
@@ -341,7 +298,7 @@ class Modules(_ServerResourceBase):
 
         allowed_levels = ["doc", "pces", "jobs"]
         allowed_search = ["user", "workspace", "pce"]
-        valid_fns = self.get_is_valid_fns()
+        valid_fns = self._get_is_valid_fns()
 
         debug = "All"
         ids = {}
@@ -377,6 +334,9 @@ class Modules(_ServerResourceBase):
 
         return "Module: %s\n" % debug
 
+########################################################
+# Jobs
+########################################################
 class Jobs(_ServerResourceBase):
 
     # GET /jobs
@@ -388,7 +348,7 @@ class Jobs(_ServerResourceBase):
 
         allowed_levels = ["data"]
         allowed_search = []
-        valid_fns = self.get_is_valid_fns()
+        valid_fns = self._get_is_valid_fns()
 
         debug = "All"
         ids = {}
@@ -450,6 +410,9 @@ class Jobs(_ServerResourceBase):
 
         return "Jobs: "+id+"\n"
 
+########################################################
+# Login
+########################################################
 class Login(_ServerResourceBase):
 
     # POST /login
@@ -483,10 +446,11 @@ class Login(_ServerResourceBase):
         #
         self.logger.info(prefix + " Attempt \"" + data["username"] + "\"")
 
-        user_id = onrampdb.user_login( data["username"], data["password"])
-
-        if user_id is not None:
-            rtn['auth'] = {'id' : user_id, 'username' : data["username"] }
+        user_auth = onrampdb.user_login( data["username"], data["password"])
+        
+        if user_auth is not None:
+            rtn['auth'] = user_auth
+            rtn['auth']['username'] = data["username"]
             self.logger.info(prefix + " Attempt \"" + data["username"] + "\" Success")
         else:
             self.logger.info(prefix + " Attempt \"" + data["username"] + "\" Failed")
@@ -498,6 +462,40 @@ class Login(_ServerResourceBase):
 
         return rtn
 
+    # DELETE /login --> Logout
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
+    def DELETE(self, id=None, **kwargs):
+        prefix = '[DELETE /login]'
+        self.logger.debug(prefix)
+
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
+
+        if not hasattr(cherrypy.request, "json"):
+            self.logger.error(prefix + " No json data sent")
+            raise cherrypy.HTTPError(400)
+
+        data = cherrypy.request.json
+
+        #
+        # Make sure the required fields have been specified
+        #
+
+        #
+        # Ask the database if this is a valid user
+        #
+
+        #
+        # Tell the user
+        #
+
+        return rtn
+
+########################################################
+# Admin
+########################################################
 class Admin(_ServerResourceBase):
 
     # GET
@@ -506,36 +504,50 @@ class Admin(_ServerResourceBase):
     @cherrypy.popargs('level', 'pce_id', 'mlevel', 'module_id')
     @cherrypy.tools.json_out()
     @cherrypy.tools.json_in()
-    def GET(self, level=None, pce_id=None, mlevel=None, module_id=None, **kwargs):
-        prefix = '[GET /admin/]'
+    def GET(self, level, pce_id, mlevel=None, module_id=None, **kwargs):
+        prefix = "[GET /admin/"+level+"/"+str(pce_id)+"]"
         self.logger.debug(prefix)
+
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
 
         debug = "Any"
 
-        if level != "pce":
-            raise cherrypy.NotFound()
-
-        prefix = '[GET /admin/pce]'
-
-        if pce_id is None:
-            raise cherrypy.NotFound()
-        elif self.is_valid_pce(pce_id) is False:
-            prefix = '[GET /admin/pce/'+str(pce_id)+']'
-            raise cherrypy.HTTPError(400)
-
-        self.logger.debug(prefix)
-        debug = "PCE="+pce_id
-
+        #
+        # Allowed levels and dispatch
+        #
         if mlevel is not None:
-            if module_id is None:
+            if mlevel != "module" or module_id is None:
+                self.logger.error(prefix + " Invalid level or ID")
                 raise cherrypy.NotFound()
-            elif self.is_valid_module(module_id) is False:
-                raise cherrypy.HTTPError(400)
-            debug += ", Module="+module_id
+            else:
+                prefix = prefix[:-1] + "/module/"+str(module_id)+"]"
+                rdata = self._process_module_get(pce_id, module_id)
+                rtn['module'] = rdata
+        elif level != "pce":
+            self.logger.error(prefix + " Invalid level")
+            raise cherrypy.NotFound()
+        else:
+            rdata = self._process_pce_get(pce_id)
+            rtn['pce'] = rdata
 
-        self.logger.debug(prefix + ' %s' % debug )
+        self.logger.debug(prefix + ' Done')
 
-        return "Admin: %s\n" % debug
+        return rtn
+
+    ############################################################
+    # Module Get
+    ############################################################
+    def _process_module_get(self, pce_id, module_id):
+        return {}
+
+    ############################################################
+    # PCE Get
+    ############################################################
+    def _process_pce_get(self, pce_id):
+        return {}
+
 
     # POST / DELETE / PUT
     #      /admin/user
@@ -556,10 +568,10 @@ class Admin(_ServerResourceBase):
         rtn['status'] = 0
         rtn['status_message'] = 'Success'
 
-        allowed_level1 = {'user' : self.process_user,
-                          'module' : self.process_module,
-                          'workspace' : self.process_workspace,
-                          'pce' : self.process_pce,
+        allowed_level1 = {'user' :      self._process_user,
+                          'module' :    self._process_module,
+                          'workspace' : self._process_workspace,
+                          'pce' :       self._process_pce,
                           }
         debug = "Any"
 
@@ -585,18 +597,12 @@ class Admin(_ServerResourceBase):
         if 'auth' not in data.keys():
             self.logger.debug(prefix + " Authorization Failed: No 'auth' key")
             raise cherrypy.HTTPError(401)
-        elif 'id' not in data['auth'].keys():
-            self.logger.debug(prefix + " Authorization Failed: No 'id' key in 'auth' set")
-            raise cherrypy.HTTPError(401)
-        elif 'username' not in data['auth'].keys():
-            self.logger.debug(prefix + " Authorization Failed: No 'username' key in 'auth' set")
-            raise cherrypy.HTTPError(401)
-        elif onrampdb.check_user_auth(data['auth']) is False:
-            self.logger.debug(prefix + " Authorization Failed: 'auth' key invalid")
-            raise cherrypy.HTTPError(401)
-        else:
+        elif self._check_auth(prefix, data['auth']) is True:
             self.logger.debug(prefix + " Authorization Success")
 
+        #
+        # Dispatch to the correct handler
+        #
         debug = level1
 
         if level1 == "user" or level1 == "module":
@@ -608,7 +614,10 @@ class Admin(_ServerResourceBase):
 
         return rtn
 
-    def process_user(self, type, data, user_id=None, kwargs=None):
+    ########################################################
+    # User
+    ########################################################
+    def _process_user(self, type, data, user_id=None, kwargs=None):
         prefix = '['+type+' /admin/user]'
         rdata = {}
 
@@ -626,12 +635,15 @@ class Admin(_ServerResourceBase):
         else:
             raise cherrypy.NotFound()
 
-
         self.logger.debug(prefix + ' process_user(%s, %s)' % (type, user_id))
 
         return rdata
 
-    def process_workspace(self, type, data, workspace_id=None, 
+
+    ########################################################
+    # Workspace
+    ########################################################
+    def _process_workspace(self, type, data, workspace_id=None, 
                           level2=None, level2_id=None, level3_id=None, kwargs=None):
         prefix = '['+type+' /admin/workspace]'
         rdata = {}
@@ -662,7 +674,7 @@ class Admin(_ServerResourceBase):
         # Associate a PCE/Module pair with a workspace
         # /admin/workspace/:WID/pcemodulepairs/:PCEID/:MODULEID
         #
-        elif level2 is not None and level2_id is not None and level3_id is not None and level2 == "pcemodulepairs":
+        elif level2 is not None and level2 == "pcemodulepairs" and level2_id is not None and level3_id is not None:
             pce_id = level2_id
             module_id = level3_id
             prefix = prefix[:-1] + "/" + str(workspace_id) + "/pcemodulepairs/" + str(pce_id) + "/" + str(module_id)+"]"
@@ -685,7 +697,11 @@ class Admin(_ServerResourceBase):
 
         return rdata
 
-    def process_pce(self, type, data, pce_id=None,
+
+    ########################################################
+    # PCE
+    ########################################################
+    def _process_pce(self, type, data, pce_id=None,
                     level2=None, level2_id=None, level3_id=None, kwargs=None):
         prefix = '['+type+' /admin/pce]'
         rdata = {}
@@ -702,7 +718,7 @@ class Admin(_ServerResourceBase):
         # Associate a module with a PCE
         # /admin/pce/:PCEID/module/:MODULEID
         #
-        elif level2 is not None and level2_id is not None and level3_id is None and level2 == "module":
+        elif level2 is not None and level2 == "module" and level2_id is not None and level3_id is None:
             module_id = level2_id
             prefix = prefix[:-1] + "/" + str(pce_id) + "/module/" + str(module_id) + "]"
             self.logger.info(prefix + " Associate module " + str(module_id) + " with PCE "+str(pce_id))
@@ -712,12 +728,12 @@ class Admin(_ServerResourceBase):
             if 'error_msg' in rdata.keys():
                 self.logger.info(prefix + " " + rdata['error_msg'])
                 raise cherrypy.HTTPError(400)
-
         #
         # Other not handled
         #
         else:
-            self.logger.error(prefix + " Missing one or more arguments (" + level2 + ","+ str(level2_id)+","+str(level3_id) +")")
+            self.logger.error(prefix + " Missing one or more arguments (" + 
+                              level2 + ","+ str(level2_id)+","+str(level3_id) +")")
             raise cherrypy.NotFound()
 
 
@@ -725,7 +741,11 @@ class Admin(_ServerResourceBase):
 
         return rdata
 
-    def process_module(self, type, data, module_id=None, kwargs=None):
+
+    ########################################################
+    # Module
+    ########################################################
+    def _process_module(self, type, data, module_id=None, kwargs=None):
         prefix = '['+type+' /admin/module]'
         rdata = {}
 

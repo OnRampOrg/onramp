@@ -22,6 +22,9 @@ class Database():
 
 
     ##########################################################
+    def is_valid_session_id(self, session_id):
+        raise NotImplemented("Please implement this method")
+
     def is_valid_user_id(self, user_id):
         raise NotImplemented("Please implement this method")
 
@@ -34,6 +37,19 @@ class Database():
     def is_valid_module_id(self, module_id):
         raise NotImplemented("Please implement this method")
 
+
+    ##########################################################
+    def is_active_session_id(self, session_id):
+        raise NotImplemented("Please implement this method")
+
+    def session_start(self, user_id):
+        raise NotImplemented("Please implement this method")
+
+    def session_update(self, session_id):
+        raise NotImplemented("Please implement this method")
+
+    def session_stop(self, session_id):
+        raise NotImplemented("Please implement this method")
 
     ##########################################################
     def get_user_id(self, username, password=None):
@@ -85,7 +101,7 @@ class Database():
 
     
 
-from OnRampServer.onrampdb_sqlite import Database_sqlite
+from webapp.onrampdb_sqlite import Database_sqlite
 
 ##########################################
 _current_db = None
@@ -136,6 +152,9 @@ def is_valid_module_id(module_id):
     db.disconnect()
     return result
 
+def is_valid_job_id(module_id):
+    return True
+
 ##########################################
 # User Management
 ##########################################
@@ -143,20 +162,30 @@ def user_login(username, password):
     db = _current_db
     db.connect()
     user_id = db.get_user_id(username, password)
+    session_id = db.session_start(user_id)
     db.disconnect()
-    return user_id
+    return {'user_id': user_id, 'session_id': session_id}
 
 def check_user_auth( auth ):
-    if 'id' not in auth.keys():
-        return False
+    req_keys = ["session_id", "username", "user_id"]
+    for key in req_keys:
+        if key not in auth.keys():
+            return False
 
     user_id = user_lookup( auth['username'] )
     # Username does not exist
     if user_id is None:
         return False
     # ID mismatch
-    elif user_id != auth['id']:
+    elif user_id != auth['user_id']:
         return False
+    # Session inactive -- TODO
+    else:
+        db = _current_db
+        db.connect()
+        result = db.is_active_session_id(auth['session_id'], auth['user_id'])
+        db.disconnect()
+        return result
 
     return True
 
