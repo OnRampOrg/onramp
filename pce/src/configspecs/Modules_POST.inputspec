@@ -1,6 +1,6 @@
 mod_id = integer()
 mod_name = string()
 
-[location]
-code = integer()
+[source_location]
+type = option(local)
 path = string()

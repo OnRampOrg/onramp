@@ -8,10 +8,15 @@ Exports:
 
 import logging
 import os
+from multiprocessing import Process
 
 import cherrypy
 from configobj import ConfigObj
 from validate import Validator
+
+from PCE import pce_root
+from PCE.tools.modules import deploy_module, get_modules, \
+                              get_available_modules, install_module
 
 class _OnRampDispatcher:
     """Base class for OnRamp PCE dispatchers."""
@@ -98,6 +103,7 @@ class _OnRampDispatcher:
             return self.get_response(status_code=-8, status_msg=str(ve))
 
         if isinstance(result, dict):
+            self.logger.debug('Validate JSON result: %s' % str(result))
             invalid_params = _search_dict(result)
             msg = ('An invalid value or no value was received for the '
                    'following required parameter(s): %s'
@@ -130,8 +136,14 @@ class Modules(_OnRampDispatcher):
         """
         self.log_call('GET')
 
+        if 'state' in kwargs.keys() and kwargs['state'] == 'Available':
+            return self.get_response(modules=get_available_modules())
+
         # Return the resource.
-        return self.get_response()
+        if id:
+            return self.get_response(module=get_modules(mod_id=id))
+        else:
+            return self.get_response(modules=get_modules())
 
     def POST(self, id=None, **kwargs):
         """Clone/copy a new module or deploy a previously cloned/copied module.
@@ -144,16 +156,44 @@ class Modules(_OnRampDispatcher):
         self.log_call('POST')
 
         if id:
-            # Module already installed, verify id and deploy.
-            pass
-        else:
-            # Module not yet installed, check params and install.
-            data = cherrypy.request.json
-            result = self.validate_json(data, 'POST')
-            if result:
-                return result
+            # Verify id and initiate deployment.
+            try:
+                mod_id = int(id)
+            except:
+                cherrypy.response.status = 400
+                msg = 'Invalid module id in url: %s' % id
+                self.logger.warn(msg)
+                return self.get_response(status_code=-8, status_msg=msg)
+                
+            state_file = os.path.join(pce_root, 'src/state/modules/%d' % mod_id)
+            if not os.path.isfile(state_file):
+                msg = 'Module %d not installed' % mod_id
+                self.logger.warn(msg)
+                return self.get_response(status_code=-2, status_msg=msg)
 
-        return self.get_response()
+            p = Process(target=deploy_module, args=(mod_id,))
+            p.start()
+            return self.get_response(status_msg='Deployment initiated')
+
+        # Check params and initiate install.
+        data = cherrypy.request.json
+        result = self.validate_json(data, 'POST')
+        if result:
+            self.logger.warn(result['status_msg'])
+            return result
+
+        install_args = (
+            data['source_location']['type'],
+            data['source_location']['path'],
+            'modules',
+            data['mod_id'],
+            data['mod_name']
+        )
+
+        p = Process(target=install_module, args=install_args)
+        p.start()
+
+        return self.get_response(status_msg='Checkout initiated')
 
     def PUT(self, id, **kwargs):
         """Update a specific module.
