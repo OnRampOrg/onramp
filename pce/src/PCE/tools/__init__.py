@@ -1,4 +1,4 @@
-"""Support functionality needed to communicate with onramp REST clients,
+"""Support functionality needed to communicate with OnRamp REST clients,
 administer system users, and launch parallel jobs.
 
 Exports:
@@ -8,6 +8,7 @@ Exports:
     create_admin: Create admin user with default settings.
     authenticate: Authenticate a user.
     admin_authenticate: Authenticate an admin user.
+    modules: Functionality for working with OnRamp educational modules.
 """
 
 import glob
