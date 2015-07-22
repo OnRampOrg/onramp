@@ -197,24 +197,39 @@ def deploy_module(mod_id, verbose=False):
     os.chdir(mod_dir)
 
     try:
-        check_output([os.path.join(ret_dir, 'src/env/bin/python'),
+        _logger.debug('Calling bin/onramp_deploy.py')
+        _logger.debug('CWD: %s' % os.getcwd())
+        check_output([os.path.join(pce_root, 'src/env/bin/python'),
                       'bin/onramp_deploy.py'])
+        _logger.debug('Back from bin/onramp_deploy.py')
     except CalledProcessError as e:
         if e.returncode != 1:
             with ModState(mod_id) as mod_state:
                 error = ('bin/onramp_deploy.py returned invalid status %d'
                          % e.returncode)
+                _logger.debug(error)
                 mod_state['state'] = 'Deploy failed'
                 mod_state['error'] = error
             return (-1, error)
 
         with ModState(mod_id) as mod_state:
-            mod_state['state'] = 'Admin required'
+            msg = 'Admin required'
+            _logger.debug(msg)
+            mod_state['state'] = msg
             mod_state['error'] = e.output
-            return (1, 'Admin required')
+            return (1, msg)
+    except OSError as e1:
+        _logger.debug(e1)
+        with ModState(mod_id) as mod_state:
+            mod_state['state'] = 'Deploy failed'
+            mod_state['error'] = str(e1)
+        return (-1, str(e1))
     finally:
+        _logger.debug('finally')
         os.chdir(ret_dir)
+        _logger.debug('Back to ret_dir')
 
+    _logger.debug("Updating state to 'Module ready'")
     with ModState(mod_id) as mod_state:
         mod_state['state'] = 'Module ready'
         mod_state['error'] = None

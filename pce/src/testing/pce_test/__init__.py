@@ -348,6 +348,48 @@ class ModulesTest(PCEBase):
         self.check_json(d)
         self.assertEqual(d['status_code'], 0)
         self.assertEqual(d['status_msg'], 'Deployment initiated')
+        mod_path = os.path.normpath(os.path.join(pce_root,
+                                                 'modules/template_5'))
+        time.sleep(10)
+        with ModState(5) as mod_state:
+            self.assertEqual(mod_state['state'], 'Module ready')
+            self.assertIsNone(mod_state['error'])
+            self.assertEqual(mod_state['source_location']['type'], 'local')
+            self.assertEqual(mod_state['source_location']['path'],
+                             location['path'])
+            self.assertEqual(mod_state['installed_path'], mod_path)
+            self.assertEqual(mod_state['mod_id'], 5)
+            self.assertEqual(mod_state['mod_name'], 'template')
+
+        # Re-attempt deploy that already happened.
+        r = pce_post('modules/5/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Deployment initiated')
+        mod_path = os.path.normpath(os.path.join(pce_root,
+                                                 'modules/template_5'))
+        time.sleep(10)
+        with ModState(5) as mod_state:
+            self.assertEqual(mod_state['state'], 'Module ready')
+            self.assertIsNone(mod_state['error'])
+            self.assertEqual(mod_state['source_location']['type'], 'local')
+            self.assertEqual(mod_state['source_location']['path'],
+                             location['path'])
+            self.assertEqual(mod_state['installed_path'], mod_path)
+            self.assertEqual(mod_state['mod_id'], 5)
+            self.assertEqual(mod_state['mod_name'], 'template')
+
+        # Attempt deployment of non-existent mod_id.
+        r = pce_post('modules/15/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], -2)
+        self.assertEqual(d['status_msg'], 'Module 15 not installed')
+        mod_path = os.path.normpath(os.path.join(pce_root,
+                                                 'modules/template_15'))
 
         # Attempt with missing mod_id
         r = pce_post('modules/', mod_name='testname',
