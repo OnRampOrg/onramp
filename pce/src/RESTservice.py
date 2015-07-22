@@ -48,15 +48,13 @@ def _restart_handler(signal, frame):
     cherrypy.engine.block()
 
 if __name__ == '__main__':
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-
     # Default conf. Some of these can/will be overrided by attrs in
     # onramp_config.ini.
     conf = {
         'global': {
             'server.socket_host': socket.gethostbyname(socket.gethostname()),
-            'log.access_file': '../log/access.log',
-            'log.error_file': '../log/cherrypy_error.log',
+            'log.access_file': 'log/access.log',
+            'log.error_file': 'log/cherrypy_error.log',
             'log.screen': False,
 
             # Don't run CherryPy Checker on custom conf sections:
@@ -70,15 +68,15 @@ if __name__ == '__main__':
         },
 
         'internal': {
-            'PIDfile': script_dir + '/.onrampRESTservice.pid',
+            'PIDfile': os.path.join(os.getcwd(), 'src/.onrampRESTservice.pid'),
             'log_level': 'INFO',
-            'onramp_log_file': '../log/onramp.log'
+            'onramp_log_file': 'log/onramp.log'
         }
     }
 
     # Load onramp_config.ini and integrate appropriate attrs into cherrpy conf.
-    ini = ConfigObj('../onramp_pce_config.ini',
-                    configspec='onramp_config.inispec')
+    ini = ConfigObj('onramp_pce_config.ini',
+                    configspec='src/onramp_config.inispec')
     ini.validate(Validator())
     if 'server' in ini.keys():
         for k in ini['server']:
@@ -90,7 +88,7 @@ if __name__ == '__main__':
             log_file = ini['cluster']['log_file']
             if not log_file.startswith('/'):
                 # Path is relative to onramp_config.ini location
-                log_file = '../' + ini['cluster']['log_file']
+                log_file = ini['cluster']['log_file']
             conf['internal']['onramp_log_file'] = log_file
 
     cherrypy.config.update(conf)
