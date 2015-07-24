@@ -1,4 +1,4 @@
-#!../env/bin/python
+#!../env/bin/python -u
 
 #
 # One Time setup for the Front End (while admin in not implemented)
@@ -18,6 +18,33 @@ def _display_header(str):
     print "=" * 70
     print "Running: %s" % str
     print "=" * 70
+
+######################################################
+def options_jobs(cred):
+    global base_url
+
+    _display_header("OPTIONS Jobs")
+
+    s = requests.Session()
+
+    url = base_url + "/jobs/"
+
+    url = url + "?apikey=" + str(cred['apikey'])
+
+    print "OPTIONS " + url
+
+    r = s.options(url)
+
+    print "Result: %d: %s" % (r.status_code, r.headers['content-type'])
+
+    result = {}
+    if r.status_code == 200:
+        result = r.json()
+        print json.dumps(r.json(), sort_keys=True, indent=4, separators=(',',': '))
+    else:
+        print "Reason: \"%s\"" % str(r.reason)
+
+    return result
 
 ######################################################
 def get_users(cred, id=None, level=None, search=None):
@@ -429,7 +456,7 @@ def run_init_setup(username, password):
     work_u3_id = add_workspace(admin_cred, "cali User Workspace")
     work_1_id = add_workspace(admin_cred, "CS270 Workspace")
     work_2_id = add_workspace(admin_cred, "CS441 Workspace")
-    work_3_id = add_workspace(admin_cred, "CS270 Workspace")
+    work_3_id = add_workspace(admin_cred, "CS370 Workspace")
 
     # Add a PCE
     pce_1_id = add_pce(admin_cred, "PCE One")
@@ -487,10 +514,44 @@ def run_init_setup(username, password):
 
     associate_pair_with_workspace(admin_cred, module_2_id, pce_3_id, work_1_id)
 
+    alice_cred = do_login("alice", "notsecret123")
+
+    launch_job(alice_cred, user_1_id, work_u1_id, pce_1_id, module_1_id, "Run Alpha")
+    launch_job(alice_cred, user_1_id, work_u1_id, pce_1_id, module_1_id, "Run Beta")
+    launch_job(alice_cred, user_1_id, work_u1_id, pce_1_id, module_1_id, "Run Theta")
+
+    do_logout(alice_cred)
+
+    launch_job(admin_cred, user_2_id, work_u2_id, pce_1_id, module_1_id, "Run Alpha")
+    launch_job(admin_cred, user_2_id, work_u2_id, pce_1_id, module_1_id, "Run Beta")
+    launch_job(admin_cred, user_2_id, work_u2_id, pce_1_id, module_1_id, "Run Theta")
+
+    launch_job(admin_cred, user_3_id, work_u3_id, pce_1_id, module_1_id, "Run Alpha")
+    launch_job(admin_cred, user_3_id, work_u3_id, pce_1_id, module_1_id, "Run Beta")
+    launch_job(admin_cred, user_3_id, work_u3_id, pce_1_id, module_1_id, "Run Theta")
+
+    launch_job(admin_cred, user_1_id, work_1_id, pce_1_id, module_1_id, "Run Alpha")
+    launch_job(admin_cred, user_2_id, work_1_id, pce_1_id, module_1_id, "Run Beta")
+    launch_job(admin_cred, user_3_id, work_1_id, pce_1_id, module_1_id, "Run Theta")
+
+    launch_job(admin_cred, user_1_id, work_2_id, pce_1_id, module_2_id, "Run Alpha")
+    launch_job(admin_cred, user_2_id, work_2_id, pce_1_id, module_2_id, "Run Beta")
+    launch_job(admin_cred, user_1_id, work_2_id, pce_2_id, module_1_id, "Run Theta")
+    launch_job(admin_cred, user_2_id, work_2_id, pce_2_id, module_1_id, "Run Delta")
+    launch_job(admin_cred, user_1_id, work_2_id, pce_2_id, module_3_id, "Run Theta num 3")
+    launch_job(admin_cred, user_2_id, work_2_id, pce_2_id, module_3_id, "Run Delta num 3")
+
+    launch_job(admin_cred, user_3_id, work_3_id, pce_1_id, module_3_id, "Run Alpha")
+    launch_job(admin_cred, user_2_id, work_3_id, pce_1_id, module_3_id, "Run Beta")
+    launch_job(admin_cred, user_3_id, work_3_id, pce_2_id, module_1_id, "Run Theta")
+    launch_job(admin_cred, user_2_id, work_3_id, pce_2_id, module_1_id, "Run Delta")
+
+    do_logout(admin_cred)
+
 ######################################################
 if __name__ == '__main__':
-    #run_setup = False
-    run_setup = True
+    run_setup = False
+    #run_setup = True
 
     if run_setup == True:
         _display_header("Reset Database")
@@ -518,16 +579,18 @@ if __name__ == '__main__':
 
     alice_cred = do_login("alice", "notsecret123")
 
-    launch_job(alice_cred, user_1_id, work_u1_id, pce_1_id, module_1_id, "Run Alpha")
-    launch_job(alice_cred, user_1_id, work_u1_id, pce_1_id, module_1_id, "Run Beta")
-    launch_job(alice_cred, user_1_id, work_u1_id, pce_1_id, module_1_id, "Run Theta")
+    #admin_cred = do_login("admin", "admin123")
 
     #get_users(alice_cred)
     #get_users(alice_cred, user_1_id)
     #get_users(alice_cred, user_1_id, "workspaces")
     #get_users(alice_cred, user_1_id, "jobs")
-    #get_users(alice_cred, user_1_id, "jobs", "&workspace=4&pce=2&module=1")
-    #user_N_id = add_user(alice_cred, "fail",   "shouldfail")
+    #get_users(alice_cred, user_1_id, "jobs", "&workspace=5&pce=1&module=2")
+    #get_users(alice_cred, user_1_id, "jobs", "&workspace=5&pce=1&module=2&state=0")
+    #get_users(alice_cred, user_1_id, "jobs", "&workspace=5&pce=1&module=2&state=1&state=0")
+
+    #options_jobs(alice_cred)
+
 
     #do_logout(admin_cred)
     #do_logout(alice_cred)

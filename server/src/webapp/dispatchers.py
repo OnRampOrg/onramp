@@ -85,10 +85,12 @@ class _ServerResourceBase:
             return False
         return True
 
-    def _check_auth(self, prefix, auth, req_admin=False):
+    def _check_auth(self, prefix, auth, req_admin=False, throw_error=True):
         if self._db.check_user_auth( auth, req_admin ) is False:
-            self.logger.debug(prefix + " Authorization Failed: 'auth' key invalid")
-            raise cherrypy.HTTPError(401)
+            if throw_error is True:
+                self.logger.debug(prefix + " Authorization Failed: 'auth' key invalid")
+                raise cherrypy.HTTPError(401)
+            return False
         else:
             self._db.user_update( auth );
 
@@ -99,6 +101,13 @@ class _ServerResourceBase:
         rtn = {}
         rtn['status'] = -1
         rtn['status_message'] = prefix + " Please implement this method..."
+        return rtn
+
+    def _return_error(self, prefix, code, msg):
+        self.logger.debug(prefix + " Error ("+str(code)+") = " + msg)
+        rtn = {}
+        rtn['status'] = code
+        rtn['status_message'] = msg
         return rtn
 
 ########################################################
@@ -139,7 +148,7 @@ class Users(_ServerResourceBase):
         rtn['status_message'] = 'Success'
 
 
-        allowed_search = ["apikey", "workspace", "pce", "module"]
+        allowed_search = ["apikey", "workspace", "pce", "module", "state"]
         valid_fns = self._get_is_valid_fns()
 
         debug = "All"
@@ -226,6 +235,12 @@ class Users(_ServerResourceBase):
                 self.logger.debug(prefix + " Key/Value (" + key + ", " + str(value) + ")")
                 if key not in allowed_search:
                     raise cherrypy.HTTPError(400)
+                elif key == "state":
+                    ids[key] = value
+                    if type(value) is list:
+                        debug += "("+key+"="+ (",".join(value)) +")"
+                    else:
+                        debug += "("+key+"="+value+")"
                 elif key != "apikey":
                     ids[key+"_id"] = value
                     debug += "("+key+"="+value+")"
@@ -759,6 +774,7 @@ class Jobs(_ServerResourceBase):
             if key not in data['info'].keys():
                 self.logger.error(prefix + " Missing value '" + key + "'")
                 raise cherrypy.HTTPError(400)
+
         user_id      = data['info']['user_id']
         workspace_id = data['info']['workspace_id']
         pce_id       = data['info']['pce_id']
@@ -767,9 +783,27 @@ class Jobs(_ServerResourceBase):
         job_data["job_name"] = data['info']['job_name']
 
         #
+        # Authorized to submit a job as this user? (Must be the user or an Admin)
+        #
+        if data['auth']['user_id'] != user_id:
+            if self._check_auth(prefix, data['auth'], True, False) is False:
+                self.logger.error(prefix + " Authorization Failed: User ID mismatch (" + str(data['auth']['user_id']) + " vs " + str(data['info']['user_id']) +")")
+                raise cherrypy.HTTPError(401)
+            else:
+                self.logger.debug(prefix + " Admin submitting for user " + str(data['info']['user_id']) )
+
+
+
+        #
         # Try to launch the job
         #
-        exists, job_id = self._db.job_add(user_id, workspace_id, pce_id, module_id, job_data)
+        result = self._db.job_add(user_id, workspace_id, pce_id, module_id, job_data)
+        if result is None:
+            return self._return_error(prefix, -100, "Failed to start job - Bad IDs")
+
+        exists = result[0]
+        job_id = result[1]
+
         rtn['job'] = {}
         rtn['job']['exists'] = exists
         rtn['job']['job_id'] = job_id
@@ -779,6 +813,23 @@ class Jobs(_ServerResourceBase):
         #
         # Return information about the submission
         #
+
+        return rtn
+
+    #
+    # OPTIONS /jobs/
+    #
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
+    def OPTIONS(self, **kwargs):
+        prefix = '[OPTIONS /jobs]'
+        self.logger.debug(prefix)
+
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
+
+        rtn['job'] = self._db.get_job_states()
 
         return rtn
 

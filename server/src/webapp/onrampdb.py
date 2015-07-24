@@ -8,6 +8,15 @@ import exceptions
 
 class Database():
 
+    job_states = { 0 : "Not on PCE",
+                   1 : "On PCE",
+                   2 : "On PCE Preprocess",
+                   3 : "On PCE Queued",
+                   4 : "On PCE Postprocess",
+                   5 : "Finished",
+                  -1 : "Error: Undefined",
+                  }
+
     def __init__(self, logger, auth):
         self._auth = auth
         self._logger = logger
@@ -133,8 +142,6 @@ from webapp.onrampdb_sqlite import Database_sqlite
 
 ##########################################
 class DBAccess():
-    _db = None
-    _logger = None
     _known_db = { 'sqlite' : Database_sqlite }
 
     ##########################################
@@ -146,6 +153,9 @@ class DBAccess():
 
         self._db = self._known_db[dbtype](logger, auth)
 
+
+    def get_job_states(self):
+        return self._db.job_states
 
     ##########################################
     # Valid keys
@@ -287,7 +297,7 @@ class DBAccess():
         self._db.connect()
 
         if user_id is not None and self._db.is_valid_user_id(user_id) is False:
-            self._logger.error("Invalid User ID ("+user_id+")")
+            self._logger.error("Invalid User ID ("+str(user_id)+")")
             self._db.disconnect()
             return None
 
@@ -300,7 +310,7 @@ class DBAccess():
         self._db.connect()
 
         if self._db.is_valid_user_id(user_id) is False:
-            self._logger.error("Invalid User ID ("+user_id+")")
+            self._logger.error("Invalid User ID ("+str(user_id)+")")
             self._db.disconnect()
             return None
 
@@ -313,7 +323,7 @@ class DBAccess():
         self._db.connect()
 
         if self._db.is_valid_user_id(user_id) is False:
-            self._logger.error("Invalid User ID ("+user_id+")")
+            self._logger.error("Invalid User ID ("+str(user_id)+")")
             self._db.disconnect()
             return None
 
@@ -363,12 +373,12 @@ class DBAccess():
         info = {}
 
         if self._db.is_valid_workspace_id(workspace_id) is False:
-            info['error_msg'] = "Invalid Workspace ID ("+workspace_id+")"
+            info['error_msg'] = "Invalid Workspace ID ("+str(workspace_id)+")"
             self._db.disconnect()
             return info
 
         if self._db.is_valid_user_id(user_id) is False:
-            info['error_msg'] = "Invalid User ID ("+user_id+")"
+            info['error_msg'] = "Invalid User ID ("+str(user_id)+")"
             self._db.disconnect()
             return info
 
@@ -391,13 +401,13 @@ class DBAccess():
         info = {}
 
         if self._db.is_valid_workspace_id(workspace_id) is False:
-            info['error_msg'] = "Invalid Workspace ID ("+workspace_id+")"
+            info['error_msg'] = "Invalid Workspace ID ("+str(workspace_id)+")"
             self._db.disconnect()
             return info
 
         pm_pair_id = self._db.lookup_module_in_pce(pce_id, module_id)
         if pm_pair_id is None:
-            info['error_msg'] = "Invalid Module / PCE Pair (module="+module_id+", pce="+pce_id+")"
+            info['error_msg'] = "Invalid Module / PCE Pair (module="+str(module_id)+", pce="+str(pce_id)+")"
             self._db.disconnect()
             return info
 
@@ -455,12 +465,12 @@ class DBAccess():
         info = {}
 
         if self._db.is_valid_pce_id(pce_id) is False:
-            info['error_msg'] = "Invalid PCE ID ("+pce_id+")"
+            info['error_msg'] = "Invalid PCE ID ("+str(pce_id)+")"
             self._db.disconnect()
             return info
 
         if self._db.is_valid_module_id(module_id) is False:
-            info['error_msg'] = "Invalid Module ID ("+module_id+")"
+            info['error_msg'] = "Invalid Module ID ("+str(module_id)+")"
             self._db.disconnect()
             return info
 
@@ -525,13 +535,13 @@ class DBAccess():
         # Make sure this is a good tuple (allowed to submit the job)
         # Check: The User is in the Workspace
         if self._db.is_valid_user_workspace(user_id, workspace_id) is False:
-            self._logger.error("Invalid User ID ("+user_id+") and Workspace ID ("+workspace_id+") combo")
+            self._logger.error("Invalid User ID ("+str(user_id)+") and Workspace ID ("+str(workspace_id)+") combo")
             self._db.disconnect()
             return None
 
         # Check: The Workspace is allowed to interact with this PCE / Module pair
         if self._db.is_valid_workspace_pce_module(workspace_id, pce_id, module_id) is False:
-            self._logger.error("Invalid Workspace / PCE / Module Combo ("+workspace_id+" / "+pce_id+" / "+module_id+")")
+            self._logger.error("Invalid Workspace / PCE / Module Combo ("+str(workspace_id)+" / "+str(pce_id)+" / "+str(module_id)+")")
             self._db.disconnect()
             return None
 

@@ -1,5 +1,7 @@
 """Functionality to support interacting with a SQLite Database
-
+  Note the threading limitation at:
+  http://cherrypy.readthedocs.org/en/latest/tutorials.html#tutorial-9-data-is-all-my-life
+  This is why we open/close the connection around each call
 """
 
 import os
@@ -12,29 +14,30 @@ class Database_sqlite(onrampdb.Database):
 
     def __init__(self, logger, auth):
         onrampdb.Database.__init__(self, logger, auth)
+
         if os.path.exists(self._auth['filename']) == False:
             logger.critical(self._name + " Filename does not exist \""+self._auth['filename']+"\"")
         else:
             logger.debug(self._name + " Will connect with " + self._auth['filename'])
+
         self._connection = None
         self._cursor = None
 
+
     ##########################################################
     def connect(self):
-        if self.is_connected() == False:
-            self._logger.debug(self._name + " Connecting...")
-            self._connection = sqlite3.connect( self._auth['filename'] )
-            self._cursor = self._connection.cursor()
+        self._logger.debug(self._name + " Connecting...")
+        self._connection = sqlite3.connect( self._auth['filename'] )
+        self._cursor = self._connection.cursor()
 
     def is_connected(self):
         is_connected = self._connection is not None
         return is_connected
 
     def disconnect(self):
-        if self.is_connected() == True:
-            self._logger.debug(self._name + " Disonnecting...")
-            self._connection.commit()
-            self._connection.close()
+        self._logger.debug(self._name + " Disonnecting...")
+        self._connection.commit()
+        self._connection.close()
         self._connection = None
         self._cursor = None
 
@@ -274,8 +277,19 @@ class Database_sqlite(onrampdb.Database):
         largs = []
         largs.append(user_id)
         for key, value in search_params.iteritems():
-            sql += " AND " + key + " = ?"
-            largs.append(value)
+            if type(value) is list:
+                self._logger.debug(self._name + " Found a list value for the key " + key)
+                sql += " AND ("
+                for i in range(len(value)):
+                    sql += " " + key + "= ? "
+                    largs.append(value[i])
+                    if i != len(value)-1:
+                        sql += "OR"
+
+                sql += ")"
+            else:
+                sql += " AND " + key + " = ?"
+                largs.append(value)
 
         args = tuple(largs)
 
