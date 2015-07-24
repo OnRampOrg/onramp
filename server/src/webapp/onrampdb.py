@@ -39,7 +39,7 @@ class Database():
 
 
     ##########################################################
-    def is_active_session_id(self, session_id):
+    def is_active_session_id(self, session_id, user_id=None):
         raise NotImplemented("Please implement this method")
 
     def session_start(self, user_id):
@@ -52,7 +52,7 @@ class Database():
         raise NotImplemented("Please implement this method")
 
     ##########################################################
-    def get_user_id(self, username, password=None):
+    def get_user_id(self, req_admin, username, password=None):
         raise NotImplemented("Please implement this method")
 
     def add_user(self, username, password):
@@ -105,14 +105,18 @@ from webapp.onrampdb_sqlite import Database_sqlite
 
 ##########################################
 _current_db = None
+_logger = None
 _known_db = { 'sqlite' : Database_sqlite }
 
 ##########################################
 def define_database( logger, dbtype, auth ):
     global _current_db
+    global _known_db
+    global _logger
 
+    _logger = logger
     if dbtype not in _known_db:
-        logger.critical( "Database: \"%s\" is not supported." % (dbtype) )
+        _logger.critical( "Database: \"%s\" is not supported." % (dbtype) )
         return -1
 
     if _current_db is None:
@@ -161,18 +165,46 @@ def is_valid_job_id(module_id):
 def user_login(username, password):
     db = _current_db
     db.connect()
-    user_id = db.get_user_id(username, password)
+    user_id = db.get_user_id(False, username, password)
     session_id = db.session_start(user_id)
     db.disconnect()
-    return {'user_id': user_id, 'session_id': session_id}
+    # TODO create a real apikey tied to this session
+    return {'user_id': user_id, 'session_id': session_id, 'apikey' : session_id}
 
-def check_user_auth( auth ):
+def user_update( auth ):
+    db = _current_db
+    db.connect()
+    db.session_update( auth['session_id'] )
+    db.disconnect()
+    return True
+
+def user_logout( auth ):
+    db = _current_db
+    db.connect()
+    db.session_stop( auth['session_id'] )
+    db.disconnect()
+    return True
+
+def check_user_apikey( apikey ):
+    global _logger
+
+    db = _current_db
+    db.connect()
+    result = db.is_active_session_id( apikey )
+    db.disconnect()
+
+    return result
+
+def check_user_auth( auth, req_admin=False ):
+    global _logger
+
     req_keys = ["session_id", "username", "user_id"]
     for key in req_keys:
         if key not in auth.keys():
             return False
 
-    user_id = user_lookup( auth['username'] )
+    _logger.debug("DEBUG: " + str(req_admin))
+    user_id = user_lookup( auth['username'], req_admin=req_admin )
     # Username does not exist
     if user_id is None:
         return False
@@ -196,7 +228,7 @@ def user_add_if_new(username, password):
 
     info = {}
 
-    user_id = db.get_user_id(username)
+    user_id = db.get_user_id(False, username)
     if user_id is not None:
         info['exists'] = True
     else:
@@ -208,10 +240,10 @@ def user_add_if_new(username, password):
     return info
 
 ##########################################
-def user_lookup(username):
+def user_lookup(username, req_admin=False):
     db = _current_db
     db.connect()
-    user_id = db.get_user_id(username)
+    user_id = db.get_user_id(req_admin, username)
     db.disconnect()
     return user_id
 

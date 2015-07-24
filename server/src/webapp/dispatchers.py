@@ -65,7 +65,7 @@ class _ServerResourceBase:
         self.api_root = (server + '/api/')
 
         # Define the Database - SQLite
-        self.logger.debug("Connecting to the database")
+        self.logger.debug("Setup database credentials")
         rtn = onrampdb.define_database(self.logger, 'sqlite', {'filename' : os.getcwd() + '/../tmp/onramp_sqlite.db'} )
         if rtn != 0:
             sys.exit(-1)
@@ -78,14 +78,25 @@ class _ServerResourceBase:
                 'job' :       onrampdb.is_valid_job_id
                 }
 
-    def _check_auth(self, prefix, auth):
-        if onrampdb.check_user_auth( auth ) is False:
-            self.logger.debug(prefix + " Authorization Failed: 'auth' key invalid")
-            raise cherrypy.HTTPError(401)
+    def _check_user_apikey(self, prefix, apikey):
+        if onrampdb.check_user_apikey( apikey ) is False:
+            return False
         return True
 
-    def _update_session(self, auth):
+    def _check_auth(self, prefix, auth, req_admin=False):
+        if onrampdb.check_user_auth( auth, req_admin ) is False:
+            self.logger.debug(prefix + " Authorization Failed: 'auth' key invalid")
+            raise cherrypy.HTTPError(401)
+        else:
+            onrampdb.user_update( auth );
+
         return True
+
+    def _not_implemented(self, prefix):
+        rtn = {}
+        rtn['status'] = -1
+        rtn['status_message'] = prefix + " Please implement this method..."
+        return rtn
 
 ########################################################
  
@@ -114,10 +125,17 @@ class Users(_ServerResourceBase):
     #     /users/:ID/jobs
     #     /users/:ID/jobs?workspace=ID&pce=ID&module=ID
     @cherrypy.popargs('level')
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
     def GET(self, user_id=None, level=None, **kwargs):
-        self.logger.debug('Users.GET()')
+        prefix = '[GET /users]'
+        self.logger.debug(prefix)
 
-        allowed_levels = ["workspaces", "jobs"]
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
+
+
         allowed_search = ["workspace", "pce", "module"]
         valid_fns = self._get_is_valid_fns()
 
@@ -125,18 +143,60 @@ class Users(_ServerResourceBase):
         ids = {}
 
         #
-        # Parse the arguments
+        # Make sure the required fields have been specified
         #
-        if user_id is not None:
+        self.logger.debug(prefix + " Checking authorization")
+        if 'apikey' not in kwargs.keys():
+            self.logger.debug(prefix + " Authorization Failed: No 'apikey' specified")
+            raise cherrypy.HTTPError(401)
+        elif self._check_user_apikey(prefix, kwargs['apikey']) is False:
+            self.logger.debug(prefix + " Authorization Failed: Invalid 'apikey' specified")
+            raise cherrypy.HTTPError(401)
+        self.logger.debug(prefix + " Authorization Success")
+
+        #
+        # Find correct functionality
+        #
+
+        #
+        # /users/  : Get all users
+        #
+        if user_id is None:
+            return self._not_implemented(prefix)
+
+        #
+        # /users/:ID  : Get profile for this user
+        #
+        elif level is None:
+            prefix = prefix[:-1] + "/"+str(user_id)+"]"
+
             if valid_fns['user'](user_id) is False:
                 raise cherrypy.HTTPError(400)
-            debug = "Specific User " + user_id
 
-        if level is not None:
-            if level not in allowed_levels:
-                raise cherrypy.NotFound()
-            debug += " at " + level
+            return self._not_implemented(prefix)
+        #
+        # /users/:ID/workspace
+        #
+        elif level is not None and level == "workspaces":
+            prefix = prefix[:-1] + "/"+str(user_id)+"/"+level+"]"
 
+            return self._not_implemented(prefix)
+        #
+        # /users/:ID/jobs
+        #
+        elif level is not None and level == "jobs":
+            prefix = prefix[:-1] + "/"+str(user_id)+"/"+level+"]"
+
+            return self._not_implemented(prefix)
+        #
+        # Unknown
+        #
+        else:
+            raise cherrypy.HTTPError(400)
+
+        #
+        # Process keys
+        #
         for key, value in kwargs.iteritems():
             if key not in allowed_search:
                 raise cherrypy.HTTPError(400)
@@ -147,20 +207,32 @@ class Users(_ServerResourceBase):
             debug += "("+key+"="+value+")"
 
 
-        self.logger.debug('Users.GET(): %s' % debug)
+        self.logger.debug(prefix + debug)
 
         #
         # Perform the correct operation
         #
 
-        return "Users: %s\n" % debug
+        return rtn
 
     #
     # POST /users/:ID
     #
-    def POST(self, id=None, **kwargs):
-        self.logger.debug('Users.POST()')
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
+    def POST(self, id, **kwargs):
+        prefix = '[POST /users/'+str(id)+']'
+        self.logger.debug(prefix)
 
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
+
+        return self._not_implemented(prefix)
+
+        #
+        # Make sure the required fields have been specified
+        #
         allowed_search = ["name", "email"]
 
         for key, value in kwargs.iteritems():
@@ -168,7 +240,7 @@ class Users(_ServerResourceBase):
                 raise cherrypy.HTTPError(400)
             self.logger.debug("Users.POST(): %s=%s" % (key, value) )
 
-        return "Users: \n"
+        return rtn
 
 
 ########################################################
@@ -183,30 +255,97 @@ class Workspaces(_ServerResourceBase):
     #     /workspaces/:ID/pcemodulepairs
     #     /workspaces/:ID/jobs
     #     /workspaces/:ID/jobs?user=ID&pce=ID&module=ID
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
     @cherrypy.popargs('level')
     def GET(self, workspace_id=None, level=None, **kwargs):
-        self.logger.debug('Workspaces.GET()')
+        prefix = '[GET /workspaces]'
+        self.logger.debug(prefix)
 
-        allowed_levels = ["doc", "users", "pcemodulepairs", "jobs"]
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
+
+
         allowed_search = ["user", "pce", "module"]
         valid_fns = self._get_is_valid_fns()
 
         debug = "All"
         ids = {}
 
+
+        #
+        # Make sure the required fields have been specified
+        #
+        self.logger.debug(prefix + " Checking authorization")
+        if 'apikey' not in kwargs.keys():
+            self.logger.debug(prefix + " Authorization Failed: No 'apikey' specified")
+            raise cherrypy.HTTPError(401)
+        elif self._check_user_apikey(prefix, kwargs['apikey']) is False:
+            self.logger.debug(prefix + " Authorization Failed: Invalid 'apikey' specified")
+            raise cherrypy.HTTPError(401)
+        self.logger.debug(prefix + " Authorization Success")
+
+
+        #
+        # Find correct functionality
+        #
+
+        #
+        # /workspaces
+        #
+        if workspace_id is None:
+            return self._not_implemented(prefix)
+
+        #
+        # /workspaces/:ID
+        #
+        elif level is None:
+            prefix = prefix[:-1] + "/"+str(workspace_id)+"]"
+
+            if valid_fns['workspace'](workspace_id) is False:
+                raise cherrypy.HTTPError(400)
+
+            return self._not_implemented(prefix)
+        #
+        # /workspaces/:ID/doc
+        #
+        elif level is not None and level == "doc":
+            prefix = prefix[:-1] + "/"+str(workspace_id)+"/"+level+"]"
+
+            return self._not_implemented(prefix)
+        #
+        # /workspaces/:ID/users
+        #
+        elif level is not None and level == "users":
+            prefix = prefix[:-1] + "/"+str(workspace_id)+"/"+level+"]"
+
+            return self._not_implemented(prefix)
+        #
+        # /workspaces/:ID/pcemodulepairs
+        #
+        elif level is not None and level == "pcemodulepairs":
+            prefix = prefix[:-1] + "/"+str(workspace_id)+"/"+level+"]"
+
+            return self._not_implemented(prefix)
+        #
+        # /workspaces/:ID/jobs
+        # /workspaces/:ID/jobs?user=ID&pce=ID&module=ID
+        #
+        elif level is not None and level == "jobs":
+            prefix = prefix[:-1] + "/"+str(workspace_id)+"/"+level+"]"
+
+            return self._not_implemented(prefix)
+        #
+        # Unknown
+        #
+        else:
+            raise cherrypy.HTTPError(400)
+
+
         #
         # Parse the arguments
         #
-        if workspace_id is not None:
-            if valid_fns['workspace'](workspace_id) is False:
-                raise cherrypy.HTTPError(400)
-            debug = "Specific Workspace " + workspace_id
-
-        if level is not None:
-            if level not in allowed_levels:
-                raise cherrypy.NotFound()
-            debug += " at " + level
-
         for key, value in kwargs.iteritems():
             if key not in allowed_search:
                 raise cherrypy.HTTPError(400)
@@ -217,13 +356,11 @@ class Workspaces(_ServerResourceBase):
             debug += "("+key+"="+value+")"
 
 
-        self.logger.debug('Workspaces.GET(): %s' % debug)
-
         #
         # Perform the correct operation
         #
 
-        return "Workspace: %s\n" % debug
+        return rtn
 
 
 ########################################################
@@ -238,11 +375,18 @@ class PCEs(_ServerResourceBase):
     #     /pces/:ID/modules
     #     /pces/:ID/jobs
     #     /pces/:ID/jobs?user=ID&workspace=ID&module=ID
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
     @cherrypy.popargs('level')
     def GET(self, pce_id=None, level=None, **kwargs):
-        self.logger.debug('PCEs.GET()')
+        prefix = '[GET /pces]'
+        self.logger.debug(prefix)
 
-        allowed_levels = ["doc", "workspaces", "modules", "jobs"]
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
+
+
         allowed_search = ["user", "workspace", "module"]
         valid_fns = self._get_is_valid_fns()
 
@@ -250,18 +394,71 @@ class PCEs(_ServerResourceBase):
         ids = {}
 
         #
-        # Parse the arguments
+        # Make sure the required fields have been specified
         #
-        if pce_id is not None:
+        self.logger.debug(prefix + " Checking authorization")
+        if 'apikey' not in kwargs.keys():
+            self.logger.debug(prefix + " Authorization Failed: No 'apikey' specified")
+            raise cherrypy.HTTPError(401)
+        elif self._check_user_apikey(prefix, kwargs['apikey']) is False:
+            self.logger.debug(prefix + " Authorization Failed: Invalid 'apikey' specified")
+            raise cherrypy.HTTPError(401)
+        self.logger.debug(prefix + " Authorization Success")
+
+        #
+        # /pces
+        #
+        if pce_id is None:
+            return self._not_implemented(prefix)
+        #
+        # /pces/:ID
+        #
+        elif level is None:
+            prefix = prefix[:-1] + "/"+str(pce_id)+"]"
+
             if valid_fns['pce'](pce_id) is False:
                 raise cherrypy.HTTPError(400)
-            debug = "Specific PCE " + pce_id
 
-        if level is not None:
-            if level not in allowed_levels:
-                raise cherrypy.NotFound()
-            debug += " at " + level
+            return self._not_implemented(prefix)
+        #
+        # /pces/:ID/doc
+        #
+        elif level is not None and level == "doc":
+            prefix = prefix[:-1] + "/"+str(pce_id)+"/"+level+"]"
 
+            return self._not_implemented(prefix)
+        #
+        # /pces/:ID/workspaces
+        #
+        elif level is not None and level == "workspaces":
+            prefix = prefix[:-1] + "/"+str(pce_id)+"/"+level+"]"
+
+            return self._not_implemented(prefix)
+        #
+        # /pces/:ID/modules
+        #
+        elif level is not None and level == "modules":
+            prefix = prefix[:-1] + "/"+str(pce_id)+"/"+level+"]"
+
+            return self._not_implemented(prefix)
+        #
+        # /pces/:ID/jobs
+        # /pces/:ID/jobs?user=ID&workspace=ID&module=ID
+        #
+        elif level is not None and level == "jobs":
+            prefix = prefix[:-1] + "/"+str(pce_id)+"/"+level+"]"
+
+            return self._not_implemented(prefix)
+        #
+        # Unknown
+        #
+        else:
+            raise cherrypy.HTTPError(400)
+
+
+        #
+        # Parse the arguments
+        #
         for key, value in kwargs.iteritems():
             if key not in allowed_search:
                 raise cherrypy.HTTPError(400)
@@ -272,13 +469,11 @@ class PCEs(_ServerResourceBase):
             debug += "("+key+"="+value+")"
 
 
-        self.logger.debug('PCEs.GET(): %s' % debug)
-
         #
         # Perform the correct operation
         #
 
-        return "PCE: %s\n" % debug
+        return rtn
 
 
 ########################################################
@@ -292,11 +487,18 @@ class Modules(_ServerResourceBase):
     #     /modules/:ID/pces
     #     /modules/:ID/jobs
     #     /modules/:ID/jobs?user=ID&workspace=ID&pce=ID
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
     @cherrypy.popargs('level')
     def GET(self, module_id=None, level=None, **kwargs):
-        self.logger.debug('Modules.GET()')
+        prefix = '[GET /modules]'
+        self.logger.debug(prefix)
 
-        allowed_levels = ["doc", "pces", "jobs"]
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
+
+
         allowed_search = ["user", "workspace", "pce"]
         valid_fns = self._get_is_valid_fns()
 
@@ -304,18 +506,71 @@ class Modules(_ServerResourceBase):
         ids = {}
 
         #
-        # Parse the arguments
+        # Make sure the required fields have been specified
         #
-        if module_id is not None:
+        self.logger.debug(prefix + " Checking authorization")
+        if 'apikey' not in kwargs.keys():
+            self.logger.debug(prefix + " Authorization Failed: No 'apikey' specified")
+            raise cherrypy.HTTPError(401)
+        elif self._check_user_apikey(prefix, kwargs['apikey']) is False:
+            self.logger.debug(prefix + " Authorization Failed: Invalid 'apikey' specified")
+            raise cherrypy.HTTPError(401)
+        self.logger.debug(prefix + " Authorization Success")
+
+
+        #
+        # Find correct functionality
+        #
+
+        #
+        # /modules
+        #
+        if module_id is None:
+            return self._not_implemented(prefix)
+
+        #
+        # /modules/:ID
+        #
+        elif level is None:
+            prefix = prefix[:-1] + "/"+str(module_id)+"]"
+
             if valid_fns['module'](module_id) is False:
                 raise cherrypy.HTTPError(400)
-            debug = "Specific Module " + module_id
 
-        if level is not None:
-            if level not in allowed_levels:
-                raise cherrypy.NotFound()
-            debug += " at " + level
+            return self._not_implemented(prefix)
 
+        #
+        # /modules/:ID/doc
+        #
+        elif level is not None and level == "doc":
+            prefix = prefix[:-1] + "/"+str(module_id)+"/"+level+"]"
+
+            return self._not_implemented(prefix)
+        #
+        # /modules/:ID/pces
+        #
+        elif level is not None and level == "pces":
+            prefix = prefix[:-1] + "/"+str(module_id)+"/"+level+"]"
+
+            return self._not_implemented(prefix)
+        #
+        # /modules/:ID/jobs
+        # /modules/:ID/jobs?user=ID&workspace=ID&pce=ID
+        #
+        elif level is not None and level == "jobs":
+            prefix = prefix[:-1] + "/"+str(module_id)+"/"+level+"]"
+
+            return self._not_implemented(prefix)
+        #
+        # Unknown
+        #
+        else:
+            raise cherrypy.HTTPError(400)
+
+
+        #
+        # Parse the arguments
+        #
         for key, value in kwargs.iteritems():
             if key not in allowed_search:
                 raise cherrypy.HTTPError(400)
@@ -326,13 +581,11 @@ class Modules(_ServerResourceBase):
             debug += "("+key+"="+value+")"
 
 
-        self.logger.debug('Modules.GET(): %s' % debug)
-
         #
         # Perform the correct operation
         #
 
-        return "Module: %s\n" % debug
+        return rtn
 
 ########################################################
 # Jobs
@@ -342,30 +595,76 @@ class Jobs(_ServerResourceBase):
     # GET /jobs
     #     /jobs/:ID
     #     /jobs/:ID/data
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
     @cherrypy.popargs('level')
     def GET(self, job_id=None, level=None, **kwargs):
-        self.logger.debug('Jobs.GET()')
+        prefix = '[GET /jobs]'
+        self.logger.debug(prefix)
 
-        allowed_levels = ["data"]
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
+
+
         allowed_search = []
         valid_fns = self._get_is_valid_fns()
 
         debug = "All"
         ids = {}
 
+
+        #
+        # Make sure the required fields have been specified
+        #
+        self.logger.debug(prefix + " Checking authorization")
+        if 'apikey' not in kwargs.keys():
+            self.logger.debug(prefix + " Authorization Failed: No 'apikey' specified")
+            raise cherrypy.HTTPError(401)
+        elif self._check_user_apikey(prefix, kwargs['apikey']) is False:
+            self.logger.debug(prefix + " Authorization Failed: Invalid 'apikey' specified")
+            raise cherrypy.HTTPError(401)
+        self.logger.debug(prefix + " Authorization Success")
+
+
+        #
+        # Find correct functionality
+        #
+
+        #
+        # /jobs
+        #
+        if job_id is None:
+            return self._not_implemented(prefix)
+
+        #
+        # /jobs/:ID
+        #
+        elif level is None:
+            prefix = prefix[:-1] + "/"+str(job_id)+"]"
+
+            if valid_fns['job'](job_id) is False:
+                raise cherrypy.HTTPError(400)
+
+            return self._not_implemented(prefix)
+
+        #
+        # /jobs/:ID/data
+        #
+        elif level is not None and level == "data":
+            prefix = prefix[:-1] + "/"+str(job_id)+"/"+level+"]"
+
+            return self._not_implemented(prefix)
+
+        #
+        # Unknown
+        #
+        else:
+            raise cherrypy.HTTPError(400)
+
         #
         # Parse the arguments
         #
-        if job_id is not None:
-            if valid_fns['job'](job_id) is False:
-                raise cherrypy.HTTPError(400)
-            debug = "Specific Job " + job_id
-
-        if level is not None:
-            if level not in allowed_levels:
-                raise cherrypy.NotFound()
-            debug += " at " + level
-
         for key, value in kwargs.iteritems():
             if key not in allowed_search:
                 raise cherrypy.HTTPError(400)
@@ -376,17 +675,17 @@ class Jobs(_ServerResourceBase):
             debug += "("+key+"="+value+")"
 
 
-        self.logger.debug('Jobs.GET(): %s' % debug)
-
         #
         # Perform the correct operation
         #
 
-        return "Job: %s\n" % debug
+        return rtn
 
     #
     # POST /jobs
     #
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
     def POST(self, id=None, **kwargs):
         self.logger.debug('Jobs.POST()')
 
@@ -402,6 +701,8 @@ class Jobs(_ServerResourceBase):
     #
     # DELETE /jobs/:ID
     #
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
     def DELETE(self, id=None, **kwargs):
         self.logger.debug('Jobs.DELETE()')
 
@@ -462,11 +763,16 @@ class Login(_ServerResourceBase):
 
         return rtn
 
-    # DELETE /login --> Logout
+########################################################
+# Logout
+########################################################
+class Logout(_ServerResourceBase):
+
+    # POST /logout
     @cherrypy.tools.json_out()
     @cherrypy.tools.json_in()
-    def DELETE(self, id=None, **kwargs):
-        prefix = '[DELETE /login]'
+    def POST(self, id=None, **kwargs):
+        prefix = '[POST /logout]'
         self.logger.debug(prefix)
 
         rtn = {}
@@ -482,10 +788,17 @@ class Login(_ServerResourceBase):
         #
         # Make sure the required fields have been specified
         #
-
+        self.logger.debug(prefix + " Checking authorization")
+        if 'auth' not in data.keys():
+            self.logger.debug(prefix + " Authorization Failed: No 'auth' key")
+            raise cherrypy.HTTPError(401)
         #
         # Ask the database if this is a valid user
         #
+        elif self._check_auth(prefix, data['auth'] ) is True:
+            self.logger.debug(prefix + " Authorization Success")
+
+        val = onrampdb.user_logout( data["auth"] )
 
         #
         # Tell the user
@@ -597,7 +910,7 @@ class Admin(_ServerResourceBase):
         if 'auth' not in data.keys():
             self.logger.debug(prefix + " Authorization Failed: No 'auth' key")
             raise cherrypy.HTTPError(401)
-        elif self._check_auth(prefix, data['auth']) is True:
+        elif self._check_auth(prefix, data['auth'], True) is True:
             self.logger.debug(prefix + " Authorization Success")
 
         #

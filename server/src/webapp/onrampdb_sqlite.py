@@ -149,16 +149,18 @@ class Database_sqlite(onrampdb.Database):
             return False
 
     #######################################################################
-    def get_user_id(self, username, password=None):
-        self._logger.debug(self._name + "get_user_id(" + username + ")")
+    def get_user_id(self, req_admin, username, password=None):
+        self._logger.debug(self._name + "get_user_id(" + username + ", "+str(req_admin)+")")
 
         args = None
-        if password is None:
-            sql = "SELECT user_id FROM user WHERE username = ?"
-            args = (username, )
-        else:
-            sql = "SELECT user_id FROM user WHERE username = ? AND password = ?"
+        sql = "SELECT user_id FROM user WHERE username = ?"
+        args = (username, )
+        if password is not None:
+            sql += " AND password = ?"
             args = (username, password)
+
+        if req_admin is True:
+            sql += " AND is_admin = 1"
 
         self._logger.debug(self._name + " " + sql)
         
