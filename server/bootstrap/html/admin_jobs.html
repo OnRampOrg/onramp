@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>OnRamp</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <!-- Bootstrap -->
+      <link href="../css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body role="document">
+	<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+	<script src="../js/sammy.js"></script>
+    <!-- Fixed navbar -->
+    
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="start.html">OnRamp</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="admin_dashboard.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="myprofile.html">Profile</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="#help">Help</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <br>
+    <div class="container">
+        <div class="jumbotron">
+            <h1>Jobs Admin Dashboard</h1>
+        </div>
+    </div>
+    
+	<!-- User info -->
+	<div class="container">
+        <div class="row">
+            <h2>Job Info (<span data-bind="text: Jobslist().length"></span>)</h2>
+            <p>This is a list of all jobs associated with this OnRamp server instance.</p>
+        </div>
+    
+	
+		<!-- list of Jobs -->
+		<div class="row">
+            <div class="col-lg-8 col-md-9 col-sm-10">
+				<table class="table table-striped">
+				<thead>
+					<th>ID</th>
+					<th>Run Name</th>
+					<th>User</th>
+					<th>Workspace</th>
+					<th>PCE</th>
+					<th>Module</th>
+					<th>Status</th>
+					<th>Runtime</th>
+					<th>Results</th>
+					<th>Delete</th>
+				</thead>
+				<tbody data-bind="foreach: Jobslist">
+					<tr>
+						<td data-bind="text: jID"></td>
+						<td data-bind="text: name"></td>
+						<td data-bind="text: user"></td>
+						<td data-bind="text: ws"></td>
+						<td data-bind="text: pce"></td>
+						<td data-bind="text: mod"></td>
+						<td data-bind="text: status"></td>
+						<td data-bind="text: time"></td>
+						<td><a data-bind="click: viewJobResults">View</a></td>
+						<td><a data-bind="click: $parent.deleteJob">Remove</a></td>
+					</tr>
+				</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+
+	<!-- footer -->
+	<footer class="footer">
+	  <div class="container">
+		<p>Something in the footer....</p>
+	  </div>
+	</footer>
+	
+	<!-- put all scripty scripts below this line -->
+    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+	<script src="../js/knockout-3.3.0.js"></script>
+	<script src="../js/admin_jobs.js"></script>
+</body>
+</html>

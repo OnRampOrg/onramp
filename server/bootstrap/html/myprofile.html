@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
 </head>
 <body>
+	<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
         <!-- Fixed navbar -->
     
     <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -39,43 +40,56 @@
     
     <div class="container">
         <div class="jumbotron">
-            <h1>User Profile</h1>
+            <h1>User Profile: <span data-bind="text: username"></span></h1>
         </div>
     </div>
     
-    <div class="container">
+    <div class="container" >
         <div class="row">
-            <p>Information about this user.<p>
+            <div class="col-lg-4 col-md-5 col-sm-6">
+			  <p data-bind="text: username"></p>
+			</div>
+			<div class="col-lg-4 col-md-5 col-sm-6">
+			  <input data-bind="value: username"/>
+			</div>
         </div>
+		<div class="row">
+            <div class="col-lg-4 col-md-5 col-sm-6">
+			  <p data-bind="text: fullName"></p>
+			</div>
+			<div class="col-lg-4 col-md-5 col-sm-6">
+			  <input data-bind="value: fullName"/>
+			</div>
+        </div>
+		<div class="row">
+            <div class="col-lg-4 col-md-5 col-sm-6">
+			  <p data-bind="text: email"></p>
+			</div>
+			<div class="col-lg-4 col-md-5 col-sm-6">
+			  <input data-bind="value: email"/>
+			</div>
+        </div>
+		<div class="row">
+            <div class="col-lg-4 col-md-5 col-sm-6">
+			  <p>Admin? (<span data-bind="text: isAdmin"></span>)</p>
+			</div>
+			<div class="col-lg-4 col-md-5 col-sm-6">
+			  <input data-bind="checked: isAdmin" type="checkbox" />
+			</div>
+        </div>
+		<div class="row">
+		  <div class="col-lg-4 col-md-5 col-sm-6">
+			<button class="btn" data-bind="click: updateServer">Save Changes</button>
+		  </div>
+		</div>
     </div>
     
-    <!-- cool floaty container thing where the boxes are arranged according to size of window -->
-    <div class="container">
-       <div class="row">
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 1</p></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 2</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 3</p></div>
-            <div class="clearfix visible-md-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 4</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="clearfix visible-lg-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 5</p></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 6</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="clearfix visible-md-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 7</p></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 8</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="clearfix visible-lg-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 9</p></div>
-            <div class="clearfix visible-md-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 10</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 11</p></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 12</p></div>
-        </div>
-    </div>
+	<div class="container">
+	  <div class="row">
+		<p>Saved some stuff <span data-bind="text: counter()"></span></p>
+	  </div>
+	</div>
+  
     
 	<!-- footer -->
 	<footer class="footer">
@@ -85,7 +99,8 @@
 	</footer>
 	
 	<!-- put all scripty scripts below this line -->
-    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
     <script src="../js/bootstrap.min.js"></script>
+	<script src="../js/knockout-3.3.0.js"></script>
+	<script src="../js/user_profile.js"></script>
 </body>
 </html>

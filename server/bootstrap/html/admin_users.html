@@ -37,19 +37,19 @@
     <br>
     <div class="container">
         <div class="jumbotron">
-            <h1>Admin Dashboard: <span data-bind="text: username"></span></h1>
+            <h1>Users Admin Dashboard</h1>
         </div>
     </div>
     
 	<!-- User info -->
 	<div class="container">
         <div class="row">
-            <h2>User Info</h2>
+            <h2>User Info (<span data-bind="text: Userslist().length"></span>)</h2>
             <p>This is a list of all users associated with this OnRamp server instance.</p>
         </div>
         
         <div class="row">
-			<button class="btn btn-primary" data-bind="click: manageUsers">Manage Users</button>
+			<button class="btn btn-primary" data-bind="click: addUser">Add New User</button>
 		</div>
 		
 		<div class="row">
@@ -59,34 +59,91 @@
 					<th>Name</th>
 					<th>Email</th>
 					<th>Admin?</th>
-					<!-- <th>View/Edit</th> -->
+					<th>Delete</th>
 				</thead>
 				<tbody data-bind="foreach: Userslist()">
-					<tr>
+					<tr data-bind="click: $parent.selectUser">
 						<td data-bind="text: id"></td>
 						<td data-bind="text: username"></td>
 						<td data-bind="text: fullName"></td>
 						<td data-bind="text: isAdmin"></td>
-						<!-- <td><a data-bind="click: viewUser">View</a></td> -->
+						<td><button class="btn btn-danger" data-bind="click: $parent.deleteUser">Delete</button></td>
 					</tr>
 				</tbody>
 			</table>
 		</div>
 	</div>
 	
-	<!-- Job info -->
-	<div class="container">
-        <div class="row">
-            <h2>Job Info</h2>
-            <p>This is a list of the most recent jobs started using this OnRamp server instance.</p>
-        </div>
-        
-        <div class="row">
-			<button class="btn btn-primary" data-bind="click: manageJobs">Manage Jobs</button>
-		</div>
-		
+	<div class="container" data-bind="with: selectedUser">
 		<div class="row">
-			<table class="table table-striped">
+			<h3>User Info: <span data-bind="text:username"></span> (User ID: <span data-bind="text: id"></span>)</h3>
+		</div>
+        <div class="row">
+            <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+			  <p data-bind="text: username"></p>
+			</div>
+			<div class="col-lg-4 col-md-5 col-sm-6">
+			  <input data-bind="value: username"/>
+			</div>
+        </div>
+		<div class="row">
+            <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+			  <p data-bind="text: fullName"></p>
+			</div>
+			<div class="col-lg-4 col-md-5 col-sm-6">
+			  <input data-bind="value: fullName"/>
+			</div>
+        </div>
+		<div class="row">
+            <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+			  <p data-bind="text: email"></p>
+			</div>
+			<div class="col-lg-4 col-md-5 col-sm-6">
+			  <input data-bind="value: email"/>
+			</div>
+        </div>
+		<div class="row">
+            <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+			  <p>Admin? (<span data-bind="text: isAdmin"></span>)</p>
+			</div>
+			<div class="col-lg-4 col-md-5 col-sm-6">
+			  <input data-bind="checked: isAdmin" type="checkbox" />
+			</div>
+        </div>
+
+		
+		<!-- list of workspaces -->
+		<div class="row">
+            <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
+			  <h4>Workspaces (<span data-bind="text: Workspacelist().length"></span>)</h4>
+			  
+			  <table class="table table-striped">
+				<thead>
+					<th>ID</th>
+					<th>Name</th>
+					<th>Description</th>
+					<th>View/Edit</th>
+					<th>Remove</th>
+				</thead>
+				<tbody data-bind="foreach: Workspacelist">
+					<tr>
+						<td data-bind="text: wID"></td>
+						<td data-bind="text: name"></td>
+						<td data-bind="text: desc"></td>
+						<td><a data-bind="click: viewWorkspace">View</a></td>
+						<td><a data-bind="click: $parent.removeFromWorkspace">Remove</a></td>
+					</tr>
+				</tbody>
+			</table>
+			</div>
+        </div>
+	
+		<!-- list of Jobs -->
+		<div class="row">
+            <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
+			  <h4>Jobs (<span data-bind="text: Jobslist().length"></span>)</h4>
+			  
+			  <table class="table table-striped">
 				<thead>
 					<th>ID</th>
 					<th>Run Name</th>
@@ -96,9 +153,10 @@
 					<th>Module</th>
 					<th>Status</th>
 					<th>Runtime</th>
-					<!-- <th>View/Edit</th> -->
+					<th>View/Edit</th>
+					<th>Delete</th>
 				</thead>
-				<tbody data-bind="foreach: Jobslist()">
+				<tbody data-bind="foreach: Jobslist">
 					<tr>
 						<td data-bind="text: jID"></td>
 						<td data-bind="text: name"></td>
@@ -108,57 +166,44 @@
 						<td data-bind="text: mod"></td>
 						<td data-bind="text: status"></td>
 						<td data-bind="text: time"></td>
-						<!-- <td><a data-bind="click: viewJob">View</a></td> -->
+						<td><a data-bind="click: viewJob">View</a></td>
+						<td><a data-bind="click: $parent.deleteJob">Remove</a></td>
 					</tr>
 				</tbody>
 			</table>
-		</div>
-	</div>
-	
-	<!-- Workspace info -->
-	<div class="container">
-        <div class="row">
-            <h2>Workspace Info</h2>
-            <p>This is a list of all of the workspaces associated with this OnRamp server instance.</p>
+			</div>
         </div>
-        
-        <div class="row">
-			<button class="btn btn-primary" data-bind="click: manageWorkspaces">Manage Workspaces</button>
-		</div>
 		
+		<!-- list of modules -->
 		<div class="row">
-			<table class="table table-striped">
+            <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
+			  <h4>Modules (<span data-bind="text: Moduleslist().length"></span>)</h4>
+			  
+			  <table class="table table-striped">
 				<thead>
 					<th>ID</th>
 					<th>Name</th>
 					<th>Description</th>
-					<!-- <th>View/Edit</th> -->
+					<th>View/Edit</th>
 				</thead>
-				<tbody data-bind="foreach: Workspacelist()">
+				<tbody data-bind="foreach: Moduleslist">
 					<tr>
-						<td data-bind="text: wID"></td>
+						<td data-bind="text: mID"></td>
 						<td data-bind="text: name"></td>
 						<td data-bind="text: desc"></td>
-						<!-- <td><a data-bind="click: viewWorkspace">View</a></td> -->
+						<td><a data-bind="click: viewModule">View</a></td>
 					</tr>
 				</tbody>
 			</table>
-		</div>
-	</div>
-	
-	<!-- PCE info -->
-	<div class="container">
-        <div class="row">
-            <h2>PCE Info</h2>
-            <p>This is a list of all of the PCEs associated with this OnRamp server instance.</p>
+			</div>
         </div>
-        
-        <div class="row">
-			<button class="btn btn-primary" data-bind="click: managePCEs">Manage PCEs</button>
-		</div>
 		
+		<!-- list of PCEs -->
 		<div class="row">
-			<table class="table table-striped">
+            <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
+			  <h4>PCEs (<span data-bind="text: PCEslist().length"></span>)</h4>
+			  
+			  <table class="table table-striped">
 				<thead>
 					<th>ID</th>
 					<th>Name</th>
@@ -167,9 +212,9 @@
 					<th>Nodes</th>
 					<th>Cores per node</th>
 					<th>Mem per node</th>
-					<!-- <td>View/Edit</td> -->
+					<th>View/Edit</th>
 				</thead>
-				<tbody data-bind="foreach: PCEslist()">
+				<tbody data-bind="foreach: PCEslist">
 					<tr>
 						<td data-bind="text: ID"></td>
 						<td data-bind="text: name"></td>
@@ -178,44 +223,20 @@
 						<td data-bind="text: nodes"></td>
 						<td data-bind="text: corespernode"></td>
 						<td data-bind="text: mempernode"></td>
-						<!-- <td><a data-bind="click: viewPCE">View</a></td> -->
+						<td><a data-bind="click: viewPCE">View</a></td>
 					</tr>
 				</tbody>
 			</table>
-		</div>
-	</div>
-	
-	<!-- Module info -->
-	<div class="container">
-        <div class="row">
-            <h2>Module Info</h2>
-            <p>This is a list of all of the modules associated with this OnRamp server instance.</p>
+			</div>
         </div>
-        
-        <div class="row">
-			<button class="btn btn-primary" data-bind="click: manageModules">Manage Modules</button>
-		</div>
-		
+	
+		<!-- Save Changes button -->
 		<div class="row">
-			<table class="table table-striped">
-				<thead>
-					<th>ID</th>
-					<th>Name</th>
-					<th>Description</th>
-					<!-- <th>View/Edit</th> -->
-				</thead>
-				<tbody data-bind="foreach: Moduleslist()">
-					<tr>
-						<td data-bind="text: mID"></td>
-						<td data-bind="text: name"></td>
-						<td data-bind="text: desc"></td>
-						<!-- <td><a data-bind="click: viewModule">View</a></td> -->
-					</tr>
-				</tbody>
-			</table>
+		  <div class="col-lg-4 col-md-5 col-sm-6">
+			<button class="btn" data-bind="click: updateServer">Save Changes</button>
+		  </div>
 		</div>
 	</div>
-	
 	
 	<!-- footer -->
 	<footer class="footer">
@@ -228,6 +249,6 @@
     <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
     <script src="../js/bootstrap.min.js"></script>
 	<script src="../js/knockout-3.3.0.js"></script>
-	<script src="../js/admin_dashboard.js"></script>
+	<script src="../js/admin_users.js"></script>
 </body>
 </html>

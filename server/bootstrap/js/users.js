@@ -14,14 +14,14 @@ function DummyLoginViewModel() {
 			// Success!  User login
 			alert("You have successfully logged in as a user!");
 			this.authenticated = true;
-			localStorage.setItem('UserID', 123);
+			sessionStorage.setItem('UserID', 123);
 			window.location.href = "user_dashboard.html";
 		}
 		else if (this.username() === "Batilda" && this.password() === "NellietheCat") {
 			// Success!  Admin login
 			this.isAdmin = true;
 			this.authenticated = true;
-			localStorage['UserID']= 456;
+			sessionStorage['UserID']= 456;
 			window.location.href = "admin_dashboard.html";
 		}
 		else {

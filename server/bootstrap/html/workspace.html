@@ -6,6 +6,28 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <!-- Bootstrap -->
       <link href="../css/bootstrap.min.css" rel="stylesheet">
+	  <link href="../css/bootstrap-horizon.css" rel="stylesheet">
+	  <link href="http://code.cloudcms.com/alpaca/1.5.11/bootstrap/alpaca.min.css" rel="stylesheet">
+	  
+	  	<!-- put all scripty scripts below this line -->
+    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+	  	<script type="text/javascript" src="../js/handlebars-v3.0.3.js"></script>
+        <script type="text/javascript" src="http://code.cloudcms.com/alpaca/1.5.11/bootstrap/alpaca.min.js"></script>
+	  
+	        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media 
+         queries -->
+      <!-- WARNING: Respond.js doesn't work if you view the page 
+         via file:// -->
+      <!--[if lt IE 9]>
+         <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/
+            html5shiv.js"></script>
+         <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/
+            respond.min.js"></script>
+      <![endif]-->
+	  
+	  
+
 </head>
 <body role="document">
 
@@ -36,144 +58,210 @@
     <br>
     <div class="container">
         <div class="jumbotron">
-            <h1 data-bind="text: welcome"></h1>
+            <h1 data-bind="text: welcome1"></h1>
         </div>
     </div>
 	
-	<!-- message for those who get to the page without authenticating -->
-	<!--
-	<div class="container" data-bind="visible: !authenticated()">
-		You are not supposed to be here!
+	<div class="container">
+		<div class="row">
+			<p data-bind="text: workspaceInfo.desc"></p>
+		</div>
 	</div>
-	-->
-	
-    <div class="container">
+
+<!-- PCE selection -->
+ <div class="container" data-bind="ifnot: selectedPCE()" >
         <div class="row">
-            <h4>I want to start another job...</h4>
-            <p>Select on a workspace to get started.</p>
+            <h4>I want to pick a PCE...</h4>
+            <p></p>
         </div>
         
-        <div class="row">
-				<div class="col-md-3 ">
+        <div class="row row-horizon" data-bind="foreach: PCElist()">
+				<div class="col-md-3 col-sm-5" class="item">
 					<div class="thumbnail">
 						<img alt="Workspace 1 Image" src="http://lorempixel.com/output/people-q-c-600-200-1.jpg" />
 						<div class="caption">
-							<h3>
-								Dummy
+							<h3 data-bind="text: name">	
 							</h3>
-							<p>
-								Dummy is hosted at UW-L and has X nodes and Y cores.
+							<p data-bind="text: description">
 							</p>
 							<p>
-                                <a class="btn btn-primary" href="machines/dummy.html">Let's launch some jobs!</a>
+                            <!-- <a class="btn btn-primary"  data-bind="click: $parent.selectPCE(this)">Let's launch some jobs!</a> -->
+							 <a class="btn btn-primary" data-bind="click: $parent.selectPCE">Let's launch some jobs!</a> 
 							</p>
 						</div>
 					</div>
 				</div>
-				<div class="col-md-3 ">
-					<div class="thumbnail">
-						<img alt="Machine 2 Image" src="http://lorempixel.com/output/people-q-c-600-200-1.jpg" />
-						<div class="caption">
-							<h3>
-								Machine 2
-							</h3>
-							<p>
-								Machine 2 is hosted at UW-L and has X nodes and Y cores.
-							</p>
-							<p>
-                                <a class="btn btn-primary" href="machines/machine2.html">Let's launch some jobs!</a>
-							</p>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-3 ">
-					<div class="thumbnail">
-						<img alt="Machine 3 Image" src="http://lorempixel.com/output/people-q-c-600-200-1.jpg" />
-						<div class="caption">
-							<h3>
-								Machine 3
-							</h3>
-							<p>
-								Machine 3 is hosted at UW-L and has X nodes and Y cores.
-							</p>
-							<p>
-                                <a class="btn btn-primary" href="machines/machine3.html">Let's launch some jobs!</a>
-							</p>
-						</div>
-					</div>
-				</div>
+				
         </div>
     </div>
-        <!--
-        <div class="row">
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 1</p></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 2</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 3</p></div>
-            <div class="clearfix visible-md-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 4</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="clearfix visible-lg-block"></div>
-            
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 5</p></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 6</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="clearfix visible-md-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 7</p></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 8</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="clearfix visible-lg-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 9</p></div>
-            <div class="clearfix visible-md-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 10</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 11</p></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 12</p></div>
-            -->
-
-    <div class="container">
-        <div class="row">
-			<div class="col-sm-6">
-				<h2>My Jobs</h2>
-				<p>This is a list of the n most recent jobs.</p>
-				<!-- check out this website for a cool way to display a table of data: http://bootstrapmaster.com/live/genius/table.html -->
+ 
+ <!-- display selected PCE -->
+	<div class="container" data-bind="if: selectedPCE()">
+		<div class="row">
+			<div class="col-lg-9 col-md-8 col-sm-7 col-xs-6">
+				<h4>Running on: </h4>
 			</div>
-			<div class="col-lg-1">
-				<button onclick="getDataFromServer()" class="default">Load Data</button>
-			</div>
+			 <!-- change selected PCE -->
+			<div class="col-lg-3 col-md-4 col-sm-5 col-xs-6">
+				<button class="btn btn-primary" data-bind="click: changePCE">Pick a different PCE</button>
+			</div>	
         </div>
+		<div class="row">
+			<div class="col-lg-8" data-bind="with: selectedPCE()">
+				<h4 data-bind="text: name"></h4>
+				<p data-bind="text: description"></p>
+				<table class="table">
+					<thead>
+						<td>Attribute</td>
+						<td>Value</td>
+					</thead>
+					<tbody>
+						<tr>
+							<td>Nodes</td>
+							<td data-bind="text: nodes"></td>
+						</tr>
+						<tr>
+							<td>Cores</td>
+							<td data-bind="text: corespernode"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+
+
+	
+<!-- MODULES -->
+
+<!-- Module selection -->
+ <div class="container"  data-bind="ifnot: selectedModule()">
         <div class="row">
-            <div class="table">
-                <table class="table">
-                    <thead>
-                        <th class="col-sm-1">Job Id</th>
-                        <th class="col-sm-1">Workspace</th>
-                        <th class="col-sm-1">PCE</th>
-                        <th class="col-sm-1">Module</th>
-						<th class="col-sm-1">Run Name</th>
-                        <th class="col-sm-1">Status</th>
-						<th class="col-sm-1">Runtime</th>
-						<th class="col-sm-1">View Details</th>
-						<th class="col-sm-1">Cancel/Delete</th>
-                    </thead>
-                    <tbody data-bind="foreach: Jobslist">
-                        <tr>
-                            <td data-bind="text: jID"></td>
-							<td data-bind="text: ws"></td>
-							<td data-bind="text: pce"></td>
-							<td data-bind="text: mod"></td>
-							<td data-bind="text: name"></td>
-							<td data-bind="text: status"></td>
-							<td data-bind="text: time"></td>
-                            <td><button class="info">View Details</button></td>
-                            <td><button class="danger">Cancel/Delete</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <h4>I want to pick a module to run...</h4>
+            <p></p>
+        </div>
+        
+        <div class="row row-horizon" data-bind="foreach: Modulelist()">
+				<div class="col-md-3 col-sm-5" class="item">
+					<div class="thumbnail">
+						<img alt="Workspace 1 Image" src="http://lorempixel.com/output/people-q-c-600-200-1.jpg" />
+						<div class="caption">
+							<h3 data-bind="text: name">	
+							</h3>
+							<p data-bind="text: desc">
+							</p>
+							<p>
+                            <!-- <a class="btn btn-primary"  data-bind="click: $parent.selectPCE(this)">Let's launch some jobs!</a> -->
+							 <a class="btn btn-primary" data-bind="click: $parent.selectModule">Let's launch some jobs!</a> 
+							</p>
+						</div>
+					</div>
+				</div>
+				
         </div>
     </div>
+ 
+ <!-- display selected Module -->
+	<div class="container" data-bind="if: selectedModule()">
+		<div class="row">
+			<div class="col-lg-9 col-md-8 col-sm-7 col-xs-6">
+	            <h4>Module Selected:</h4>
+			</div>
+			<!-- change selected Module -->
+			<div class="col-lg-3 col-md-4 col-sm-5 col-xs-6">
+				<button class="btn btn-primary" data-bind="click: $root.changeModule">Pick a different Module</button>
+			</div>
+        </div>
+		<div class="row">
+			<div class="col-lg-8" data-bind="with: selectedModule()">
+				<h4 data-bind="text: name"></h4>
+				<p data-bind="text: desc"></p>
+				<form class="form">
+					<div data-bind="foreach: formFields">
+						<div class="col-lg-6">
+							<span data-bind="text: $data[0]"></span>
+						</div>
+						<div class="col-lg-6">	
+							<input type="text" id="launch-field" data-bind="value: $data[1]"/>
+						</div>	
+					</div>
+					<button class="btn btn-primary" type="submit" data-bind="click: $root.launchJob">Launch Job!</button>
+				</form>
+				
+			</div>
+		</div>
+	</div>
 
+<!--
+	<div class="container">
+		<div class="row">
+			<h2>Test Alpaca</h2>
+			<div id="form1"></div>
+<script type="text/javascript">
+$("#form1").alpaca({
+    "data" : {
+				"name": "Diego Maradona",
+                "feedback": "Very impressive.",
+                "ranking": "excellent"
+			},
+			"schema": {
+                "title":"User Feedback",
+                "description":"What do you think about Alpaca?",
+                "type":"object",
+                "properties": {
+                    "name": {
+                        "type":"string",
+                        "title":"Name"
+                    },
+                    "feedback": {
+                        "type":"string",
+                        "title":"Feedback"
+                    },
+                    "ranking": {
+                        "type":"string",
+                        "title":"Ranking",
+                        "enum":['excellent','ok','so so']
+                    }
+                }
+            },
+			"options": {
+                "form":{
+                    "attributes":{
+                        "action":"http://httpbin.org/post",
+                        "method":"post"
+                    },
+                    "buttons":{
+                        "submit":{}
+                    }
+                },
+                "helper": "Tell us what you think about Alpaca!",
+                "fields": {
+                    "name": {
+                        "size": 20,
+                        "helper": "Please enter your name."
+                    },
+                    "feedback" : {
+                        "type": "textarea",
+                        "name": "your_feedback",
+                        "rows": 5,
+                        "cols": 40,
+                        "helper": "Please enter your feedback."
+                    },
+                    "ranking": {
+                        "type": "select",
+                        "helper": "Select your ranking.",
+                        "optionLabels": ["Awesome!",
+                            "It's Ok",
+                            "Hmm..."]
+                    }
+                }
+            },
+            "view" : "bootstrap-edit"
+});
+</script>	
+		</div>
+	</div>
+	-->
  	<!-- footer -->
 	<footer class="footer">
 	  <div class="container">
@@ -181,12 +269,11 @@
 	  </div>
 	</footer>
 	
-	<!-- put all scripty scripts below this line -->
-    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-    <script src="../js/bootstrap.min.js"></script>
+
 	<!-- knockout script -->
     <script src="../js/knockout-3.3.0.js"></script>
+
     <!-- my scripts -->
-    <script src="../js/user_dashboard.js"></script>
+    <script src="../js/workspace.js"></script>
 </body>
 </html>
