@@ -21,19 +21,18 @@ class Database_sqlite(onrampdb.Database):
 
     ##########################################################
     def connect(self):
-        self._logger.debug(self._name + " Connecting...")
         if self.is_connected() == False:
+            self._logger.debug(self._name + " Connecting...")
             self._connection = sqlite3.connect( self._auth['filename'] )
             self._cursor = self._connection.cursor()
 
     def is_connected(self):
         is_connected = self._connection is not None
-        #self._logger.debug(self._name + " Is connected = " + str(is_connected))
         return is_connected
 
     def disconnect(self):
-        self._logger.debug(self._name + " Disonnecting...")
         if self.is_connected() == True:
+            self._logger.debug(self._name + " Disonnecting...")
             self._connection.commit()
             self._connection.close()
         self._connection = None
@@ -74,6 +73,28 @@ class Database_sqlite(onrampdb.Database):
     def is_valid_module_id(self, module_id):
         sql = "SELECT module_id FROM module WHERE module_id = ?"
         args = (module_id, )
+        return self._valid_id_check(sql, args)
+
+    def is_valid_job_id(self, job_id):
+        sql = "SELECT job_id FROM job WHERE job_id = ?"
+        args = (job_id, )
+        return self._valid_id_check(sql, args)
+
+    def is_valid_user_workspace(self, user_id, workspace_id):
+        sql = "SELECT uw_pair_id FROM user_to_worksapce WHERE user_id = ? AND workspace_id = ?"
+        args = (user_id, workspace_id)
+        return self._valid_id_check(sql, args)
+
+    def is_valid_pce_module(self, pce_id, module_id):
+        sql = "SELECT pm_pair_id FROM module_to_pce WHERE pce_id = ? AND module_id = ?"
+        args = (pce_id, module_id)
+        return self._valid_id_check(sql, args)
+
+    def is_valid_workspace_pce_module(self, workspace_id, pce_id, module_id):
+        sql  = "SELECT wpm_pair_id "
+        sql += " FROM workspace_to_pce_module AS W JOIN module_to_pce AS M ON W.pm_pair_id = M.pm_pair_id "
+        sql += " WHERE W.workspace_id = ? AND M.pce_id = ? AND M.module_id = ?"
+        args = (workspace_id, pce_id, module_id)
         return self._valid_id_check(sql, args)
 
 
@@ -186,6 +207,84 @@ class Database_sqlite(onrampdb.Database):
 
         return rowid
 
+    def get_user_info(self, user_id=None):
+        self._logger.debug(self._name + "get_user_info(" + str(user_id)+")")
+
+        args = ()
+        fields = ("user_id", "username", "full_name", "email", "is_admin", "is_enabled")
+        sql = "SELECT "+ (",".join(fields)) + " FROM user"
+
+        if user_id is not None:
+            sql += " WHERE user_id = ?"
+            args = (user_id, )
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._cursor.execute(sql, args )
+
+        if user_id is not None:
+            row = self._cursor.fetchone()
+            return {"fields": fields, "data": row }
+        else:
+            all_rows = self._cursor.fetchall()
+            if all_rows is None:
+                return None
+            self._logger.debug(self._name + " DEBUG " + str(type(all_rows)) + " and " + str(type(all_rows[0])) )
+            clean_result = []
+            for r in range( len(all_rows) ):
+                row = []
+                for i in range( len(all_rows[r]) ):
+                    if i == 4 or i == 5:
+                        row.append( True if all_rows[r][i] == 1 else False )
+                    else:
+                        row.append( all_rows[r][i] )
+                clean_result.append(row)
+
+            #return all_rows
+            return {"fields" : fields, "data": clean_result }
+
+    def get_user_workspaces(self, user_id):
+        self._logger.debug(self._name + "get_user_workspaces(" + str(user_id)+")")
+
+        args = ()
+        fields = ("workspace_id", "workspace_name")
+
+        sql  = "SELECT " + (', '.join(map('W.{0}'.format, fields)))
+        sql += " FROM user_to_worksapce AS pair JOIN workspace AS W ON W.workspace_id = pair.workspace_id"
+        sql += " WHERE pair.user_id = ?"
+
+        args = (user_id, )
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._cursor.execute(sql, args )
+
+        all_rows = self._cursor.fetchall()
+        return {"fields" : fields, "data": all_rows }
+
+    def get_user_jobs(self, user_id, search_params):
+        self._logger.debug(self._name + "get_user_jobs(" + str(user_id)+")")
+
+        args = ()
+        fields = ("user_id", "workspace_id", "pce_id", "module_id", "job_name", "state")
+
+        sql  = "SELECT " + (', '.join(fields))
+        sql += " FROM job"
+        sql += " WHERE user_id = ?"
+        largs = []
+        largs.append(user_id)
+        for key, value in search_params.iteritems():
+            sql += " AND " + key + " = ?"
+            largs.append(value)
+
+        args = tuple(largs)
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._cursor.execute(sql, args )
+
+        all_rows = self._cursor.fetchall()
+        return {"fields" : fields, "data": all_rows }
 
     ##########################################################
     def get_workspace_id(self, name):
@@ -368,6 +467,39 @@ class Database_sqlite(onrampdb.Database):
 
         sql = "INSERT INTO module (module_name) VALUES (?)"
         args = (name,)
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._cursor.execute(sql, args )
+
+        rowid = self._cursor.lastrowid
+
+        return rowid
+
+    ##########################################################
+    def find_job_id(self, user_id, workspace_id, pce_id, module_id, job_name):
+        self._logger.debug(self._name + "find_job_id(" + str(user_id) + ", " + str(workspace_id) + ", " + str(pce_id) + ", " + str(module_id) + ", " + job_name + ")")
+
+        args = None
+        sql = "SELECT job_id FROM job WHERE user_id = ? AND workspace_id = ? AND pce_id = ? AND module_id = ? AND job_name = ?"
+        args = (user_id, workspace_id, pce_id, module_id, job_name, )
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._cursor.execute(sql, args )
+
+        row = self._cursor.fetchone()
+        if row is None:
+            return None
+
+        return row[0]
+
+
+    def add_job(self, user_id, workspace_id, pce_id, module_id, job_data):
+        self._logger.debug(self._name + "add_job(" + str(user_id) + ", " + str(workspace_id) + ", " + str(pce_id) + ", " + str(module_id) + ", " + job_data['job_name'] + ")")
+
+        sql = "INSERT INTO job (user_id, workspace_id, pce_id, module_id, job_name) VALUES (?, ?, ?, ?, ?)"
+        args = (user_id, workspace_id, pce_id, module_id, job_data['job_name'], )
 
         self._logger.debug(self._name + " " + sql)
         

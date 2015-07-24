@@ -46,6 +46,8 @@ class _ServerResourceBase:
 
     exposed = True
 
+    _db = None
+
     def __init__(self, conf):
         """Instantiate OnRamp Server Resource.
 
@@ -66,33 +68,34 @@ class _ServerResourceBase:
 
         # Define the Database - SQLite
         self.logger.debug("Setup database credentials")
-        rtn = onrampdb.define_database(self.logger, 'sqlite', {'filename' : os.getcwd() + '/../tmp/onramp_sqlite.db'} )
-        if rtn != 0:
+        self._db = onrampdb.DBAccess(self.logger, 'sqlite', {'filename' : os.getcwd() + '/../tmp/onramp_sqlite.db'} )
+        if self._db is None:
             sys.exit(-1)
 
     def _get_is_valid_fns(self):
-        return {'user' :      onrampdb.is_valid_user_id,
-                'workspace' : onrampdb.is_valid_workspace_id,
-                'pce' :       onrampdb.is_valid_pce_id,
-                'module' :    onrampdb.is_valid_module_id,
-                'job' :       onrampdb.is_valid_job_id
+        return {'user' :      self._db.is_valid_user_id,
+                'workspace' : self._db.is_valid_workspace_id,
+                'pce' :       self._db.is_valid_pce_id,
+                'module' :    self._db.is_valid_module_id,
+                'job' :       self._db.is_valid_job_id
                 }
 
     def _check_user_apikey(self, prefix, apikey):
-        if onrampdb.check_user_apikey( apikey ) is False:
+        if self._db.check_user_apikey( apikey ) is False:
             return False
         return True
 
     def _check_auth(self, prefix, auth, req_admin=False):
-        if onrampdb.check_user_auth( auth, req_admin ) is False:
+        if self._db.check_user_auth( auth, req_admin ) is False:
             self.logger.debug(prefix + " Authorization Failed: 'auth' key invalid")
             raise cherrypy.HTTPError(401)
         else:
-            onrampdb.user_update( auth );
+            self._db.user_update( auth );
 
         return True
 
     def _not_implemented(self, prefix):
+        self.logger.debug(prefix + " Not implemented")
         rtn = {}
         rtn['status'] = -1
         rtn['status_message'] = prefix + " Please implement this method..."
@@ -136,11 +139,10 @@ class Users(_ServerResourceBase):
         rtn['status_message'] = 'Success'
 
 
-        allowed_search = ["workspace", "pce", "module"]
+        allowed_search = ["apikey", "workspace", "pce", "module"]
         valid_fns = self._get_is_valid_fns()
 
         debug = "All"
-        ids = {}
 
         #
         # Make sure the required fields have been specified
@@ -162,52 +164,85 @@ class Users(_ServerResourceBase):
         # /users/  : Get all users
         #
         if user_id is None:
-            return self._not_implemented(prefix)
+            self.logger.debug(prefix + " Processing...")
+
+            user_info = self._db.user_get_info()
+            if user_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for " + str(len(user_info['data'])) + " users")
+                rtn['info'] = user_info
 
         #
         # /users/:ID  : Get profile for this user
         #
         elif level is None:
             prefix = prefix[:-1] + "/"+str(user_id)+"]"
+            self.logger.debug(prefix + " Processing...")
 
             if valid_fns['user'](user_id) is False:
                 raise cherrypy.HTTPError(400)
 
-            return self._not_implemented(prefix)
+            user_info = self._db.user_get_info(user_id)
+            if user_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for " + str(len(user_info)-1) + " user")
+                rtn['info'] = user_info
+
         #
         # /users/:ID/workspace
         #
         elif level is not None and level == "workspaces":
             prefix = prefix[:-1] + "/"+str(user_id)+"/"+level+"]"
+            self.logger.debug(prefix + " Processing...")
 
-            return self._not_implemented(prefix)
+            if valid_fns['user'](user_id) is False:
+                raise cherrypy.HTTPError(400)
+
+            user_info = self._db.user_get_workspaces(user_id)
+            if user_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info contains " + str(len(user_info['data'])) + " workspaces")
+                rtn['info'] = user_info
+
         #
         # /users/:ID/jobs
         #
         elif level is not None and level == "jobs":
             prefix = prefix[:-1] + "/"+str(user_id)+"/"+level+"]"
+            self.logger.debug(prefix + " Processing...")
 
-            return self._not_implemented(prefix)
+            if valid_fns['user'](user_id) is False:
+                raise cherrypy.HTTPError(400)
+
+            #
+            # Process keys
+            #
+            ids = {}
+            debug = ""
+            for key, value in kwargs.iteritems():
+                self.logger.debug(prefix + " Key/Value (" + key + ", " + str(value) + ")")
+                if key not in allowed_search:
+                    raise cherrypy.HTTPError(400)
+                elif key != "apikey":
+                    ids[key+"_id"] = value
+                    debug += "("+key+"="+value+")"
+
+            self.logger.debug(prefix + " Processing... " + debug)
+            user_info = self._db.user_get_jobs(user_id, ids)
+            if user_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info contains " + str(len(user_info['data'])) + " jobs")
+                rtn['info'] = user_info
+
         #
         # Unknown
         #
         else:
             raise cherrypy.HTTPError(400)
-
-        #
-        # Process keys
-        #
-        for key, value in kwargs.iteritems():
-            if key not in allowed_search:
-                raise cherrypy.HTTPError(400)
-            if valid_fns[key](value) is False:
-                raise cherrypy.HTTPError(400)
-
-            ids[key] = value
-            debug += "("+key+"="+value+")"
-
-
-        self.logger.debug(prefix + debug)
 
         #
         # Perform the correct operation
@@ -686,30 +721,84 @@ class Jobs(_ServerResourceBase):
     #
     @cherrypy.tools.json_out()
     @cherrypy.tools.json_in()
-    def POST(self, id=None, **kwargs):
-        self.logger.debug('Jobs.POST()')
+    def POST(self, **kwargs):
+        prefix = '[POST /jobs]'
+        self.logger.debug(prefix)
 
-        allowed_search = ["foo", "bar"]
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
 
-        for key, value in kwargs.iteritems():
-            if key not in allowed_search:
+
+        if not hasattr(cherrypy.request, "json"):
+            self.logger.error(prefix + " No json data sent")
+            raise cherrypy.HTTPError(400)
+
+        data = cherrypy.request.json
+
+        #
+        # Check auth
+        # TODO needs improvement
+        #
+        self.logger.debug(prefix + " Checking authorization")
+        if 'auth' not in data.keys():
+            self.logger.debug(prefix + " Authorization Failed: No 'auth' key")
+            raise cherrypy.HTTPError(401)
+        elif self._check_auth(prefix, data['auth']) is True:
+            self.logger.debug(prefix + " Authorization Success")
+
+        #
+        # Try to launch the job
+        #
+        if 'info' not in data.keys():
+            self.logger.error(prefix + " No job info sent")
+            raise cherrypy.HTTPError(400)
+
+        req_keys = ["user_id", "workspace_id", "pce_id", "module_id", "job_name"]
+        for key in req_keys:
+            if key not in data['info'].keys():
+                self.logger.error(prefix + " Missing value '" + key + "'")
                 raise cherrypy.HTTPError(400)
-            self.logger.debug("Jobs.POST(): %s=%s" % (key, value) )
+        user_id      = data['info']['user_id']
+        workspace_id = data['info']['workspace_id']
+        pce_id       = data['info']['pce_id']
+        module_id    = data['info']['module_id']
+        job_data = {}
+        job_data["job_name"] = data['info']['job_name']
 
-        return "Jobs: \n"
+        #
+        # Try to launch the job
+        #
+        exists, job_id = self._db.job_add(user_id, workspace_id, pce_id, module_id, job_data)
+        rtn['job'] = {}
+        rtn['job']['exists'] = exists
+        rtn['job']['job_id'] = job_id
+
+        self.logger.debug(prefix + " job_id = " + str(job_id) + ", exists = " + str(exists))
+
+        #
+        # Return information about the submission
+        #
+
+        return rtn
 
     #
     # DELETE /jobs/:ID
     #
     @cherrypy.tools.json_out()
     @cherrypy.tools.json_in()
-    def DELETE(self, id=None, **kwargs):
-        self.logger.debug('Jobs.DELETE()')
+    def DELETE(self, id, **kwargs):
+        prefix = '[DELETE /jobs]'
+        self.logger.debug(prefix)
 
-        if id is None:
-            raise cherrypy.HTTPError(400)
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
 
-        return "Jobs: "+id+"\n"
+        return self._not_implemented(prefix)
+
+        return rtn
+
 
 ########################################################
 # Login
@@ -747,7 +836,7 @@ class Login(_ServerResourceBase):
         #
         self.logger.info(prefix + " Attempt \"" + data["username"] + "\"")
 
-        user_auth = onrampdb.user_login( data["username"], data["password"])
+        user_auth = self._db.user_login( data["username"], data["password"])
         
         if user_auth is not None:
             rtn['auth'] = user_auth
@@ -798,7 +887,7 @@ class Logout(_ServerResourceBase):
         elif self._check_auth(prefix, data['auth'] ) is True:
             self.logger.debug(prefix + " Authorization Success")
 
-        val = onrampdb.user_logout( data["auth"] )
+        val = self._db.user_logout( data["auth"] )
 
         #
         # Tell the user
@@ -940,7 +1029,7 @@ class Admin(_ServerResourceBase):
         #
         if user_id is None:
             self.logger.info(prefix + " Adding \"" + data["username"] + "\"")
-            rdata = onrampdb.user_add_if_new( data["username"], data["password"] )
+            rdata = self._db.user_add_if_new( data["username"], data["password"] )
             user_id = rdata['id']
         #
         # Note implemented
@@ -967,7 +1056,7 @@ class Admin(_ServerResourceBase):
         #
         if workspace_id is None:
             self.logger.info(prefix + " Adding \"" + data["name"] + "\"")
-            rdata = onrampdb.workspace_add_if_new( data["name"] )
+            rdata = self._db.workspace_add_if_new( data["name"] )
             workspace_id = rdata['id']
         #
         # Associate a user with a workspace
@@ -979,7 +1068,7 @@ class Admin(_ServerResourceBase):
             self.logger.info(prefix + " Associate user " + str(user_id) + " with workspace "+str(workspace_id))
 
             # Add the result
-            rdata = onrampdb.workspace_add_user( workspace_id, user_id )
+            rdata = self._db.workspace_add_user( workspace_id, user_id )
             if 'error_msg' in rdata.keys():
                 self.logger.info(prefix + " " + rdata['error_msg'])
                 raise cherrypy.HTTPError(400)
@@ -994,7 +1083,7 @@ class Admin(_ServerResourceBase):
             self.logger.info(prefix + " Associate PCE/Module pair (" + str(pce_id) + ", " + str(module_id) + " with workspace "+str(workspace_id))
 
             # Add the result
-            rdata = onrampdb.workspace_add_pair( workspace_id, pce_id, module_id )
+            rdata = self._db.workspace_add_pair( workspace_id, pce_id, module_id )
             if 'error_msg' in rdata.keys():
                 self.logger.info(prefix + " " + rdata['error_msg'])
                 raise cherrypy.HTTPError(400)
@@ -1025,7 +1114,7 @@ class Admin(_ServerResourceBase):
         #
         if pce_id is None:
             self.logger.info(prefix + " Adding \"" + data["name"] + "\"")
-            rdata = onrampdb.pce_add_if_new( data["name"] )
+            rdata = self._db.pce_add_if_new( data["name"] )
             pce_id = rdata['id']
         #
         # Associate a module with a PCE
@@ -1037,7 +1126,7 @@ class Admin(_ServerResourceBase):
             self.logger.info(prefix + " Associate module " + str(module_id) + " with PCE "+str(pce_id))
 
             # Add the result
-            rdata = onrampdb.pce_add_module( pce_id, module_id )
+            rdata = self._db.pce_add_module( pce_id, module_id )
             if 'error_msg' in rdata.keys():
                 self.logger.info(prefix + " " + rdata['error_msg'])
                 raise cherrypy.HTTPError(400)
@@ -1067,7 +1156,7 @@ class Admin(_ServerResourceBase):
         #
         if module_id is None:
             self.logger.info(prefix + " Adding \"" + data["name"] + "\"")
-            rdata = onrampdb.module_add_if_new( data["name"] )
+            rdata = self._db.module_add_if_new( data["name"] )
             module_id = rdata['id']
         #
         # Note implemented

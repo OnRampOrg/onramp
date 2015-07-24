@@ -20,16 +20,32 @@ def _display_header(str):
     print "=" * 70
 
 ######################################################
-def rough(cred, id):
+def get_users(cred, id=None, level=None, search=None):
     global base_url
 
-    _display_header("GET Users")
+    if id is None:
+        _display_header("GET Users")
+    elif level is None:
+        _display_header("GET Users ("+str(id)+")")
+    elif search is None:
+        _display_header("GET Users ("+str(id)+"/"+level+")")
+    else:
+        _display_header("GET Users ("+str(id)+"/"+level+search+")")
 
     s = requests.Session()
 
-    url = base_url + "/users/" + str(id)
+    if id is None:
+        url = base_url + "/users/"
+    elif level is None:
+        url = base_url + "/users/" + str(id)
+    elif search is None:
+        url = base_url + "/users/" + str(id) + "/" + level
+    else:
+        url = base_url + "/users/" + str(id) + "/" + level
 
     url = url + "?apikey=" + str(cred['apikey'])
+    if search is not None:
+        url = url + search
 
     print "GET " + url
 
@@ -45,6 +61,45 @@ def rough(cred, id):
         print "Reason: \"%s\"" % str(r.reason)
 
     return result
+
+######################################################
+def launch_job(admin_cred, user_id, work_id, pce_id, module_id, run_name):
+    global base_url
+
+    _display_header("Jobs: " + run_name)
+
+    s = requests.Session()
+
+    url = base_url + "/jobs"
+
+    headers = {'content-type': 'application/json'}
+
+    payload = {}
+
+    payload['auth'] = admin_cred
+
+    payload['info'] = {}
+    payload['info']['user_id'] = user_id
+    payload['info']['workspace_id'] = work_id
+    payload['info']['pce_id'] = pce_id
+    payload['info']['module_id'] = module_id
+    payload['info']['job_name'] = run_name
+
+    print "POST " + url
+    print json.dumps(payload, sort_keys=True, indent=4, separators=(',',': '))
+
+    r = s.post(url, data=json.dumps(payload), headers=headers)
+
+    print "Result: %d: %s" % (r.status_code, r.headers['content-type'])
+    user_cred = {}
+
+    if r.status_code == 200:
+        result = r.json()
+        print json.dumps(r.json(), sort_keys=True, indent=4, separators=(',',': '))
+    else:
+        print "Reason: \"%s\"" % str(r.reason)
+
+    return user_cred
 
 ######################################################
 def do_logout(admin_cred):
@@ -358,111 +413,120 @@ def associate_pair_with_workspace(admin_cred, module_id, pce_id, workspace_id):
 
     return does_exist
 
-######################################################
-if __name__ == '__main__':
-    run_full = False
-    #run_full = True
-
-    if run_full == True:
-        _display_header("Reset Database")
-        os.system("cp ../../tmp/onramp_sqlite.db.bak ../../tmp/onramp_sqlite.db")
-
+def run_init_setup(username, password):
     # Login to the system
     admin_cred = do_login("admin", "admin123")
     print "Admin USER ID: " + str(admin_cred['user_id'])
 
-    if run_full == True:
-        # Add a User
-        user_1_id = add_user(admin_cred, "alice", "notsecret123")
-        user_2_id = add_user(admin_cred, "bob",   "notother123")
-        user_3_id = add_user(admin_cred, "cali",  "badpassword123")
+    # Add a User
+    user_1_id = add_user(admin_cred, "alice", "notsecret123")
+    user_2_id = add_user(admin_cred, "bob",   "notother123")
+    user_3_id = add_user(admin_cred, "cali",  "badpassword123")
 
-        # Add a Workspace
-        work_u1_id = add_workspace(admin_cred, "alice User Workspace")
-        work_u2_id = add_workspace(admin_cred, "bob User Workspace")
-        work_u3_id = add_workspace(admin_cred, "cali User Workspace")
-        work_1_id = add_workspace(admin_cred, "CS270 Workspace")
-        work_2_id = add_workspace(admin_cred, "CS441 Workspace")
-        work_3_id = add_workspace(admin_cred, "CS270 Workspace")
+    # Add a Workspace
+    work_u1_id = add_workspace(admin_cred, "alice User Workspace")
+    work_u2_id = add_workspace(admin_cred, "bob User Workspace")
+    work_u3_id = add_workspace(admin_cred, "cali User Workspace")
+    work_1_id = add_workspace(admin_cred, "CS270 Workspace")
+    work_2_id = add_workspace(admin_cred, "CS441 Workspace")
+    work_3_id = add_workspace(admin_cred, "CS270 Workspace")
 
-        # Add a PCE
-        pce_1_id = add_pce(admin_cred, "PCE One")
-        pce_2_id = add_pce(admin_cred, "PCE Two")
-        pce_3_id = add_pce(admin_cred, "PCE Three")
+    # Add a PCE
+    pce_1_id = add_pce(admin_cred, "PCE One")
+    pce_2_id = add_pce(admin_cred, "PCE Two")
+    pce_3_id = add_pce(admin_cred, "PCE Three")
 
-        # Add a Module
-        module_1_id = add_module(admin_cred, "MODULE AAA")
-        module_2_id = add_module(admin_cred, "MODULE BBB")
-        module_3_id = add_module(admin_cred, "MODULE CCC")
+    # Add a Module
+    module_1_id = add_module(admin_cred, "MODULE AAA")
+    module_2_id = add_module(admin_cred, "MODULE BBB")
+    module_3_id = add_module(admin_cred, "MODULE CCC")
 
-        # Associate User with Workspace
-        associate_user_with_workspace(admin_cred, user_1_id, work_u1_id)
-        associate_user_with_workspace(admin_cred, user_2_id, work_u2_id)
-        associate_user_with_workspace(admin_cred, user_3_id, work_u3_id)
+    # Associate User with Workspace
+    associate_user_with_workspace(admin_cred, user_1_id, work_u1_id)
+    associate_user_with_workspace(admin_cred, user_2_id, work_u2_id)
+    associate_user_with_workspace(admin_cred, user_3_id, work_u3_id)
 
-        associate_user_with_workspace(admin_cred, user_1_id, work_1_id)
-        associate_user_with_workspace(admin_cred, user_2_id, work_1_id)
-        associate_user_with_workspace(admin_cred, user_3_id, work_1_id)
+    associate_user_with_workspace(admin_cred, user_1_id, work_1_id)
+    associate_user_with_workspace(admin_cred, user_2_id, work_1_id)
+    associate_user_with_workspace(admin_cred, user_3_id, work_1_id)
 
-        associate_user_with_workspace(admin_cred, user_1_id, work_2_id)
-        associate_user_with_workspace(admin_cred, user_2_id, work_2_id)
+    associate_user_with_workspace(admin_cred, user_1_id, work_2_id)
+    associate_user_with_workspace(admin_cred, user_2_id, work_2_id)
 
-        associate_user_with_workspace(admin_cred, user_2_id, work_3_id)
-        associate_user_with_workspace(admin_cred, user_3_id, work_3_id)
+    associate_user_with_workspace(admin_cred, user_2_id, work_3_id)
+    associate_user_with_workspace(admin_cred, user_3_id, work_3_id)
 
-        # Associate Module with PCE
-        associate_module_with_pce(admin_cred, module_1_id, pce_1_id)
-        associate_module_with_pce(admin_cred, module_2_id, pce_1_id)
-        associate_module_with_pce(admin_cred, module_3_id, pce_1_id)
+    # Associate Module with PCE
+    associate_module_with_pce(admin_cred, module_1_id, pce_1_id)
+    associate_module_with_pce(admin_cred, module_2_id, pce_1_id)
+    associate_module_with_pce(admin_cred, module_3_id, pce_1_id)
 
-        associate_module_with_pce(admin_cred, module_1_id, pce_2_id)
-        associate_module_with_pce(admin_cred, module_3_id, pce_2_id)
+    associate_module_with_pce(admin_cred, module_1_id, pce_2_id)
+    associate_module_with_pce(admin_cred, module_3_id, pce_2_id)
 
-        associate_module_with_pce(admin_cred, module_2_id, pce_3_id)
+    associate_module_with_pce(admin_cred, module_2_id, pce_3_id)
 
-        # Associate PCE / Module pair with workspace
-        associate_pair_with_workspace(admin_cred, module_1_id, pce_1_id, work_u1_id)
-        associate_pair_with_workspace(admin_cred, module_1_id, pce_1_id, work_u2_id)
-        associate_pair_with_workspace(admin_cred, module_1_id, pce_1_id, work_u3_id)
-        associate_pair_with_workspace(admin_cred, module_1_id, pce_1_id, work_1_id)
+    # Associate PCE / Module pair with workspace
+    associate_pair_with_workspace(admin_cred, module_1_id, pce_1_id, work_u1_id)
+    associate_pair_with_workspace(admin_cred, module_1_id, pce_1_id, work_u2_id)
+    associate_pair_with_workspace(admin_cred, module_1_id, pce_1_id, work_u3_id)
+    associate_pair_with_workspace(admin_cred, module_1_id, pce_1_id, work_1_id)
 
-        associate_pair_with_workspace(admin_cred, module_2_id, pce_1_id, work_1_id)
-        associate_pair_with_workspace(admin_cred, module_2_id, pce_1_id, work_2_id)
+    associate_pair_with_workspace(admin_cred, module_2_id, pce_1_id, work_1_id)
+    associate_pair_with_workspace(admin_cred, module_2_id, pce_1_id, work_2_id)
 
-        associate_pair_with_workspace(admin_cred, module_3_id, pce_1_id, work_1_id)
-        associate_pair_with_workspace(admin_cred, module_3_id, pce_1_id, work_3_id)
+    associate_pair_with_workspace(admin_cred, module_3_id, pce_1_id, work_1_id)
+    associate_pair_with_workspace(admin_cred, module_3_id, pce_1_id, work_3_id)
 
-        associate_pair_with_workspace(admin_cred, module_1_id, pce_2_id, work_1_id)
-        associate_pair_with_workspace(admin_cred, module_1_id, pce_2_id, work_2_id)
-        associate_pair_with_workspace(admin_cred, module_1_id, pce_2_id, work_3_id)
+    associate_pair_with_workspace(admin_cred, module_1_id, pce_2_id, work_1_id)
+    associate_pair_with_workspace(admin_cred, module_1_id, pce_2_id, work_2_id)
+    associate_pair_with_workspace(admin_cred, module_1_id, pce_2_id, work_3_id)
+    
+    associate_pair_with_workspace(admin_cred, module_3_id, pce_2_id, work_1_id)
+    associate_pair_with_workspace(admin_cred, module_3_id, pce_2_id, work_2_id)
 
-        associate_pair_with_workspace(admin_cred, module_3_id, pce_2_id, work_1_id)
-        associate_pair_with_workspace(admin_cred, module_3_id, pce_2_id, work_2_id)
+    associate_pair_with_workspace(admin_cred, module_2_id, pce_3_id, work_1_id)
 
-        associate_pair_with_workspace(admin_cred, module_2_id, pce_3_id, work_1_id)
+######################################################
+if __name__ == '__main__':
+    #run_setup = False
+    run_setup = True
 
-    else:
-        user_1_id = 2
-        user_2_id = 3
-        user_3_id = 4
+    if run_setup == True:
+        _display_header("Reset Database")
+        os.system("cp ../../tmp/onramp_sqlite.db.bak ../../tmp/onramp_sqlite.db")
+        run_init_setup("admin", "admin123")
 
-        work_u1_id = 1
-        work_u2_id = 2
-        work_u3_id = 3
-        work_1_id = 4
-        work_2_id = 5
-        work_3_id = 6
+    user_1_id = 2
+    user_2_id = 3
+    user_3_id = 4
 
-        pce_1_id  = 1
-        pce_2_id  = 2
-        pce_3_id  = 3
+    work_u1_id = 1
+    work_u2_id = 2
+    work_u3_id = 3
+    work_1_id = 4
+    work_2_id = 5
+    work_3_id = 6
 
-        module_1_id = 1
-        module_2_id = 2
-        module_3_id = 3
+    pce_1_id  = 1
+    pce_2_id  = 2
+    pce_3_id  = 3
+
+    module_1_id = 1
+    module_2_id = 2
+    module_3_id = 3
 
     alice_cred = do_login("alice", "notsecret123")
-    rough(alice_cred, user_1_id)
+
+    launch_job(alice_cred, user_1_id, work_u1_id, pce_1_id, module_1_id, "Run Alpha")
+    launch_job(alice_cred, user_1_id, work_u1_id, pce_1_id, module_1_id, "Run Beta")
+    launch_job(alice_cred, user_1_id, work_u1_id, pce_1_id, module_1_id, "Run Theta")
+
+    #get_users(alice_cred)
+    #get_users(alice_cred, user_1_id)
+    #get_users(alice_cred, user_1_id, "workspaces")
+    #get_users(alice_cred, user_1_id, "jobs")
+    #get_users(alice_cred, user_1_id, "jobs", "&workspace=4&pce=2&module=1")
     #user_N_id = add_user(alice_cred, "fail",   "shouldfail")
 
     #do_logout(admin_cred)
