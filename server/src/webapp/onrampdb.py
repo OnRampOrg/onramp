@@ -135,6 +135,21 @@ class Database():
     def add_module_to_pce(self, pce_id, module_id):
         raise NotImplemented("Please implement this method")
 
+    def get_pce_info(self, pce_id=None):
+        raise NotImplemented("Please implement this method")
+
+    def get_pce_doc(self, pce_id):
+        raise NotImplemented("Please implement this method")
+
+    def get_pce_workspaces(self, pce_id):
+        raise NotImplemented("Please implement this method")
+
+    def get_pce_modules(self, pce_id):
+        raise NotImplemented("Please implement this method")
+
+    def get_pce_jobs(self, pce_id, search_params):
+        raise NotImplemented("Please implement this method")
+
     ##########################################################
     def get_module_id(self, name):
         raise NotImplemented("Please implement this method")
@@ -565,6 +580,71 @@ class DBAccess():
 
         self._db.disconnect()
         return info
+
+    ##########################################
+    def pce_get_info(self, pce_id=None):
+        self._db.connect()
+
+        if pce_id is not None and self._db.is_valid_pce_id(pce_id) is False:
+            self._logger.error("Invalid Pce ID ("+str(pce_id)+")")
+            self._db.disconnect()
+            return None
+
+        pce_info = self._db.get_pce_info(pce_id)
+        self._db.disconnect()
+        return pce_info
+
+    ##########################################
+    def pce_get_doc(self, pce_id):
+        self._db.connect()
+
+        if pce_id is not None and self._db.is_valid_pce_id(pce_id) is False:
+            self._logger.error("Invalid Pce ID ("+str(pce_id)+")")
+            self._db.disconnect()
+            return None
+
+        pce_info = self._db.get_pce_doc(pce_id)
+        self._db.disconnect()
+        return pce_info
+
+    ##########################################
+    def pce_get_workspaces(self, pce_id):
+        self._db.connect()
+
+        if pce_id is not None and self._db.is_valid_pce_id(pce_id) is False:
+            self._logger.error("Invalid Pce ID ("+str(pce_id)+")")
+            self._db.disconnect()
+            return None
+
+        pce_info = self._db.get_pce_workspaces(pce_id)
+        self._db.disconnect()
+        return pce_info
+
+    ##########################################
+    def pce_get_modules(self, pce_id):
+        self._db.connect()
+
+        if pce_id is not None and self._db.is_valid_pce_id(pce_id) is False:
+            self._logger.error("Invalid Pce ID ("+str(pce_id)+")")
+            self._db.disconnect()
+            return None
+
+        pce_info = self._db.get_pce_modules(pce_id)
+        self._db.disconnect()
+        return pce_info
+
+    ##########################################
+    def pce_get_jobs(self, pce_id, search_params={}):
+        self._db.connect()
+
+        if pce_id is not None and self._db.is_valid_pce_id(pce_id) is False:
+            self._logger.error("Invalid Pce ID ("+str(pce_id)+")")
+            self._db.disconnect()
+            return None
+
+        pce_info = self._db.get_pce_jobs(pce_id, search_params)
+        self._db.disconnect()
+        return pce_info
 
 
     ##########################################

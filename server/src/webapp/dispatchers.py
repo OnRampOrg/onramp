@@ -476,11 +476,8 @@ class PCEs(_ServerResourceBase):
         rtn['status_message'] = 'Success'
 
 
-        allowed_search = ["user", "workspace", "module"]
         valid_fns = self._get_is_valid_fns()
 
-        debug = "All"
-        ids = {}
 
         #
         # Make sure the required fields have been specified
@@ -494,68 +491,122 @@ class PCEs(_ServerResourceBase):
             raise cherrypy.HTTPError(401)
         self.logger.debug(prefix + " Authorization Success")
 
+
+        #
+        # Find correct functionality
+        #
+        if pce_id is not None:
+            if valid_fns['pce'](pce_id) is False:
+                raise cherrypy.HTTPError(400)
+
         #
         # /pces
         #
         if pce_id is None:
-            return self._not_implemented(prefix)
+            self.logger.debug(prefix + " Processing...")
+
+            pce_info = self._db.pce_get_info()
+            if pce_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for " + str(len(pce_info['data'])) + " pces")
+                rtn['info'] = pce_info
+
         #
         # /pces/:ID
         #
         elif level is None:
             prefix = prefix[:-1] + "/"+str(pce_id)+"]"
+            self.logger.debug(prefix + " Processing...")
 
-            if valid_fns['pce'](pce_id) is False:
-                raise cherrypy.HTTPError(400)
+            pce_info = self._db.pce_get_info(pce_id)
+            if pce_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for " + str(len(pce_info['data'])) + " pces")
+                rtn['info'] = pce_info
 
-            return self._not_implemented(prefix)
         #
         # /pces/:ID/doc
         #
         elif level is not None and level == "doc":
             prefix = prefix[:-1] + "/"+str(pce_id)+"/"+level+"]"
+            self.logger.debug(prefix + " Processing...")
 
-            return self._not_implemented(prefix)
+            pce_info = self._db.pce_get_doc(pce_id)
+            if pce_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for " + str(len(pce_info)-1) + " pces")
+                rtn['info'] = pce_info
+
         #
         # /pces/:ID/workspaces
         #
         elif level is not None and level == "workspaces":
             prefix = prefix[:-1] + "/"+str(pce_id)+"/"+level+"]"
+            self.logger.debug(prefix + " Processing...")
 
-            return self._not_implemented(prefix)
+            pce_info = self._db.pce_get_workspaces(pce_id)
+            if pce_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for " + str(len(pce_info['data'])) + " workspaces")
+                rtn['info'] = pce_info
+
         #
         # /pces/:ID/modules
         #
         elif level is not None and level == "modules":
             prefix = prefix[:-1] + "/"+str(pce_id)+"/"+level+"]"
+            self.logger.debug(prefix + " Processing...")
 
-            return self._not_implemented(prefix)
+            pce_info = self._db.pce_get_modules(pce_id)
+            if pce_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for " + str(len(pce_info['data'])) + " modules")
+                rtn['info'] = pce_info
         #
         # /pces/:ID/jobs
         # /pces/:ID/jobs?user=ID&workspace=ID&module=ID
         #
         elif level is not None and level == "jobs":
             prefix = prefix[:-1] + "/"+str(pce_id)+"/"+level+"]"
+            self.logger.debug(prefix + " Processing...")
 
-            return self._not_implemented(prefix)
+            #
+            # Process keys
+            #
+            allowed_search = ["apikey", "user", "workspace", "module", "state"]
+            ids = {}
+            debug = ""
+            for key, value in kwargs.iteritems():
+                self.logger.debug(prefix + " Key/Value (" + key + ", " + str(value) + ")")
+                if key not in allowed_search:
+                    raise cherrypy.HTTPError(400)
+                elif key == "state":
+                    ids[key] = value
+                    if type(value) is list:
+                        debug += "("+key+"="+ (",".join(value)) +")"
+                    else:
+                        debug += "("+key+"="+value+")"
+                elif key != "apikey":
+                    ids[key+"_id"] = value
+                    debug += "("+key+"="+value+")"
+
+            self.logger.debug(prefix + " Processing... " + debug)
+            pce_info = self._db.pce_get_jobs(pce_id, ids)
+            if pce_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info contains " + str(len(pce_info['data'])) + " jobs")
+                rtn['info'] = pce_info
         #
         # Unknown
         #
         else:
             raise cherrypy.HTTPError(400)
-
-
-        #
-        # Parse the arguments
-        #
-        for key, value in kwargs.iteritems():
-            if key not in allowed_search:
-                raise cherrypy.HTTPError(400)
-            if valid_fns[key](value) is False:
-                raise cherrypy.HTTPError(400)
-
-            ids[key] = value
-            debug += "("+key+"="+value+")"
 
 
         #

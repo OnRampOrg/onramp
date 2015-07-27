@@ -389,7 +389,7 @@ class Database_sqlite(onrampdb.Database):
             return {"fields": fields, "data": all_rows }
 
     def get_workspace_doc(self, workspace_id):
-        self._logger.debug(self._name + "get_workspace_info(" + str(workspace_id)+")")
+        self._logger.debug(self._name + "get_workspace_doc(" + str(workspace_id)+")")
 
         return {"fields": None, "data": None }
 
@@ -497,6 +497,74 @@ class Database_sqlite(onrampdb.Database):
         rowid = self._cursor.lastrowid
 
         return rowid
+
+    def get_pce_info(self, pce_id=None):
+        self._logger.debug(self._name + "get_pce_info(" + str(pce_id)+")")
+
+        args = ()
+        fields = ("pce_id", "pce_name", "ip_addr", "ip_port", "state", "contact_info", "location", "description")
+        sql = "SELECT "+ (",".join(fields)) + " FROM pce"
+
+        if pce_id is not None:
+            sql += " WHERE pce_id = ?"
+            args = (pce_id, )
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._cursor.execute(sql, args )
+
+        if pce_id is not None:
+            row = self._cursor.fetchone()
+            return {"fields": fields, "data": row }
+        else:
+            all_rows = self._cursor.fetchall()
+            if all_rows is None:
+                return None
+            return {"fields": fields, "data": all_rows }
+
+    def get_pce_doc(self, pce_id):
+        self._logger.debug(self._name + "get_pce_doc(" + str(pce_id)+")")
+
+        return {"fields": None, "data": None }
+
+    def get_pce_workspaces(self, pce_id):
+        self._logger.debug(self._name + "get_pce_pairs(" + str(pce_id)+")")
+
+        fields = ("workspace_id", "workspace_name")
+        sql  = "SELECT "+ (",".join(map('W.{0}'.format, fields)))
+        sql += " FROM workspace_to_pce_module AS WA JOIN module_to_pce AS PA ON WA.pm_pair_id = PA.pm_pair_id"
+        sql += " JOIN workspace AS W on WA.workspace_id = W.workspace_id"
+        sql += " WHERE pce_id = ?"
+        args = (pce_id, )
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._cursor.execute(sql, args )
+
+        all_rows = self._cursor.fetchall()
+        return {"fields": fields, "data": all_rows }
+
+
+    def get_pce_modules(self, pce_id):
+        self._logger.debug(self._name + "get_pce_modules(" + str(pce_id)+")")
+
+        fields = ("module_id", "module_name")
+        sql  = "SELECT "+ (",".join(map('M.{0}'.format, fields)))
+        sql += " FROM module_to_pce AS PA"
+        sql += " JOIN module AS M on M.module_id = PA.module_id"
+        sql += " WHERE pce_id = ?"
+        args = (pce_id, )
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._cursor.execute(sql, args )
+
+        all_rows = self._cursor.fetchall()
+        return {"fields": fields, "data": all_rows }
+
+    def get_pce_jobs(self, pce_id, search_params):
+        self._logger.debug(self._name + "get_pce_jobs(" + str(pce_id)+")")
+        return self._find_jobs_by('pce_id', pce_id, search_params)
 
     ##########################################################
     def get_module_id(self, name):
