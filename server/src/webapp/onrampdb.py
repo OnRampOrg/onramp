@@ -107,6 +107,21 @@ class Database():
     def add_pair_to_workspace(self, workspace_id, pm_pair_id):
         raise NotImplemented("Please implement this method")
 
+    def get_workspace_info(self, workspace_id=None):
+        raise NotImplemented("Please implement this method")
+
+    def get_workspace_doc(self, workspace_id):
+        raise NotImplemented("Please implement this method")
+
+    def get_workspace_users(self, workspace_id):
+        raise NotImplemented("Please implement this method")
+
+    def get_workspace_pairs(self, workspace_id):
+        raise NotImplemented("Please implement this method")
+
+    def get_workspace_jobs(self, workspace_id, search_params):
+        raise NotImplemented("Please implement this method")
+
     ##########################################################
     def get_pce_id(self, name):
         raise NotImplemented("Please implement this method")
@@ -422,6 +437,71 @@ class DBAccess():
 
         self._db.disconnect()
         return info
+
+    ##########################################
+    def workspace_get_info(self, workspace_id=None):
+        self._db.connect()
+
+        if workspace_id is not None and self._db.is_valid_workspace_id(workspace_id) is False:
+            self._logger.error("Invalid Workspace ID ("+str(workspace_id)+")")
+            self._db.disconnect()
+            return None
+
+        workspace_info = self._db.get_workspace_info(workspace_id)
+        self._db.disconnect()
+        return workspace_info
+
+    ##########################################
+    def workspace_get_doc(self, workspace_id):
+        self._db.connect()
+
+        if workspace_id is not None and self._db.is_valid_workspace_id(workspace_id) is False:
+            self._logger.error("Invalid Workspace ID ("+str(workspace_id)+")")
+            self._db.disconnect()
+            return None
+
+        workspace_info = self._db.get_workspace_doc(workspace_id)
+        self._db.disconnect()
+        return workspace_info
+
+    ##########################################
+    def workspace_get_users(self, workspace_id):
+        self._db.connect()
+
+        if workspace_id is not None and self._db.is_valid_workspace_id(workspace_id) is False:
+            self._logger.error("Invalid Workspace ID ("+str(workspace_id)+")")
+            self._db.disconnect()
+            return None
+
+        workspace_info = self._db.get_workspace_users(workspace_id)
+        self._db.disconnect()
+        return workspace_info
+
+    ##########################################
+    def workspace_get_pairs(self, workspace_id):
+        self._db.connect()
+
+        if workspace_id is not None and self._db.is_valid_workspace_id(workspace_id) is False:
+            self._logger.error("Invalid Workspace ID ("+str(workspace_id)+")")
+            self._db.disconnect()
+            return None
+
+        workspace_info = self._db.get_workspace_pairs(workspace_id)
+        self._db.disconnect()
+        return workspace_info
+
+    ##########################################
+    def workspace_get_jobs(self, workspace_id, search_params={}):
+        self._db.connect()
+
+        if self._db.is_valid_workspace_id(workspace_id) is False:
+            self._logger.error("Invalid Workspace ID ("+str(workspace_id)+")")
+            self._db.disconnect()
+            return None
+
+        workspace_info = self._db.get_workspace_jobs(workspace_id, search_params)
+        self._db.disconnect()
+        return workspace_info
 
 
     ##########################################

@@ -267,38 +267,8 @@ class Database_sqlite(onrampdb.Database):
 
     def get_user_jobs(self, user_id, search_params):
         self._logger.debug(self._name + "get_user_jobs(" + str(user_id)+")")
+        return self._find_jobs_by('user_id', user_id, search_params)
 
-        args = ()
-        fields = ("user_id", "workspace_id", "pce_id", "module_id", "job_name", "state")
-
-        sql  = "SELECT " + (', '.join(fields))
-        sql += " FROM job"
-        sql += " WHERE user_id = ?"
-        largs = []
-        largs.append(user_id)
-        for key, value in search_params.iteritems():
-            if type(value) is list:
-                self._logger.debug(self._name + " Found a list value for the key " + key)
-                sql += " AND ("
-                for i in range(len(value)):
-                    sql += " " + key + "= ? "
-                    largs.append(value[i])
-                    if i != len(value)-1:
-                        sql += "OR"
-
-                sql += ")"
-            else:
-                sql += " AND " + key + " = ?"
-                largs.append(value)
-
-        args = tuple(largs)
-
-        self._logger.debug(self._name + " " + sql)
-        
-        self._cursor.execute(sql, args )
-
-        all_rows = self._cursor.fetchall()
-        return {"fields" : fields, "data": all_rows }
 
     ##########################################################
     def get_workspace_id(self, name):
@@ -393,6 +363,76 @@ class Database_sqlite(onrampdb.Database):
         rowid = self._cursor.lastrowid
 
         return rowid
+
+    def get_workspace_info(self, workspace_id=None):
+        self._logger.debug(self._name + "get_workspace_info(" + str(workspace_id)+")")
+
+        args = ()
+        fields = ("workspace_id", "workspace_name", "description")
+        sql = "SELECT "+ (",".join(fields)) + " FROM workspace"
+
+        if workspace_id is not None:
+            sql += " WHERE workspace_id = ?"
+            args = (workspace_id, )
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._cursor.execute(sql, args )
+
+        if workspace_id is not None:
+            row = self._cursor.fetchone()
+            return {"fields": fields, "data": row }
+        else:
+            all_rows = self._cursor.fetchall()
+            if all_rows is None:
+                return None
+            return {"fields": fields, "data": all_rows }
+
+    def get_workspace_doc(self, workspace_id):
+        self._logger.debug(self._name + "get_workspace_info(" + str(workspace_id)+")")
+
+        return {"fields": None, "data": None }
+
+    def get_workspace_users(self, workspace_id):
+        self._logger.debug(self._name + "get_workspace_users(" + str(workspace_id)+")")
+
+        fields = ("username", "user_id")
+        sql  = "SELECT "+ (",".join(map('U.{0}'.format, fields)))
+        sql += " FROM user_to_worksapce AS W"
+        sql += " JOIN user AS U on U.user_id = W.user_id"
+        sql += " WHERE workspace_id = ?"
+        args = (workspace_id, )
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._cursor.execute(sql, args )
+
+        all_rows = self._cursor.fetchall()
+        return {"fields": fields, "data": all_rows }
+
+    def get_workspace_pairs(self, workspace_id):
+        self._logger.debug(self._name + "get_workspace_pairs(" + str(workspace_id)+")")
+
+        pce_fields = ("pce_id", "pce_name")
+        module_fields = ("module_id", "module_name")
+        fields = pce_fields + module_fields
+        sql  = "SELECT "+ (",".join(map('P.{0}'.format, pce_fields))) + "," + (",".join(map('M.{0}'.format, module_fields)))
+        sql += " FROM workspace_to_pce_module AS W JOIN module_to_pce AS PA ON W.pm_pair_id = PA.pm_pair_id"
+        sql += " JOIN pce AS P on PA.pce_id = P.pce_id"
+        sql += " JOIN module AS M on PA.module_id = M.module_id"
+        sql += " WHERE workspace_id = ?"
+        args = (workspace_id, )
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._cursor.execute(sql, args )
+
+        all_rows = self._cursor.fetchall()
+        return {"fields": fields, "data": all_rows }
+
+    def get_workspace_jobs(self, workspace_id, search_params):
+        self._logger.debug(self._name + "get_workspace_jobs(" + str(workspace_id)+")")
+        return self._find_jobs_by('workspace_id', workspace_id, search_params)
 
 
     ##########################################################
@@ -524,3 +564,35 @@ class Database_sqlite(onrampdb.Database):
         return rowid
 
     ##########################################################
+    def _find_jobs_by(self, id_str, id_value, search_params):
+        args = ()
+        fields = ("user_id", "workspace_id", "pce_id", "module_id", "job_name", "state")
+
+        sql  = "SELECT " + (', '.join(fields))
+        sql += " FROM job"
+        sql += " WHERE "+id_str+ " = ?"
+        largs = []
+        largs.append( id_value )
+        for key, value in search_params.iteritems():
+            if type(value) is list:
+                self._logger.debug(self._name + " Found a list value for the key " + key)
+                sql += " AND ("
+                for i in range(len(value)):
+                    sql += " " + key + "= ? "
+                    largs.append(value[i])
+                    if i != len(value)-1:
+                        sql += "OR"
+
+                sql += ")"
+            else:
+                sql += " AND " + key + " = ?"
+                largs.append(value)
+
+        args = tuple(largs)
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._cursor.execute(sql, args )
+
+        all_rows = self._cursor.fetchall()
+        return {"fields" : fields, "data": all_rows }

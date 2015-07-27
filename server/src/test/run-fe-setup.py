@@ -90,6 +90,49 @@ def get_users(cred, id=None, level=None, search=None):
     return result
 
 ######################################################
+def get_workspaces(cred, id=None, level=None, search=None):
+    global base_url
+
+    if id is None:
+        _display_header("GET Workspaces")
+    elif level is None:
+        _display_header("GET Workspaces ("+str(id)+")")
+    elif search is None:
+        _display_header("GET Workspaces ("+str(id)+"/"+level+")")
+    else:
+        _display_header("GET Workspaces ("+str(id)+"/"+level+search+")")
+
+    s = requests.Session()
+
+    if id is None:
+        url = base_url + "/workspaces/"
+    elif level is None:
+        url = base_url + "/workspaces/" + str(id)
+    elif search is None:
+        url = base_url + "/workspaces/" + str(id) + "/" + level
+    else:
+        url = base_url + "/workspaces/" + str(id) + "/" + level
+
+    url = url + "?apikey=" + str(cred['apikey'])
+    if search is not None:
+        url = url + search
+
+    print "GET " + url
+
+    r = s.get(url)
+
+    print "Result: %d: %s" % (r.status_code, r.headers['content-type'])
+
+    result = {}
+    if r.status_code == 200:
+        result = r.json()
+        print json.dumps(r.json(), sort_keys=True, indent=4, separators=(',',': '))
+    else:
+        print "Reason: \"%s\"" % str(r.reason)
+
+    return result
+
+######################################################
 def launch_job(admin_cred, user_id, work_id, pce_id, module_id, run_name):
     global base_url
 
@@ -588,6 +631,16 @@ if __name__ == '__main__':
     #get_users(alice_cred, user_1_id, "jobs", "&workspace=5&pce=1&module=2")
     #get_users(alice_cred, user_1_id, "jobs", "&workspace=5&pce=1&module=2&state=0")
     #get_users(alice_cred, user_1_id, "jobs", "&workspace=5&pce=1&module=2&state=1&state=0")
+
+    #get_workspaces(alice_cred)
+    #get_workspaces(alice_cred, work_1_id)
+    #get_workspaces(alice_cred, work_1_id, "doc")
+    #get_workspaces(alice_cred, work_1_id, "users")
+    #get_workspaces(alice_cred, work_1_id, "pcemodulepairs")
+    #get_workspaces(alice_cred, work_1_id, "jobs")
+    #get_workspaces(alice_cred, work_1_id, "jobs", "&user=2&pce=1&module=1")
+    get_workspaces(alice_cred, work_1_id, "jobs", "&user=2&pce=1&module=1&state=0")
+    get_workspaces(alice_cred, work_1_id, "jobs", "&user=2&pce=1&module=1&state=0&state=1")
 
     #options_jobs(alice_cred)
 
