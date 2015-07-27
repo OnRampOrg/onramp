@@ -176,6 +176,12 @@ class Database():
     def add_job(self, user_id, workspace_id, pce_id, module_id, job_data):
         raise NotImplemented("Please implement this method")
 
+    def get_job_info(self, module_id=None, search_params={}):
+        raise NotImplemented("Please implement this method")
+
+    def get_job_data(self, job_id):
+        raise NotImplemented("Please implement this method")
+
     ##########################################################
 
     
@@ -774,3 +780,30 @@ class DBAccess():
 
         self._db.disconnect()
         return (False, job_id)
+
+    ##########################################
+    def job_get_info(self, job_id=None, search_params={}):
+        self._db.connect()
+
+        if job_id is not None and self._db.is_valid_job_id(job_id) is False:
+            self._logger.error("Invalid Job ID ("+str(job_id)+")")
+            self._db.disconnect()
+            return None
+
+        job_info = self._db.get_job_info(job_id, search_params)
+        self._db.disconnect()
+        return job_info
+
+    ##########################################
+    def job_get_data(self, job_id ):
+        self._db.connect()
+
+        if self._db.is_valid_job_id(job_id) is False:
+            self._logger.error("Invalid Job ID ("+str(job_id)+")")
+            self._db.disconnect()
+            return None
+
+        job_info = self._db.get_job_data(job_id)
+        self._db.disconnect()
+        return job_info
+

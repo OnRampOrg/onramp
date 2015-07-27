@@ -47,7 +47,7 @@ def options_jobs(cred):
     return result
 
 ######################################################
-def get_users(cred, id=None, level=None, search=None):
+def get_users(cred, level=None, search=None, id=None):
     global base_url
 
     if id is None:
@@ -198,6 +198,49 @@ def get_modules(cred, id=None, level=None, search=None):
         url = base_url + "/modules/" + str(id) + "/" + level
     else:
         url = base_url + "/modules/" + str(id) + "/" + level
+
+    url = url + "?apikey=" + str(cred['apikey'])
+    if search is not None:
+        url = url + search
+
+    print "GET " + url
+
+    r = s.get(url)
+
+    print "Result: %d: %s" % (r.status_code, r.headers['content-type'])
+
+    result = {}
+    if r.status_code == 200:
+        result = r.json()
+        print json.dumps(r.json(), sort_keys=True, indent=4, separators=(',',': '))
+    else:
+        print "Reason: \"%s\"" % str(r.reason)
+
+    return result
+
+######################################################
+def get_jobs(cred, id=None, level=None, search=None):
+    global base_url
+
+    if id is None:
+        _display_header("GET Jobs")
+    elif level is None:
+        _display_header("GET Jobs ("+str(id)+")")
+    elif search is None:
+        _display_header("GET Jobs ("+str(id)+"/"+level+")")
+    else:
+        _display_header("GET Jobs ("+str(id)+"/"+level+search+")")
+
+    s = requests.Session()
+
+    if id is None:
+        url = base_url + "/jobs/"
+    elif level is None:
+        url = base_url + "/jobs/" + str(id)
+    elif search is None:
+        url = base_url + "/jobs/" + str(id) + "/" + level
+    else:
+        url = base_url + "/jobs/" + str(id) + "/" + level
 
     url = url + "?apikey=" + str(cred['apikey'])
     if search is not None:
@@ -746,6 +789,15 @@ if __name__ == '__main__':
     #get_modules(alice_cred, module_1_id, "jobs", "&user=3&workspace=6&pce=2")
     #get_modules(alice_cred, module_1_id, "jobs", "&user=3&workspace=6&pce=2&state=0")
     #get_modules(alice_cred, module_1_id, "jobs", "&user=3&workspace=6&pce=2&state=0&state=1")
+
+    #get_jobs(alice_cred)
+    #get_jobs(alice_cred, search="&user=4")
+    #get_jobs(alice_cred, search="&user=4&workspace=6")
+    #get_jobs(alice_cred, search="&user=4&workspace=6&pce=2&module=1")
+    #get_jobs(alice_cred, search="&user=4&workspace=6&pce=2&module=1&state=0")
+    #get_jobs(alice_cred, search="&user=4&workspace=6&pce=2&module=1&state=0&state=1")
+    #get_jobs(alice_cred, id=21)
+    get_jobs(alice_cred, id=21, level="data")
 
     #options_jobs(alice_cred)
 

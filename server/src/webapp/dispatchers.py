@@ -639,11 +639,8 @@ class Modules(_ServerResourceBase):
         rtn['status_message'] = 'Success'
 
 
-        allowed_search = ["user", "workspace", "pce"]
         valid_fns = self._get_is_valid_fns()
 
-        debug = "All"
-        ids = {}
 
         #
         # Make sure the required fields have been specified
@@ -788,11 +785,7 @@ class Jobs(_ServerResourceBase):
         rtn['status_message'] = 'Success'
 
 
-        allowed_search = []
         valid_fns = self._get_is_valid_fns()
-
-        debug = "All"
-        ids = {}
 
 
         #
@@ -811,49 +804,78 @@ class Jobs(_ServerResourceBase):
         #
         # Find correct functionality
         #
+        if job_id is not None:
+            if valid_fns['job'](job_id) is False:
+                raise cherrypy.HTTPError(400)
 
         #
         # /jobs
         #
         if job_id is None:
-            return self._not_implemented(prefix)
+            self.logger.debug(prefix + " Processing...")
+
+            #
+            # Process keys
+            #
+            allowed_search = ["apikey", "user", "workspace", "pce", "module", "state"]
+            ids = {}
+            debug = ""
+            for key, value in kwargs.iteritems():
+                self.logger.debug(prefix + " Key/Value (" + key + ", " + str(value) + ")")
+                if key not in allowed_search:
+                    raise cherrypy.HTTPError(400)
+                elif key == "state":
+                    ids[key] = value
+                    if type(value) is list:
+                        debug += "("+key+"="+ (",".join(value)) +")"
+                    else:
+                        debug += "("+key+"="+value+")"
+                elif key != "apikey":
+                    ids[key+"_id"] = value
+                    debug += "("+key+"="+value+")"
+
+            self.logger.debug(prefix + " Processing..." + debug)
+
+            job_info = self._db.job_get_info( search_params=ids )
+            if job_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for " + str(len(job_info['data'])) + " jobs")
+                rtn['info'] = job_info
 
         #
         # /jobs/:ID
         #
         elif level is None:
             prefix = prefix[:-1] + "/"+str(job_id)+"]"
+            self.logger.debug(prefix + " Processing...")
 
-            if valid_fns['job'](job_id) is False:
-                raise cherrypy.HTTPError(400)
-
-            return self._not_implemented(prefix)
+            job_info = self._db.job_get_info(job_id)
+            if job_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for " + str(len(job_info)-1) + " jobs")
+                rtn['info'] = job_info
 
         #
         # /jobs/:ID/data
         #
         elif level is not None and level == "data":
             prefix = prefix[:-1] + "/"+str(job_id)+"/"+level+"]"
+            self.logger.debug(prefix + " Processing...")
 
-            return self._not_implemented(prefix)
+            job_info = self._db.job_get_data(job_id)
+            if job_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for " + str(len(job_info)-1) + " data")
+                rtn['info'] = job_info
 
         #
         # Unknown
         #
         else:
             raise cherrypy.HTTPError(400)
-
-        #
-        # Parse the arguments
-        #
-        for key, value in kwargs.iteritems():
-            if key not in allowed_search:
-                raise cherrypy.HTTPError(400)
-            if valid_fns[key](value) is False:
-                raise cherrypy.HTTPError(400)
-
-            ids[key] = value
-            debug += "("+key+"="+value+")"
 
 
         #
