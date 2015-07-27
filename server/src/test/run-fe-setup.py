@@ -176,6 +176,49 @@ def get_pces(cred, id=None, level=None, search=None):
     return result
 
 ######################################################
+def get_modules(cred, id=None, level=None, search=None):
+    global base_url
+
+    if id is None:
+        _display_header("GET Modules")
+    elif level is None:
+        _display_header("GET Modules ("+str(id)+")")
+    elif search is None:
+        _display_header("GET Modules ("+str(id)+"/"+level+")")
+    else:
+        _display_header("GET Modules ("+str(id)+"/"+level+search+")")
+
+    s = requests.Session()
+
+    if id is None:
+        url = base_url + "/modules/"
+    elif level is None:
+        url = base_url + "/modules/" + str(id)
+    elif search is None:
+        url = base_url + "/modules/" + str(id) + "/" + level
+    else:
+        url = base_url + "/modules/" + str(id) + "/" + level
+
+    url = url + "?apikey=" + str(cred['apikey'])
+    if search is not None:
+        url = url + search
+
+    print "GET " + url
+
+    r = s.get(url)
+
+    print "Result: %d: %s" % (r.status_code, r.headers['content-type'])
+
+    result = {}
+    if r.status_code == 200:
+        result = r.json()
+        print json.dumps(r.json(), sort_keys=True, indent=4, separators=(',',': '))
+    else:
+        print "Reason: \"%s\"" % str(r.reason)
+
+    return result
+
+######################################################
 def launch_job(admin_cred, user_id, work_id, pce_id, module_id, run_name):
     global base_url
 
@@ -688,13 +731,21 @@ if __name__ == '__main__':
     #get_pces(alice_cred)
     #get_pces(alice_cred, pce_1_id)
     #get_pces(alice_cred, pce_1_id, "doc")
-    get_pces(alice_cred, pce_1_id, "workspaces")
+    #get_pces(alice_cred, pce_1_id, "workspaces")
     #get_pces(alice_cred, pce_1_id, "modules")
     #get_pces(alice_cred, pce_1_id, "jobs")
     #get_pces(alice_cred, pce_1_id, "jobs", "&user=3&workspace=6&module=3")
     #get_pces(alice_cred, pce_1_id, "jobs", "&user=3&workspace=6&module=3&state=0")
     #get_pces(alice_cred, pce_1_id, "jobs", "&user=3&workspace=6&module=3&state=0&state=1")
 
+    #get_modules(alice_cred)
+    #get_modules(alice_cred, module_1_id)
+    #get_modules(alice_cred, module_1_id, "doc")
+    #get_modules(alice_cred, module_1_id, "pces")
+    #get_modules(alice_cred, module_1_id, "jobs")
+    #get_modules(alice_cred, module_1_id, "jobs", "&user=3&workspace=6&pce=2")
+    #get_modules(alice_cred, module_1_id, "jobs", "&user=3&workspace=6&pce=2&state=0")
+    #get_modules(alice_cred, module_1_id, "jobs", "&user=3&workspace=6&pce=2&state=0&state=1")
 
     #options_jobs(alice_cred)
 

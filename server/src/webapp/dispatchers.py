@@ -661,64 +661,105 @@ class Modules(_ServerResourceBase):
         #
         # Find correct functionality
         #
+        if module_id is not None:
+            if valid_fns['module'](module_id) is False:
+                raise cherrypy.HTTPError(400)
 
         #
         # /modules
         #
         if module_id is None:
-            return self._not_implemented(prefix)
+            self.logger.debug(prefix + " Processing...")
+
+            module_info = self._db.module_get_info()
+            if module_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for " + str(len(module_info['data'])) + " modules")
+                rtn['info'] = module_info
 
         #
         # /modules/:ID
         #
         elif level is None:
             prefix = prefix[:-1] + "/"+str(module_id)+"]"
+            self.logger.debug(prefix + " Processing...")
 
-            if valid_fns['module'](module_id) is False:
-                raise cherrypy.HTTPError(400)
-
-            return self._not_implemented(prefix)
+            module_info = self._db.module_get_info(module_id)
+            if module_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for " + str(len(module_info)-1) + " modules")
+                rtn['info'] = module_info
 
         #
         # /modules/:ID/doc
         #
         elif level is not None and level == "doc":
             prefix = prefix[:-1] + "/"+str(module_id)+"/"+level+"]"
+            self.logger.debug(prefix + " Processing...")
 
-            return self._not_implemented(prefix)
+            module_info = self._db.module_get_doc(module_id)
+            if module_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for " + str(len(module_info)-1) + " docs")
+                rtn['info'] = module_info
+
         #
         # /modules/:ID/pces
         #
         elif level is not None and level == "pces":
             prefix = prefix[:-1] + "/"+str(module_id)+"/"+level+"]"
+            self.logger.debug(prefix + " Processing...")
 
-            return self._not_implemented(prefix)
+            module_info = self._db.module_get_pces(module_id)
+            if module_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for " + str(len(module_info['data'])) + " PCEs")
+                rtn['info'] = module_info
+
         #
         # /modules/:ID/jobs
         # /modules/:ID/jobs?user=ID&workspace=ID&pce=ID
         #
         elif level is not None and level == "jobs":
             prefix = prefix[:-1] + "/"+str(module_id)+"/"+level+"]"
+            self.logger.debug(prefix + " Processing...")
 
-            return self._not_implemented(prefix)
+            #
+            # Process keys
+            #
+            allowed_search = ["apikey", "user", "workspace", "pce", "state"]
+            ids = {}
+            debug = ""
+            for key, value in kwargs.iteritems():
+                self.logger.debug(prefix + " Key/Value (" + key + ", " + str(value) + ")")
+                if key not in allowed_search:
+                    raise cherrypy.HTTPError(400)
+                elif key == "state":
+                    ids[key] = value
+                    if type(value) is list:
+                        debug += "("+key+"="+ (",".join(value)) +")"
+                    else:
+                        debug += "("+key+"="+value+")"
+                elif key != "apikey":
+                    ids[key+"_id"] = value
+                    debug += "("+key+"="+value+")"
+
+            self.logger.debug(prefix + " Processing... " + debug)
+            module_info = self._db.module_get_jobs(module_id, ids)
+            if module_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info contains " + str(len(module_info['data'])) + " jobs")
+                rtn['info'] = module_info
         #
         # Unknown
         #
         else:
             raise cherrypy.HTTPError(400)
-
-
-        #
-        # Parse the arguments
-        #
-        for key, value in kwargs.iteritems():
-            if key not in allowed_search:
-                raise cherrypy.HTTPError(400)
-            if valid_fns[key](value) is False:
-                raise cherrypy.HTTPError(400)
-
-            ids[key] = value
-            debug += "("+key+"="+value+")"
 
 
         #

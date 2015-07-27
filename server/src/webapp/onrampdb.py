@@ -157,6 +157,18 @@ class Database():
     def add_module(self, name):
         raise NotImplemented("Please implement this method")
 
+    def get_module_info(self, module_id=None):
+        raise NotImplemented("Please implement this method")
+
+    def get_module_doc(self, module_id):
+        raise NotImplemented("Please implement this method")
+
+    def get_module_pces(self, module_id):
+        raise NotImplemented("Please implement this method")
+
+    def get_module_jobs(self, module_id, search_params):
+        raise NotImplemented("Please implement this method")
+
     ##########################################################
     def find_job_id(self, user_id, workspace_id, pce_id, module_id, job_name):
         raise NotImplemented("Please implement this method")
@@ -680,6 +692,58 @@ class DBAccess():
         module_id = self._db.add_module(name)
         self._db.disconnect()
         return module_id
+
+    ##########################################
+    def module_get_info(self, module_id=None):
+        self._db.connect()
+
+        if module_id is not None and self._db.is_valid_module_id(module_id) is False:
+            self._logger.error("Invalid Module ID ("+str(module_id)+")")
+            self._db.disconnect()
+            return None
+
+        module_info = self._db.get_module_info(module_id)
+        self._db.disconnect()
+        return module_info
+
+    ##########################################
+    def module_get_doc(self, module_id):
+        self._db.connect()
+
+        if module_id is not None and self._db.is_valid_module_id(module_id) is False:
+            self._logger.error("Invalid Module ID ("+str(module_id)+")")
+            self._db.disconnect()
+            return None
+
+        module_info = self._db.get_module_doc(module_id)
+        self._db.disconnect()
+        return module_info
+
+    ##########################################
+    def module_get_pces(self, module_id):
+        self._db.connect()
+
+        if module_id is not None and self._db.is_valid_module_id(module_id) is False:
+            self._logger.error("Invalid Module ID ("+str(module_id)+")")
+            self._db.disconnect()
+            return None
+
+        module_info = self._db.get_module_pces(module_id)
+        self._db.disconnect()
+        return module_info
+
+    ##########################################
+    def module_get_jobs(self, module_id, search_params={}):
+        self._db.connect()
+
+        if module_id is not None and self._db.is_valid_module_id(module_id) is False:
+            self._logger.error("Invalid Module ID ("+str(module_id)+")")
+            self._db.disconnect()
+            return None
+
+        module_info = self._db.get_module_jobs(module_id, search_params)
+        self._db.disconnect()
+        return module_info
 
     ##########################################
     # Job Management

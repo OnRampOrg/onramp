@@ -544,7 +544,6 @@ class Database_sqlite(onrampdb.Database):
         all_rows = self._cursor.fetchall()
         return {"fields": fields, "data": all_rows }
 
-
     def get_pce_modules(self, pce_id):
         self._logger.debug(self._name + "get_pce_modules(" + str(pce_id)+")")
 
@@ -597,6 +596,56 @@ class Database_sqlite(onrampdb.Database):
         rowid = self._cursor.lastrowid
 
         return rowid
+
+    def get_module_info(self, module_id=None):
+        self._logger.debug(self._name + "get_module_info(" + str(module_id)+")")
+
+        args = ()
+        fields = ("module_id", "module_name", "version", "src_location", "description")
+        sql = "SELECT "+ (",".join(fields)) + " FROM module"
+
+        if module_id is not None:
+            sql += " WHERE module_id = ?"
+            args = (module_id, )
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._cursor.execute(sql, args )
+
+        if module_id is not None:
+            row = self._cursor.fetchone()
+            return {"fields": fields, "data": row }
+        else:
+            all_rows = self._cursor.fetchall()
+            if all_rows is None:
+                return None
+            return {"fields": fields, "data": all_rows }
+
+    def get_module_doc(self, module_id):
+        self._logger.debug(self._name + "get_module_doc(" + str(module_id)+")")
+
+        return {"fields": None, "data": None }
+
+    def get_module_pces(self, module_id):
+        self._logger.debug(self._name + "get_module_pces(" + str(module_id)+")")
+
+        fields = ("pce_id", "pce_name")
+        sql  = "SELECT "+ (",".join(map('P.{0}'.format, fields)))
+        sql += " FROM module_to_pce AS PA"
+        sql += " JOIN pce AS P on P.pce_id = PA.pce_id"
+        sql += " WHERE module_id = ?"
+        args = (module_id, )
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._cursor.execute(sql, args )
+
+        all_rows = self._cursor.fetchall()
+        return {"fields": fields, "data": all_rows }
+
+    def get_module_jobs(self, module_id, search_params):
+        self._logger.debug(self._name + "get_module_jobs(" + str(module_id)+")")
+        return self._find_jobs_by('module_id', module_id, search_params)
 
     ##########################################################
     def find_job_id(self, user_id, workspace_id, pce_id, module_id, job_name):
