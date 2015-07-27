@@ -616,6 +616,24 @@ class PCEs(_ServerResourceBase):
         return rtn
 
 
+    #
+    # OPTIONS /pces/
+    #
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
+    def OPTIONS(self, **kwargs):
+        prefix = '[OPTIONS /pces]'
+        self.logger.debug(prefix)
+
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
+
+        rtn['job'] = self._db.get_pce_states()
+
+        return rtn
+
+
 ########################################################
 # Modules
 ########################################################
@@ -762,6 +780,23 @@ class Modules(_ServerResourceBase):
         #
         # Perform the correct operation
         #
+
+        return rtn
+
+    #
+    # OPTIONS /modules/
+    #
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
+    def OPTIONS(self, **kwargs):
+        prefix = '[OPTIONS /modules]'
+        self.logger.debug(prefix)
+
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
+
+        rtn['job'] = self._db.get_module_states()
 
         return rtn
 

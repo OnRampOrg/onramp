@@ -20,14 +20,14 @@ def _display_header(str):
     print "=" * 70
 
 ######################################################
-def options_jobs(cred):
+def get_options(cred, level):
     global base_url
 
-    _display_header("OPTIONS Jobs")
+    _display_header("OPTIONS " + level)
 
     s = requests.Session()
 
-    url = base_url + "/jobs/"
+    url = base_url + "/"+level+"/"
 
     url = url + "?apikey=" + str(cred['apikey'])
 
@@ -763,7 +763,7 @@ if __name__ == '__main__':
 
     #get_workspaces(alice_cred)
     #get_workspaces(alice_cred, work_1_id)
-    get_workspaces(alice_cred, work_1_id, "docs")
+    #get_workspaces(alice_cred, work_1_id, "docs")
     #get_workspaces(alice_cred, work_1_id, "users")
     #get_workspaces(alice_cred, work_1_id, "pcemodulepairs")
     #get_workspaces(alice_cred, work_1_id, "jobs")
@@ -773,7 +773,7 @@ if __name__ == '__main__':
 
     #get_pces(alice_cred)
     #get_pces(alice_cred, pce_1_id)
-    get_pces(alice_cred, pce_1_id, "docs")
+    #get_pces(alice_cred, pce_1_id, "docs")
     #get_pces(alice_cred, pce_1_id, "workspaces")
     #get_pces(alice_cred, pce_1_id, "modules")
     #get_pces(alice_cred, pce_1_id, "jobs")
@@ -783,7 +783,7 @@ if __name__ == '__main__':
 
     #get_modules(alice_cred)
     #get_modules(alice_cred, module_1_id)
-    get_modules(alice_cred, module_1_id, "docs")
+    #get_modules(alice_cred, module_1_id, "docs")
     #get_modules(alice_cred, module_1_id, "pces")
     #get_modules(alice_cred, module_1_id, "jobs")
     #get_modules(alice_cred, module_1_id, "jobs", "&user=3&workspace=6&pce=2")
@@ -799,7 +799,9 @@ if __name__ == '__main__':
     #get_jobs(alice_cred, id=21)
     #get_jobs(alice_cred, id=21, level="data")
 
-    #options_jobs(alice_cred)
+    get_options(alice_cred, "pces")
+    get_options(alice_cred, "modules")
+    get_options(alice_cred, "jobs")
 
 
     #do_logout(admin_cred)

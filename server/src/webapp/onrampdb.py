@@ -8,6 +8,19 @@ import exceptions
 
 class Database():
 
+    pce_states    = { 0 : "Running",
+                      1 : "Down",
+                      -1 : "Error: Undefined",
+                      }
+
+    module_states = { 0 : "Not on PCE",
+                      1 : "Available on PCE, Not Deployed",
+                      2 : "Available on PCE, Deploying",
+                      3 : "Available on PCE, Deploy wait for admin",
+                      4 : "Available on PCE, Deployed ",
+                      -1 : "Error: Undefined",
+                      }
+
     job_states = { 0 : "Not on PCE",
                    1 : "On PCE",
                    2 : "On PCE Preprocess",
@@ -202,8 +215,18 @@ class DBAccess():
         self._db = self._known_db[dbtype](logger, auth)
 
 
+    ##########################################
+    # State translations
+    ##########################################
+    def get_pce_states(self):
+        return self._db.pce_states
+
+    def get_module_states(self):
+        return self._db.module_states
+
     def get_job_states(self):
         return self._db.job_states
+
 
     ##########################################
     # Valid keys
