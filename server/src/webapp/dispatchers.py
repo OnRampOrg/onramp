@@ -629,7 +629,7 @@ class PCEs(_ServerResourceBase):
         rtn['status'] = 0
         rtn['status_message'] = 'Success'
 
-        rtn['job'] = self._db.get_pce_states()
+        rtn['pces'] = self._db.get_pce_states()
 
         return rtn
 
@@ -796,7 +796,7 @@ class Modules(_ServerResourceBase):
         rtn['status'] = 0
         rtn['status_message'] = 'Success'
 
-        rtn['job'] = self._db.get_module_states()
+        rtn['modules'] = self._db.get_module_states()
 
         return rtn
 
@@ -1017,7 +1017,7 @@ class Jobs(_ServerResourceBase):
         rtn['status'] = 0
         rtn['status_message'] = 'Success'
 
-        rtn['job'] = self._db.get_job_states()
+        rtn['jobs'] = self._db.get_job_states()
 
         return rtn
 

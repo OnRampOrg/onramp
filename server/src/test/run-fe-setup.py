@@ -751,6 +751,8 @@ if __name__ == '__main__':
 
     alice_cred = do_login("alice", "notsecret123")
 
+    #launch_job(alice_cred, user_1_id, work_u1_id, pce_1_id, module_1_id, "Run Alpha 2")
+
     #admin_cred = do_login("admin", "admin123")
 
     #get_users(alice_cred)
@@ -799,12 +801,12 @@ if __name__ == '__main__':
     #get_jobs(alice_cred, id=21)
     #get_jobs(alice_cred, id=21, level="data")
 
-    get_options(alice_cred, "pces")
-    get_options(alice_cred, "modules")
-    get_options(alice_cred, "jobs")
+    #get_options(alice_cred, "pces")
+    #get_options(alice_cred, "modules")
+    #get_options(alice_cred, "jobs")
 
 
     #do_logout(admin_cred)
-    #do_logout(alice_cred)
+    do_logout(alice_cred)
 
     sys.exit(0)
