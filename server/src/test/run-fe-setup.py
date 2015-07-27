@@ -47,7 +47,7 @@ def options_jobs(cred):
     return result
 
 ######################################################
-def get_users(cred, level=None, search=None, id=None):
+def get_users(cred, id=None, level=None, search=None):
     global base_url
 
     if id is None:
@@ -763,7 +763,7 @@ if __name__ == '__main__':
 
     #get_workspaces(alice_cred)
     #get_workspaces(alice_cred, work_1_id)
-    #get_workspaces(alice_cred, work_1_id, "doc")
+    get_workspaces(alice_cred, work_1_id, "docs")
     #get_workspaces(alice_cred, work_1_id, "users")
     #get_workspaces(alice_cred, work_1_id, "pcemodulepairs")
     #get_workspaces(alice_cred, work_1_id, "jobs")
@@ -773,7 +773,7 @@ if __name__ == '__main__':
 
     #get_pces(alice_cred)
     #get_pces(alice_cred, pce_1_id)
-    #get_pces(alice_cred, pce_1_id, "doc")
+    get_pces(alice_cred, pce_1_id, "docs")
     #get_pces(alice_cred, pce_1_id, "workspaces")
     #get_pces(alice_cred, pce_1_id, "modules")
     #get_pces(alice_cred, pce_1_id, "jobs")
@@ -783,7 +783,7 @@ if __name__ == '__main__':
 
     #get_modules(alice_cred)
     #get_modules(alice_cred, module_1_id)
-    #get_modules(alice_cred, module_1_id, "doc")
+    get_modules(alice_cred, module_1_id, "docs")
     #get_modules(alice_cred, module_1_id, "pces")
     #get_modules(alice_cred, module_1_id, "jobs")
     #get_modules(alice_cred, module_1_id, "jobs", "&user=3&workspace=6&pce=2")
@@ -797,7 +797,7 @@ if __name__ == '__main__':
     #get_jobs(alice_cred, search="&user=4&workspace=6&pce=2&module=1&state=0")
     #get_jobs(alice_cred, search="&user=4&workspace=6&pce=2&module=1&state=0&state=1")
     #get_jobs(alice_cred, id=21)
-    get_jobs(alice_cred, id=21, level="data")
+    #get_jobs(alice_cred, id=21, level="data")
 
     #options_jobs(alice_cred)
 

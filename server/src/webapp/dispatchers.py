@@ -182,7 +182,7 @@ class Users(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(user_info['data'])) + " users")
-                rtn['info'] = user_info
+                rtn['users'] = user_info
 
         #
         # /users/:ID  : Get profile for this user
@@ -196,7 +196,7 @@ class Users(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(user_info)-1) + " user")
-                rtn['info'] = user_info
+                rtn['users'] = user_info
 
         #
         # /users/:ID/workspace
@@ -210,7 +210,7 @@ class Users(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info contains " + str(len(user_info['data'])) + " workspaces")
-                rtn['info'] = user_info
+                rtn['users'] = user_info
 
         #
         # /users/:ID/jobs
@@ -246,7 +246,7 @@ class Users(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info contains " + str(len(user_info['data'])) + " jobs")
-                rtn['info'] = user_info
+                rtn['users'] = user_info
 
         #
         # Unknown
@@ -295,7 +295,7 @@ class Workspaces(_ServerResourceBase):
 
     # GET /workspaces
     #     /workspaces/:ID
-    #     /workspaces/:ID/doc
+    #     /workspaces/:ID/docs
     #     /workspaces/:ID/users
     #     /workspaces/:ID/pcemodulepairs
     #     /workspaces/:ID/jobs
@@ -346,7 +346,7 @@ class Workspaces(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(workspace_info['data'])) + " workspaces")
-                rtn['info'] = workspace_info
+                rtn['workspaces'] = workspace_info
 
         #
         # /workspaces/:ID
@@ -360,12 +360,12 @@ class Workspaces(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(workspace_info)-1) + " workspace")
-                rtn['info'] = workspace_info
+                rtn['workspaces'] = workspace_info
 
         #
-        # /workspaces/:ID/doc
+        # /workspaces/:ID/docs
         #
-        elif level is not None and level == "doc":
+        elif level is not None and level == "docs":
             prefix = prefix[:-1] + "/"+str(workspace_id)+"/"+level+"]"
             self.logger.debug(prefix + " Processing...")
 
@@ -374,7 +374,7 @@ class Workspaces(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(workspace_info)-1) + " workspace")
-                rtn['info'] = workspace_info
+                rtn['workspaces'] = workspace_info
 
         #
         # /workspaces/:ID/users
@@ -388,7 +388,7 @@ class Workspaces(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(workspace_info)-1) + " workspace")
-                rtn['info'] = workspace_info
+                rtn['workspaces'] = workspace_info
         #
         # /workspaces/:ID/pcemodulepairs
         #
@@ -401,7 +401,7 @@ class Workspaces(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(workspace_info)-1) + " workspace")
-                rtn['info'] = workspace_info
+                rtn['workspaces'] = workspace_info
 
         #
         # /workspaces/:ID/jobs
@@ -437,7 +437,7 @@ class Workspaces(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info contains " + str(len(workspace_info['data'])) + " jobs")
-                rtn['info'] = workspace_info
+                rtn['workspaces'] = workspace_info
 
         #
         # Unknown
@@ -459,7 +459,7 @@ class PCEs(_ServerResourceBase):
 
     # GET /pces
     #     /pces/:ID
-    #     /pces/:ID/doc
+    #     /pces/:ID/docs
     #     /pces/:ID/workspaces
     #     /pces/:ID/modules
     #     /pces/:ID/jobs
@@ -510,7 +510,7 @@ class PCEs(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(pce_info['data'])) + " pces")
-                rtn['info'] = pce_info
+                rtn['pces'] = pce_info
 
         #
         # /pces/:ID
@@ -524,12 +524,12 @@ class PCEs(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(pce_info['data'])) + " pces")
-                rtn['info'] = pce_info
+                rtn['pces'] = pce_info
 
         #
-        # /pces/:ID/doc
+        # /pces/:ID/docs
         #
-        elif level is not None and level == "doc":
+        elif level is not None and level == "docs":
             prefix = prefix[:-1] + "/"+str(pce_id)+"/"+level+"]"
             self.logger.debug(prefix + " Processing...")
 
@@ -538,7 +538,7 @@ class PCEs(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(pce_info)-1) + " pces")
-                rtn['info'] = pce_info
+                rtn['pces'] = pce_info
 
         #
         # /pces/:ID/workspaces
@@ -552,7 +552,7 @@ class PCEs(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(pce_info['data'])) + " workspaces")
-                rtn['info'] = pce_info
+                rtn['pces'] = pce_info
 
         #
         # /pces/:ID/modules
@@ -566,7 +566,7 @@ class PCEs(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(pce_info['data'])) + " modules")
-                rtn['info'] = pce_info
+                rtn['pces'] = pce_info
         #
         # /pces/:ID/jobs
         # /pces/:ID/jobs?user=ID&workspace=ID&module=ID
@@ -601,7 +601,7 @@ class PCEs(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info contains " + str(len(pce_info['data'])) + " jobs")
-                rtn['info'] = pce_info
+                rtn['pces'] = pce_info
         #
         # Unknown
         #
@@ -623,7 +623,7 @@ class Modules(_ServerResourceBase):
 
     # GET /modules
     #     /modules/:ID
-    #     /modules/:ID/doc
+    #     /modules/:ID/docs
     #     /modules/:ID/pces
     #     /modules/:ID/jobs
     #     /modules/:ID/jobs?user=ID&workspace=ID&pce=ID
@@ -673,7 +673,7 @@ class Modules(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(module_info['data'])) + " modules")
-                rtn['info'] = module_info
+                rtn['modules'] = module_info
 
         #
         # /modules/:ID
@@ -687,12 +687,12 @@ class Modules(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(module_info)-1) + " modules")
-                rtn['info'] = module_info
+                rtn['modules'] = module_info
 
         #
-        # /modules/:ID/doc
+        # /modules/:ID/docs
         #
-        elif level is not None and level == "doc":
+        elif level is not None and level == "docs":
             prefix = prefix[:-1] + "/"+str(module_id)+"/"+level+"]"
             self.logger.debug(prefix + " Processing...")
 
@@ -701,7 +701,7 @@ class Modules(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(module_info)-1) + " docs")
-                rtn['info'] = module_info
+                rtn['modules'] = module_info
 
         #
         # /modules/:ID/pces
@@ -715,7 +715,7 @@ class Modules(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(module_info['data'])) + " PCEs")
-                rtn['info'] = module_info
+                rtn['modules'] = module_info
 
         #
         # /modules/:ID/jobs
@@ -751,7 +751,7 @@ class Modules(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info contains " + str(len(module_info['data'])) + " jobs")
-                rtn['info'] = module_info
+                rtn['modules'] = module_info
         #
         # Unknown
         #
@@ -841,7 +841,7 @@ class Jobs(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(job_info['data'])) + " jobs")
-                rtn['info'] = job_info
+                rtn['jobs'] = job_info
 
         #
         # /jobs/:ID
@@ -855,7 +855,7 @@ class Jobs(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(job_info)-1) + " jobs")
-                rtn['info'] = job_info
+                rtn['jobs'] = job_info
 
         #
         # /jobs/:ID/data
@@ -869,7 +869,7 @@ class Jobs(_ServerResourceBase):
                 self.logger.error(prefix + " Error no data found")
             else:
                 self.logger.debug(prefix + " Package info for " + str(len(job_info)-1) + " data")
-                rtn['info'] = job_info
+                rtn['jobs'] = job_info
 
         #
         # Unknown
