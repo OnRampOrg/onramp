@@ -1077,13 +1077,14 @@ class Login(_ServerResourceBase):
 
         user_auth = self._db.user_login( data["username"], data["password"])
         
-        if user_auth is not None:
+        if user_auth is None:
+            self.logger.info(prefix + " Attempt \"" + data["username"] + "\" Failed")
+            raise cherrypy.HTTPError(401)
+        else:
             rtn['auth'] = user_auth
             rtn['auth']['username'] = data["username"]
             self.logger.info(prefix + " Attempt \"" + data["username"] + "\" Success")
-        else:
-            self.logger.info(prefix + " Attempt \"" + data["username"] + "\" Failed")
-            raise cherrypy.HTTPError(401)
+
 
         #
         # Tell the user

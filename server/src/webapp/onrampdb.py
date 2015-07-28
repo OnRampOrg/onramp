@@ -285,6 +285,9 @@ class DBAccess():
     def user_login(self, username, password):
         self._db.connect()
         user_id = self._db.get_user_id(False, username, password)
+        if user_id is None:
+            self._db.disconnect()
+            return None
         session_id = self._db.session_start(user_id)
         self._db.disconnect()
         # TODO create a real apikey tied to this session
