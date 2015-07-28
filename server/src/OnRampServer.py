@@ -21,11 +21,17 @@ def _CORS():
     """Set HTTP Access Control Header to allow cross-site HTTP requests from
     any origin.
     """
-    # http://www.html5rocks.com/en/tutorials/cors/
-    # http://stackoverflow.com/questions/28049898/415-exception-cherrypy-webservice
-    cherrypy.response.headers['Access-Control-Allow-Origin'] = '*'
-    cherrypy.response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,OPTIONS,DELETE'
-    cherrypy.response.headers['Access-Control-Allow-Headers'] = 'content-type'
+    if cherrypy.request.method == 'OPTIONS':
+        # http://www.html5rocks.com/en/tutorials/cors/
+        # http://stackoverflow.com/questions/28049898/415-exception-cherrypy-webservice
+        cherrypy.response.headers['Access-Control-Allow-Origin'] = '*'
+        cherrypy.response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        #cherrypy.response.headers['Access-Control-Allow-Headers'] = '*'
+        #cherrypy.response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,OPTIONS,DELETE'
+        cherrypy.response.headers['Access-Control-Allow-Methods'] = '*'
+        return True
+    else:
+        cherrypy.response.headers['Access-Control-Allow-Origin'] = '*'
 
 def _term_handler(signal, frame):
     """Gracefully shutdown the server and exit.
@@ -70,7 +76,9 @@ if __name__ == '__main__':
         },
 
         '/': {
+            'tools.sessions.on': True,
             'tools.proxy.on': True,
+            'tools.response_headers.on': True,
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
             'tools.CORS.on': True
         },
@@ -81,6 +89,8 @@ if __name__ == '__main__':
             'onramp_log_file': '../log/onramp.log'
         }
     }
+#'tools.response_headers.on': True,
+#'tools.response_headers.headers': [('Content-Type', 'text/plain')],
 
     #
     # Load onramp_config.ini and integrate appropriate attrs into cherrpy conf.
@@ -130,7 +140,9 @@ if __name__ == '__main__':
     # Setup the service
     #
     Daemonizer(cherrypy.engine).subscribe()
-    cherrypy.tools.CORS = cherrypy.Tool('before_finalize', _CORS)
+    #cherrypy.tools.CORS = cherrypy.Tool('before_finalize', _CORS)
+    #cherrypy.tools.CORS = cherrypy.Tool('before_handler', _CORS)
+    cherrypy.tools.CORS = cherrypy._cptools.HandlerTool( _CORS )
 
     cherrypy.tree.mount(Root(ini),       '/',           conf)
     cherrypy.tree.mount(Users(ini),      '/users',      conf)
