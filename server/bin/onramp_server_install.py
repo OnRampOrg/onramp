@@ -81,6 +81,7 @@ if os.path.exists(final_conf) is True:
         call(['cp', tmpl_conf, final_conf])
 else:
     call(['cp', tmpl_conf, final_conf])
+call(['chmod', 'og+rX', final_conf])
 
 print "==>"
 print "==> NOTICE: Please edit the file: " + final_conf
@@ -98,6 +99,7 @@ if os.path.exists(final_htaccess) is True:
         call(['cp', tmpl_htaccess, final_htaccess])
 else:
     call(['cp', tmpl_htaccess, final_htaccess])
+call(['chmod', 'og+rX', final_htaccess])
 
 print "==>"
 print "==> NOTICE: Please edit the file: " + final_htaccess
