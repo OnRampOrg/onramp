@@ -21,7 +21,11 @@ def _CORS():
     """Set HTTP Access Control Header to allow cross-site HTTP requests from
     any origin.
     """
+    # http://www.html5rocks.com/en/tutorials/cors/
+    # http://stackoverflow.com/questions/28049898/415-exception-cherrypy-webservice
     cherrypy.response.headers['Access-Control-Allow-Origin'] = '*'
+    cherrypy.response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,OPTIONS,DELETE'
+    cherrypy.response.headers['Access-Control-Allow-Headers'] = 'content-type'
 
 def _term_handler(signal, frame):
     """Gracefully shutdown the server and exit.
