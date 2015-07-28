@@ -26,7 +26,10 @@ class Database_sqlite(onrampdb.Database):
 
     ##########################################################
     def connect(self):
-        self._logger.debug(self._name + " Connecting...")
+        noop = 1
+
+    def _connect(self):
+        #self._logger.debug(self._name + " Connecting...")
         self._connection = sqlite3.connect( self._auth['filename'] )
         self._cursor = self._connection.cursor()
 
@@ -35,7 +38,10 @@ class Database_sqlite(onrampdb.Database):
         return is_connected
 
     def disconnect(self):
-        self._logger.debug(self._name + " Disonnecting...")
+        noop = 1
+
+    def _disconnect(self):
+        #self._logger.debug(self._name + " Disonnecting...")
         self._connection.commit()
         self._connection.close()
         self._connection = None
@@ -44,10 +50,12 @@ class Database_sqlite(onrampdb.Database):
     #######################################################################
     def _valid_id_check(self, sql, args):
         self._logger.debug(self._name + " " + sql)
-        
-        self._cursor.execute(sql, args )
 
+        self._connect()
+        self._cursor.execute(sql, args )
         row = self._cursor.fetchone()
+        self._disconnect()
+
         if row is None:
             return False
         else:
@@ -115,9 +123,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         row = self._cursor.fetchone()
+        self._disconnect()
+
         # No such session
         if row is None:
             return False
@@ -136,9 +146,10 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         rowid = self._cursor.lastrowid
+        self._disconnect()
 
         return rowid
 
@@ -150,9 +161,12 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
+        cnt = self._cursor.rowcount
+        self._disconnect()
 
-        if self._cursor.rowcount > 0:
+        if cnt > 0:
             return True
         else:
             return False
@@ -165,9 +179,12 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
+        cnt = self._cursor.rowcount
+        self._disconnect()
 
-        if self._cursor.rowcount > 0:
+        if cnt > 0:
             return True
         else:
             return False
@@ -188,9 +205,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         row = self._cursor.fetchone()
+        self._disconnect()
+
         if row is None:
             return None
         else:
@@ -204,9 +223,10 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         rowid = self._cursor.lastrowid
+        self._disconnect()
 
         return rowid
 
@@ -223,13 +243,18 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
 
         if user_id is not None:
             row = self._cursor.fetchone()
+            self._disconnect()
+
             return {"fields": fields, "data": row }
         else:
             all_rows = self._cursor.fetchall()
+            self._disconnect()
+
             if all_rows is None:
                 return None
             self._logger.debug(self._name + " DEBUG " + str(type(all_rows)) + " and " + str(type(all_rows[0])) )
@@ -260,9 +285,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         all_rows = self._cursor.fetchall()
+        self._disconnect()
+
         return {"fields" : fields, "data": all_rows }
 
     def get_user_jobs(self, user_id, search_params):
@@ -280,9 +307,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         row = self._cursor.fetchone()
+        self._disconnect()
+
         if row is None:
             return None
         else:
@@ -296,9 +325,10 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         rowid = self._cursor.lastrowid
+        self._disconnect()
 
         return rowid
 
@@ -311,9 +341,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         row = self._cursor.fetchone()
+        self._disconnect()
+
         if row is None:
             return None
         else:
@@ -327,9 +359,10 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         rowid = self._cursor.lastrowid
+        self._disconnect()
 
         return rowid
 
@@ -342,9 +375,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         row = self._cursor.fetchone()
+        self._disconnect()
+
         if row is None:
             return None
         else:
@@ -358,9 +393,10 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         rowid = self._cursor.lastrowid
+        self._disconnect()
 
         return rowid
 
@@ -377,13 +413,18 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
 
         if workspace_id is not None:
             row = self._cursor.fetchone()
+            self._disconnect()
+
             return {"fields": fields, "data": row }
         else:
             all_rows = self._cursor.fetchall()
+            self._disconnect()
+
             if all_rows is None:
                 return None
             return {"fields": fields, "data": all_rows }
@@ -405,9 +446,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         all_rows = self._cursor.fetchall()
+        self._disconnect()
+
         return {"fields": fields, "data": all_rows }
 
     def get_workspace_pairs(self, workspace_id):
@@ -425,9 +468,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         all_rows = self._cursor.fetchall()
+        self._disconnect()
+
         return {"fields": fields, "data": all_rows }
 
     def get_workspace_jobs(self, workspace_id, search_params):
@@ -445,9 +490,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         row = self._cursor.fetchone()
+        self._disconnect()
+
         if row is None:
             return None
 
@@ -461,9 +508,10 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         rowid = self._cursor.lastrowid
+        self._disconnect()
 
         return rowid
 
@@ -476,9 +524,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         row = self._cursor.fetchone()
+        self._disconnect()
+
         if row is None:
             return None
         else:
@@ -492,9 +542,10 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         rowid = self._cursor.lastrowid
+        self._disconnect()
 
         return rowid
 
@@ -511,13 +562,18 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
 
         if pce_id is not None:
             row = self._cursor.fetchone()
+            self._disconnect()
+
             return {"fields": fields, "data": row }
         else:
             all_rows = self._cursor.fetchall()
+            self._disconnect()
+
             if all_rows is None:
                 return None
             return {"fields": fields, "data": all_rows }
@@ -539,9 +595,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         all_rows = self._cursor.fetchall()
+        self._disconnect()
+
         return {"fields": fields, "data": all_rows }
 
     def get_pce_modules(self, pce_id):
@@ -556,9 +614,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         all_rows = self._cursor.fetchall()
+        self._disconnect()
+
         return {"fields": fields, "data": all_rows }
 
     def get_pce_jobs(self, pce_id, search_params):
@@ -575,9 +635,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         row = self._cursor.fetchone()
+        self._disconnect()
+
         if row is None:
             return None
 
@@ -591,9 +653,10 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         rowid = self._cursor.lastrowid
+        self._disconnect()
 
         return rowid
 
@@ -610,13 +673,18 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
 
         if module_id is not None:
             row = self._cursor.fetchone()
+            self._disconnect()
+
             return {"fields": fields, "data": row }
         else:
             all_rows = self._cursor.fetchall()
+            self._disconnect()
+
             if all_rows is None:
                 return None
             return {"fields": fields, "data": all_rows }
@@ -638,9 +706,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         all_rows = self._cursor.fetchall()
+        self._disconnect()
+
         return {"fields": fields, "data": all_rows }
 
     def get_module_jobs(self, module_id, search_params):
@@ -657,9 +727,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         row = self._cursor.fetchone()
+        self._disconnect()
+
         if row is None:
             return None
 
@@ -674,9 +746,10 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         rowid = self._cursor.lastrowid
+        self._disconnect()
 
         return rowid
 
@@ -723,9 +796,11 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         all_rows = self._cursor.fetchall()
+        self._disconnect()
+
         return {"fields" : fields, "data": all_rows }
 
     def get_job_data(self, job_id):
@@ -762,7 +837,9 @@ class Database_sqlite(onrampdb.Database):
 
         self._logger.debug(self._name + " " + sql)
         
+        self._connect()
         self._cursor.execute(sql, args )
-
         all_rows = self._cursor.fetchall()
+        self._disconnect()
+
         return {"fields" : fields, "data": all_rows }
