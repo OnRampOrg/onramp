@@ -2,34 +2,84 @@
 
 // This is a simple *viewmodel* - JavaScript that defines the data and behavior of your UI
 function DummyLoginViewModel() {
-    this.username = ko.observable("");
-    this.password = ko.observable("");
-	sessionStorage["UserID"] = -999;
-	sessionStorage["isAdmin"] = false;
-	
-	this.welcome = ko.computed( function() { return "Welcome " + this.username + "!";});
-	
-	this.dummyValidate = function() {
-		if(this.username() === "Matilda" && this.password() === "RubytheMonkey") {
-			// Success!  User login
-			alert("You have successfully logged in as a user!");
-			this.authenticated = true;
-			sessionStorage.setItem('UserID', 123);
-			window.location.href = "user_dashboard.html";
-		}
-		else if (this.username() === "Batilda" && this.password() === "NellietheCat") {
-			// Success!  Admin login
-			this.isAdmin = true;
-			this.authenticated = true;
-			sessionStorage['UserID']= 456;
-			window.location.href = "admin_dashboard.html";
-		}
-		else {
-			this.authenticated = false;
-			alert("Login unsuccessful: " + this.username() + " " + this.password());
-		}
-		
-	}
+  var self = this;
+  this.username = ko.observable("");
+  this.password = ko.observable("");
+  sessionStorage["UserID"] = -999;
+  sessionStorage["isAdmin"] = false;
+
+  this.welcome = ko.computed( function() { return "Welcome " + this.username + "!";});
+
+  self.complete_func = function (data){
+    // packet structure:
+    //   data.status = the status code (200 is good)
+    //   data.responseText = the JSON data from the server
+    //     data.responseText.status = server's status code (0 = successful login)
+    //     data.responseText.status_message = server's status message
+    //     data.responseText.auth = JSON object with authentication info (NEED TO SEND WITH ALL FUTURE CALLS)
+    //     data.responseText.auth.username = username
+    //     data.responseText.auth.apikey = special code to know that this user is authenticated
+    //     data.responseText.auth.user_id = user id from the server
+    //     data.responseText.auth.session_id = session id used by the server
+    console.log(JSON.stringify(data));
+    console.log(data.responseText);
+    console.log(data["responseText"]);
+    console.log(data.status + 5);
+    if(data.status == 200){
+      var rt = JSON.parse(data.responseText);
+      sessionStorage["UserID"] = rt.auth.user_id;
+      sessionStorage["apikey"] = rt.auth.apikey;
+      // check if admin
+      window.location.href = "user_dashboard.html";
+    }
+    else if(data.status == 401){
+      alert("Incorrect login info.  Please try again, or contact the admin to create or reset your account.");
+    }
+    else {
+      alert("Something went wrong with the sending or receiving of the ajax call.  Status code: " + data.status);
+    }
+
+  };
+
+  self.error_func = function( jqXHR, textStatus, errorThrown) {
+    console.log("error: " + textStatus);
+    console.log("error: " + errorThrown);
+  };
+
+  self.dummyValidate = function() {
+    // do REST call
+    //var data = {"password":this.password(), "username":this.username()};
+
+    //$.ajax({contentType:"application/json", url: 'http://flux.cs.uwlax.edu/onramp/api/login'});
+    console.log("before ajax...");
+    /*
+    var results = $.ajax({
+    type: 'POST',
+    url:
+    dataType: 'application/json',
+
+    data: ,
+    success:
+    contentType: "application/json"
+    //contentType: 'application/json'
+    //error: function (xhr, ajaxOptions, thrownError) {
+    //alert(xhr.status);
+    //alert(thrownError);
+    //}
+    });
+    */
+    $.ajax({
+      type: 'POST',
+      url: 'http://flux.cs.uwlax.edu/onramp/api/login',
+      data: JSON.stringify({'password':this.password(), 'username':this.username()}),
+      complete: self.complete_func,
+      dataType: 'application/json',
+      contentType: 'application/json'
+    } );
+
+    console.log("after ajax...");
+  };
+
 }
 
 // Activates knockout.js

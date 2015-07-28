@@ -2,173 +2,173 @@
 
 <html>
 <head>
-    <title>OnRamp</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <!-- Bootstrap -->
-      <link href="../css/bootstrap.min.css" rel="stylesheet">
-	  <link href="../css/bootstrap-horizon.css" rel="stylesheet">
-	  
-	        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media 
-         queries -->
-      <!-- WARNING: Respond.js doesn't work if you view the page 
-         via file:// -->
-      <!--[if lt IE 9]>
-         <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/
-            html5shiv.js"></script>
-         <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/
-            respond.min.js"></script>
-      <![endif]-->
+  <title>OnRamp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Bootstrap -->
+  <link href="../css/bootstrap.min.css" rel="stylesheet">
+  <link href="../css/bootstrap-horizon.css" rel="stylesheet">
+
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media
+  queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page
+  via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/
+  html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/
+  respond.min.js"></script>
+  <![endif]-->
 
 </head>
 <body role="document">
 
-    <!-- Fixed navbar -->
-    
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="start.html">OnRamp</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-            <li class="active"><a href="user_dashboard.html">Home</a></li>
-            <li><a href="about.html">About</a></li>
-            <li><a href="myprofile.html">Profile</a></li>
-            <li><a href="contact.html">Contact</a></li>
-            <li><a href="#help">Help</a></li>
-          </ul>
+  <!-- Fixed navbar -->
+
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="start.html">OnRamp</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="active"><a href="user_dashboard.html">Home</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="myprofile.html">Profile</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="#help">Help</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <br>
+  <div class="container">
+    <div class="jumbotron">
+      <h1 data-bind="text: welcome"></h1>
+    </div>
+  </div>
+
+  <!-- message for those who get to the page without authenticating -->
+  <!--
+  <div class="container" data-bind="visible: !authenticated()">
+  You are not supposed to be here!
+  </div>
+  -->
+
+  <div class="container">
+    <div class="row">
+      <h4>I want to start another job...</h4>
+      <p>Select on a workspace to get started.</p>
+    </div>
+
+    <div class="row row-horizon" data-bind="foreach: Workspacelist()">
+      <div class="col-md-3 " class="item">
+        <div class="thumbnail">
+          <img alt="Workspace 1 Image" src="http://lorempixel.com/output/people-q-c-600-200-1.jpg" />
+          <div class="caption">
+            <h3 data-bind="text: name">
+
+            </h3>
+            <p data-bind="text: desc">
+
+            </p>
+            <p>
+              <a class="btn btn-primary"  data-bind="click: captureWSID">Let's launch some jobs!</a>
+            </p>
+          </div>
         </div>
       </div>
-    </nav>
-    <br>
-    <div class="container">
-        <div class="jumbotron">
-            <h1 data-bind="text: welcome"></h1>
-        </div>
-    </div>
-	
-	<!-- message for those who get to the page without authenticating -->
-	<!--
-	<div class="container" data-bind="visible: !authenticated()">
-		You are not supposed to be here!
-	</div>
-	-->
-	
-    <div class="container">
-        <div class="row">
-            <h4>I want to start another job...</h4>
-            <p>Select on a workspace to get started.</p>
-        </div>
-        
-        <div class="row row-horizon" data-bind="foreach: Workspacelist()">
-				<div class="col-md-3 " class="item">
-					<div class="thumbnail">
-						<img alt="Workspace 1 Image" src="http://lorempixel.com/output/people-q-c-600-200-1.jpg" />
-						<div class="caption">
-							<h3 data-bind="text: name">
-								
-							</h3>
-							<p data-bind="text: desc">
-								
-							</p>
-							<p>
-                            <a class="btn btn-primary"  data-bind="click: captureWSID">Let's launch some jobs!</a>
-							</p>
-						</div>
-					</div>
-				</div>
-				
-        </div>
-    </div>
-        <!--
-        <div class="row">
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 1</p></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 2</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 3</p></div>
-            <div class="clearfix visible-md-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 4</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="clearfix visible-lg-block"></div>
-            
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 5</p></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 6</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="clearfix visible-md-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 7</p></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 8</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="clearfix visible-lg-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 9</p></div>
-            <div class="clearfix visible-md-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 10</p></div>
-            <div class="clearfix visible-sm-block"></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 11</p></div>
-            <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 12</p></div>
-            -->
 
-    <div class="container">
-        <div class="row">
-			<div class="col-sm-6">
-				<h2>My Jobs</h2>
-				<p>This is a list of the n most recent jobs.</p>
-				<!-- check out this website for a cool way to display a table of data: http://bootstrapmaster.com/live/genius/table.html -->
-			</div>
-			<div class="col-lg-1">
-				<button data-bind="click: getDataFromServer" class="default">Load Data</button>
-			</div>
-        </div>
-        <div class="row">
-            <div class="table">
-                <table class="table">
-                    <thead>
-                        <th class="col-sm-1">Job Id</th>
-                        <th class="col-sm-1">Workspace</th>
-                        <th class="col-sm-1">PCE</th>
-                        <th class="col-sm-1">Module</th>
-						<th class="col-sm-1">Run Name</th>
-                        <th class="col-sm-1">Status</th>
-						<th class="col-sm-1">Runtime</th>
-						<th class="col-sm-1">View Details</th>
-						<th class="col-sm-1">Cancel/Delete</th>
-                    </thead>
-                    <tbody data-bind="foreach: Jobslist">
-                        <tr>
-                            <td data-bind="text: jID"></td>
-							<td data-bind="text: ws"></td>
-							<td data-bind="text: pce"></td>
-							<td data-bind="text: mod"></td>
-							<td data-bind="text: name"></td>
-							<td data-bind="text: status"></td>
-							<td data-bind="text: time"></td>
-                            <td><button class="info">View Details</button></td>
-                            <td><button class="danger">Cancel/Delete</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </div>
+  </div>
+  <!--
+  <div class="row">
+  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 1</p></div>
+  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 2</p></div>
+  <div class="clearfix visible-sm-block"></div>
+  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 3</p></div>
+  <div class="clearfix visible-md-block"></div>
+  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 4</p></div>
+  <div class="clearfix visible-sm-block"></div>
+  <div class="clearfix visible-lg-block"></div>
 
- 	<!-- footer -->
-	<footer class="footer">
-	  <div class="container">
-		<p>OnRamp to Parallel and Distributed Computing -- 2015</p>
-	  </div>
-	</footer>
-	
-	<!-- put all scripty scripts below this line -->
-    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-    <script src="../js/bootstrap.min.js"></script>
-	<!-- knockout script -->
-    <script src="../js/knockout-3.3.0.js"></script>
-    <!-- my scripts -->
-    <script src="../js/user_dashboard.js"></script>
+  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 5</p></div>
+  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 6</p></div>
+  <div class="clearfix visible-sm-block"></div>
+  <div class="clearfix visible-md-block"></div>
+  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 7</p></div>
+  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 8</p></div>
+  <div class="clearfix visible-sm-block"></div>
+  <div class="clearfix visible-lg-block"></div>
+  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 9</p></div>
+  <div class="clearfix visible-md-block"></div>
+  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 10</p></div>
+  <div class="clearfix visible-sm-block"></div>
+  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 11</p></div>
+  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 12</p></div>
+  -->
+
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-6">
+        <h2>My Jobs</h2>
+        <p>This is a list of the n most recent jobs.</p>
+        <!-- check out this website for a cool way to display a table of data: http://bootstrapmaster.com/live/genius/table.html -->
+      </div>
+      <div class="col-lg-1">
+        <button data-bind="click: getDataFromServer" class="default">Load Data</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="table">
+        <table class="table">
+          <thead>
+            <th class="col-sm-1">Job Id</th>
+            <th class="col-sm-1">Workspace</th>
+            <th class="col-sm-1">PCE</th>
+            <th class="col-sm-1">Module</th>
+            <th class="col-sm-1">Run Name</th>
+            <th class="col-sm-1">Status</th>
+            <th class="col-sm-1">Runtime</th>
+            <th class="col-sm-1">View Details</th>
+            <th class="col-sm-1">Cancel/Delete</th>
+          </thead>
+          <tbody data-bind="foreach: Jobslist">
+            <tr>
+              <td data-bind="text: jID"></td>
+              <td data-bind="text: ws"></td>
+              <td data-bind="text: pce"></td>
+              <td data-bind="text: mod"></td>
+              <td data-bind="text: name"></td>
+              <td data-bind="text: status"></td>
+              <td data-bind="text: time"></td>
+              <td><button class="info">View Details</button></td>
+              <td><button class="danger">Cancel/Delete</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>OnRamp to Parallel and Distributed Computing -- 2015</p>
+    </div>
+  </footer>
+
+  <!-- put all scripty scripts below this line -->
+  <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+  <script src="../js/bootstrap.min.js"></script>
+  <!-- knockout script -->
+  <script src="../js/knockout-3.3.0.js"></script>
+  <!-- my scripts -->
+  <script src="../js/user_dashboard.js"></script>
 </body>
 </html>
