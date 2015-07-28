@@ -5,6 +5,7 @@ function UserProfileViewModel () {
 	self.fullName = ko.observable("4");
 	self.email = ko.observable("5");
 	self.isAdmin = ko.observable(false);
+	self.auth_data = ko.observable();
 
 	self.counter = ko.observable(0);
 

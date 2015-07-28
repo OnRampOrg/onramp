@@ -29,6 +29,7 @@ function DummyLoginViewModel() {
       var rt = JSON.parse(data.responseText);
       sessionStorage["UserID"] = rt.auth.user_id;
       sessionStorage["apikey"] = rt.auth.apikey;
+      sessionStorage["auth_data"] = JSON.stringify(rt.auth);
       // check if admin
       window.location.href = "user_dashboard.html";
     }
