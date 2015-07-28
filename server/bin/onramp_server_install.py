@@ -24,6 +24,12 @@ env_dir = source_dir + '/env'
 tmp_users_dir = tmp_dir + '/users'
 tmp_pce_dir   = tmp_dir + '/pce'
 
+tmpl_htaccess  = ".htaccess.tmpl"
+final_htaccess = ".htaccess"
+
+tmpl_conf  = "bin/onramp_server_config.ini.tmpl"
+final_conf = "bin/onramp_server_config.ini"
+
 
 ###################################################
 #
@@ -35,7 +41,7 @@ if os.path.exists(env_dir):
     print "=" * 70
 
     response = raw_input('(R)emove and re-install or (A)bort? ')
-    if response != 'R':
+    if response != 'R' and response != 'r':
         sys.exit('Aborted')
     shutil.rmtree(env_dir)
     shutil.rmtree(log_dir, True)
@@ -60,6 +66,42 @@ if not os.path.exists(tmp_users_dir):
     os.makedirs(tmp_users_dir)
 if not os.path.exists(tmp_pce_dir):
     os.makedirs(tmp_pce_dir)
+
+#
+# Setup the webserver configuration files
+#
+if os.path.exists(final_conf) is True:
+    print "=" * 70
+    print 'Warning: Server configuration file present.'
+    print "=" * 70
+
+    response = raw_input('(R)eplace or (K)eep? ')
+    if response == 'R' or response == 'r':
+        call(['rm', final_conf])
+        call(['cp', tmpl_conf, final_conf])
+else:
+    call(['cp', tmpl_conf, final_conf])
+
+print "==>"
+print "==> NOTICE: Please edit the file: " + final_conf
+print "==>"
+
+
+if os.path.exists(final_htaccess) is True:
+    print "=" * 70
+    print 'Warning: Server .htaccess file present.'
+    print "=" * 70
+
+    response = raw_input('(R)eplace or (K)eep? ')
+    if response == 'R' or response == 'r':
+        call(['rm', final_htaccess])
+        call(['cp', tmpl_htaccess, final_htaccess])
+else:
+    call(['cp', tmpl_htaccess, final_htaccess])
+
+print "==>"
+print "==> NOTICE: Please edit the file: " + final_htaccess
+print "==>"
 
 
 ###################################################

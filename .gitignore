@@ -27,3 +27,5 @@ server/tmp/pce
 server/log
 server/src/env
 server/src/.*.pid
+server/bin/onramp_server_config.ini
+server/.htaccess
