@@ -1,16 +1,13 @@
-"""OnRamp educational module support package.
+"""OnRamp job launching support package.
 
-Provides functionality for installing/deploying educational modules from various
-sources, as well as means of setting/storing/updating module state data.
+Provides functionality for launching jobs, as well as means of
+setting/storing/updating job state data.
 
 Exports:
-    ModState: Encapsulation of module state that avoids race conditions.
-    install_module: Installs module on host system.
-    get_source_types: Return list of acceptable module source types (local, git,
-        etc.).
-    deploy_module: Deploy an installed OnRamp educational module.
-    get_modules: Return list of tracked modules or single module.
-    get_available_modules: Return list of modules shipped with OnRamp.
+    JobState: Encapsulation of job state that avoids race conditions.
+    launch_job: Schedules job launch using system batch scheduler as configured
+        in onramp_pce_config.ini.
+    get_jobs: Returns list of tracked jobs or single job.
 """
 import argparse
 import copy
@@ -94,9 +91,19 @@ class JobState(dict):
 
 
 def launch_job(job_id, mod_id, username, run_name):
+    """Schedule job launch using system batch scheduler as configured in
+    onramp_pce_config.ini.
+
+    Args:
+        job_id (int): Unique identifier for job.
+        mod_id (int): Id for OnRamp educational module to run in this job.
+        username (str): Username of user running the job.
+        run_name (str): Human-readable label for this job run.
+    """
     accepted_states = ['Schedule failed', 'Launch failed', 'Preprocess failed']
     _logger.debug('PCE.tools.launch_job() called')
 
+    # Initialize job state.
     with JobState(job_id) as job_state:
         if ('state' in job_state.keys()
             and job_state['state'] not in accepted_states):
@@ -105,9 +112,11 @@ def launch_job(job_id, mod_id, username, run_name):
         job_state['job_id'] = job_id
         job_state['mod_id'] = mod_id
         job_state['username'] = username
+        job_state['scheduler_job_num'] = None
         job_state['state'] = 'Setting up launch'
         job_state['error'] = None
 
+    # Get module attrs.
     with ModState(mod_id) as mod_state:
         if ('state' not in mod_state.keys()
             or mod_state['state'] != 'Module ready'):
@@ -123,6 +132,7 @@ def launch_job(job_id, mod_id, username, run_name):
         _logger.error(msg)
         return (-1, msg)
 
+    # Initialize dir structure.
     user_dir = os.path.join(os.path.join(pce_root, 'users'), username)
     if not os.path.isdir(user_dir):
         os.mkdir(user_dir)
@@ -136,6 +146,7 @@ def launch_job(job_id, mod_id, username, run_name):
     ret_dir = os.getcwd()
     os.chdir(run_dir)
 
+    # Preprocess.
     _logger.info('Calling bin/onramp_preprocess.py')
     with JobState(job_id) as job_state:
         job_state['state'] = 'Preprocessing'
@@ -153,16 +164,19 @@ def launch_job(job_id, mod_id, username, run_name):
         os.chdir(ret_dir)
         return (-1, msg)
 
+    # Determine batch scheduler to user from config.
     ini = ConfigObj(os.path.join(pce_root, 'onramp_pce_config.ini'),
                     configspec=os.path.join(pce_root,
                                             'src/onramp_config.inispec'))
     ini.validate(Validator())
     scheduler = Scheduler(ini['cluster']['batch_scheduler'])
 
+    # Write batch script.
     with open('script.sh', 'w') as f:
         args =(username, mod_name, mod_id, job_id)
         f.write(scheduler.get_batch_script(run_name))
 
+    # Schedule job.
     result = scheduler.schedule(run_dir)
     if result['status_code'] != 0:
         _logger.error(result['msg'])

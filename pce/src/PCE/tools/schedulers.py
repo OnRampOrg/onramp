@@ -1,17 +1,51 @@
+"""Encapsulation of functionality provided by various batch schedulers.
+
+Exports:
+    SLURMScheduler: Interface to SLURM batch scheduler.
+    Scheduler: Generic instantiator for all implemented schedulers.
+"""
 import os
 from subprocess import CalledProcessError, check_output, STDOUT
 
-class BatchScheduler(object):
+class _BatchScheduler(object):
+    """Superclass for batch scheduler classes.
+
+    All subclasses must implement the following:
+        get_batch_script: Return a batch script formatted for
+            the given batch scheduler.
+        schedule: Schedule a job with the given batch scheduler.
+        is_scheduler_for (classmethod): Returns boolean indicating whether the
+            class provides an interface to the batch scheduler given.
+    """
     def __init__(self, type):
+        """Set batch scheduler type and return the instance.
+
+        Args:
+            type (str): Batch scheduler type.
+        """
         self.type = type
 
-class SLURMScheduler(BatchScheduler):
+class SLURMScheduler(_BatchScheduler):
     @classmethod
     def is_scheduler_for(cls, type):
+        """Return boolean indicating whether the class provides an interface to
+        the batch scheduler type given.
+
+        Args:
+            type (str): Batch scheduler type.
+        """
         return type == 'SLURM'
 
-    def get_batch_script(self, run_name, numtasks=4, email=None,
-                         filename='script.sh'):
+    def get_batch_script(self, run_name, numtasks=4, email=None):
+        """Return the batch script that runs a job as per args formatted for the
+        SLURM batch scheduler.
+
+        Args:
+            run_name (str): Human-readable label for job run.
+            num_tasks (int): Number of tasks to schedule.
+            email (str): Email to send results to upon completion. If None, no
+                email sent.
+        """
         contents = '#!/bin/bash\n'
         contents += '\n'
         contents += '###################################\n'
@@ -30,6 +64,12 @@ class SLURMScheduler(BatchScheduler):
         return contents
         
     def schedule(self, proj_loc):
+        """Schedule a job using the SLURM batch scheduler.
+
+        Args:
+            proj_loc (str): Folder containing the batch script 'script.sh' for
+                the job to schedule.
+        """
         ret_dir = os.getcwd()
         os.chdir(proj_loc)
         try:
@@ -68,13 +108,13 @@ class SLURMScheduler(BatchScheduler):
             'job_num': job_num
         }
 
-class SGEScheduler(BatchScheduler):
-    @classmethod
-    def is_scheduler_for(cls, type):
-        return type == 'SGE'
-
 def Scheduler(type):
-  for cls in BatchScheduler.__subclasses__():
-      if cls.is_scheduler_for(type):
+    """Instantiate the appropriate scheduler class for given type.
+
+    Args:
+        type (str): Identifier for batch scheduler type.
+    """
+    for cls in _BatchScheduler.__subclasses__():
+        if cls.is_scheduler_for(type):
             return cls(type)
-      raise ValueError
+    raise ValueError
