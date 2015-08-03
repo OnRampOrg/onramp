@@ -35,6 +35,7 @@ if os.path.exists(env_dir):
     shutil.rmtree(modules_dir, True)
     shutil.rmtree(log_dir, True)
     shutil.rmtree(module_state_dir, True)
+    shutil.rmtree(job_state_dir, True)
 
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
