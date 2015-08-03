@@ -23,10 +23,14 @@ Commands:
     modinstall
         Installs OnRamp educational module into environment.
 
+    joblaunch
+        Launches an Onramp job.
+
     shell
         Initializes an interactive python shell in the OnRamp PCE environment.
 """
 import argparse
+import logging
 import os
 import shutil
 import sys
@@ -39,6 +43,7 @@ from validate import Validator
 from os.path import abspath, expanduser
 
 from PCE import tools
+from PCE.tools.jobs import launch_job
 from PCE.tools.modules import deploy_module, get_source_types, install_module
 
 _pidfile = 'src/.onrampRESTservice.pid'
@@ -436,6 +441,41 @@ def _mod_deploy():
 
     sys.exit(result)
 
+def _job_launch():
+    """Launch an OnRamp job.
+    
+    Usage: onramp_pce_service.py joblaunch [-h] [-v] job_id mod_id username
+
+    positional arguments:
+      job_id         Id of the job
+      mod_id         Id of the module
+      username       Username of user launching job
+
+    optional arguments:
+      -h, --help     show this help message and exit
+      -v, --verbose  increase output verbosity
+    """
+    descrip = 'Launch an OnRamp job.'
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py joblaunch',
+                                     description=descrip)
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='increase output verbosity')
+    parser.add_argument('job_id', help='Id of the job', type=int)
+    parser.add_argument('mod_id', help='Id of the module', type=int)
+    parser.add_argument('username', help='Username of user launching job')
+    parser.add_argument('run_name', help='Name for this job run')
+    args = parser.parse_args(args=sys.argv[2:])
+
+    result, msg = launch_job(args.job_id, args.mod_id, args.username,
+                             args.run_name)
+
+    if result != 0:
+        sys.stderr.write(msg + '\n')
+    else:
+        print msg
+
+    sys.exit(result)
+
 def _shell():
     """Initialize an interactive python shell in the OnRamp PCE environment.
 
@@ -460,6 +500,7 @@ switch = {
     'modtest': _mod_test,
     'modinstall': _mod_install,
     'moddeploy': _mod_deploy,
+    'joblaunch': _job_launch,
     'shell': _shell
 }
 
@@ -471,4 +512,29 @@ if __name__ == '__main__':
         print __doc__
         sys.exit(-1)
 
+    log_levels = {
+        'DEBUG': logging.DEBUG,
+        'INFO': logging.INFO,
+        'WARNING': logging.WARNING,
+        'ERROR': logging.ERROR,
+        'CRITICAL': logging.CRITICAL
+    }
+    log_file = 'log/onramp.log',
+    log_level = 'INFO'
+    ini = ConfigObj('onramp_pce_config.ini',
+                    configspec='src/onramp_config.inispec')
+    ini.validate(Validator())
+    if 'cluster' in ini.keys():
+        if 'log_level' in ini['cluster'].keys():
+            log_level = ini['cluster']['log_level']
+        if 'log_file' in ini['cluster'].keys():
+            log_file = ini['cluster']['log_file']
+    log_name = 'onramp'
+    logger = logging.getLogger(log_name)
+    logger.setLevel(log_levels[log_level])
+    handler = logging.FileHandler(log_file)
+    handler.setFormatter(
+        logging.Formatter('[%(asctime)s] %(levelname)s %(message)s'))
+    logger.addHandler(handler)
+    logger.info('Logging at %s to %s' % (log_level, log_file))
     switch[sys.argv[1]]()
