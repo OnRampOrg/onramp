@@ -112,6 +112,7 @@ def launch_job(job_id, mod_id, username, run_name):
         job_state['job_id'] = job_id
         job_state['mod_id'] = mod_id
         job_state['username'] = username
+        job_state['run_name'] = run_name
         job_state['scheduler_job_num'] = None
         job_state['state'] = 'Setting up launch'
         job_state['error'] = None
