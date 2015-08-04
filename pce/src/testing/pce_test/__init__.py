@@ -103,14 +103,17 @@ class ModulesTest(PCEBase):
         self.ret_dir = os.getcwd()
         os.chdir(pce_root)
         self.source_dir = '../modules'
-        self.state_dir = 'src/state/modules'
+        self.mod_state_dir = 'src/state/modules'
+        self.job_state_dir = 'src/state/jobs'
         self.install_dir = 'modules'
-        self.avail_mods = ['template', 'mpi-ring']
+        self.avail_mods = ['template', 'mpi-ring', 'pi']
 
         for name in os.listdir(self.install_dir):
             shutil.rmtree('%s/%s' % (self.install_dir, name))
-        for name in os.listdir(self.state_dir):
-            os.remove('%s/%s' % (self.state_dir, name))
+        for name in os.listdir(self.mod_state_dir):
+            os.remove('%s/%s' % (self.mod_state_dir, name))
+        for name in os.listdir(self.job_state_dir):
+            os.remove('%s/%s' % (self.job_state_dir, name))
 
     def tearDown(self):
         os.chdir(self.ret_dir)
@@ -184,6 +187,10 @@ class ModulesTest(PCEBase):
                 }
             }
         }
+
+        mod_state_files = filter(lambda x: not x.startswith('.'),
+                                 os.listdir(self.mod_state_dir))
+        self.assertEqual(mod_state_files, [])
 
         # Check installed mods. Should be empty.
         r = pce_get('modules/')
@@ -526,10 +533,13 @@ class JobsTest(PCEBase):
         missing_msg_prefix = ('An invalid value or no value was received for the '
                               'following required parameter(s): ')
 
-        r = pce_post('jobs/', mod_id=1, job_id=1, username='testuser')
+        r = pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
+                     run_name='testrun')
         self.assertEqual(r.status_code, 200)
         d = r.json()
-        self.check_json(d, good=True)
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Job launched')
 
         r = pce_post('jobs/', job_id=1, username='testuser')
         self.assertEqual(r.status_code, 400)
