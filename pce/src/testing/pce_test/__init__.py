@@ -536,11 +536,12 @@ class JobsTest(PCEBase):
         r = pce_post('modules/', mod_id=1, mod_name='template',
                      source_location=location)
         self.assertEqual(r.status_code, 200)
-        time.sleep(2)
+        time.sleep(3)
         r = pce_post('modules/1/')
-        time.sleep(2)
+        time.sleep(3)
 
-    def verify_launch(self, job_id, mod_id, username, run_name):
+    def verify_launch(self, job_id, mod_id, username, run_name,
+                      script_should_exist=True):
         with JobState(job_id) as job_state:
             self.assertEqual(job_state['job_id'], job_id)
             self.assertEqual(job_state['mod_id'], mod_id)
@@ -549,6 +550,18 @@ class JobsTest(PCEBase):
             self.assertEqual(job_state['run_name'], run_name)
             self.assertTrue(isinstance(job_state['scheduler_job_num'], int))
             self.assertIsNone(job_state['error'])
+
+        with ModState(mod_id) as mod_state:
+            mod_name = '%s_%d' % (mod_state['mod_name'], mod_id)
+
+        folders = (username, mod_name, run_name)
+        run_dir = os.path.join(pce_root, 'users/%s/%s/%s' % folders)
+        self.assertTrue(os.path.isdir(run_dir))
+        script_exists = os.path.isfile(os.path.join(run_dir, 'script.sh'))
+        if script_should_exist:
+            self.assertTrue(script_exists)
+        else:
+            self.assertFalse(script_exists)
 
     def test_GET(self):
         r = pce_get('jobs/')
@@ -595,6 +608,24 @@ class JobsTest(PCEBase):
         time.sleep(10)
         self.verify_launch(1, 1, 'testuser', 'testrun1')
         self.verify_launch(2, 1, 'testuser', 'testrun2')
+
+        # Post to jobs/ with previously posted attrs
+        run_dir = os.path.join(pce_root, 'users/testuser/template_1/testrun1')
+        os.remove(os.path.join(run_dir, 'script.sh'))
+        os.remove(os.path.join(run_dir, 'output.txt'))
+        time.sleep(5)
+        r = pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
+                     run_name='testrun1')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Job launched')
+
+        # Verify stored state for relaunched job
+        time.sleep(10)
+        self.verify_launch(1, 1, 'testuser', 'testrun1',
+                           script_should_exist=False)
 
         r = pce_post('jobs/', job_id=1, username='testuser')
         self.assertEqual(r.status_code, 400)
