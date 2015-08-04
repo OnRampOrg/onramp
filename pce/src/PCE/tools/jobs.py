@@ -107,7 +107,9 @@ def launch_job(job_id, mod_id, username, run_name):
     with JobState(job_id) as job_state:
         if ('state' in job_state.keys()
             and job_state['state'] not in accepted_states):
-            return (-1, 'Job launch already initiated')
+            msg = 'Job launch already initiated'
+            _logger.warn(msg)
+            return (-1, msg)
 
         job_state['job_id'] = job_id
         job_state['mod_id'] = mod_id
@@ -121,9 +123,11 @@ def launch_job(job_id, mod_id, username, run_name):
     with ModState(mod_id) as mod_state:
         if ('state' not in mod_state.keys()
             or mod_state['state'] != 'Module ready'):
+            msg = 'Module not ready'
             with JobState(job_id) as job_state:
                 job_state['state'] = 'Launch failed'
-                job_state['error'] = 'Module not ready'
+                job_state['error'] = msg
+            _logger.error(msg)
             return (-1, 'Module not ready')
         proj_loc = mod_state['installed_path']
         mod_name = mod_state['mod_name']
