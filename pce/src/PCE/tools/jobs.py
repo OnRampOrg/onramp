@@ -199,6 +199,84 @@ def launch_job(job_id, mod_id, username, run_name):
     os.chdir(ret_dir)
     return (0, 'Job scheduled')
 
+def _job_postprocess(job_id):
+    with JobState(job_id) as job_state:
+        args = (
+            job_state['username'],
+            job_state['mod_name'],
+            job_state['run_name']
+        )
+    run_dir = os.path.join(pce_root, 'users/%s/%s/%s' % args)
+    ret_dir = os.getcwd()
+    os.chdir(run_dir)
+    _logger.debug('Calling bin/onramp_postprocess.py')
+    call([os.path.join(pce_root, 'src/env/bin/python'),
+          'bin/onramp_postprocess.py'])
+    os.chdir(ret_dir)
+    with JobState(job_id) as job_state:
+        job_state['state'] = 'Done'
+        job_state['error'] = None
+
+def _get_module_status_output(job_id):
+    with JobState(job_id) as job_state:
+        args = (
+            job_state['username'],
+            job_state['mod_name'],
+            job_state['run_name']
+        )
+    run_dir = os.path.join(pce_root, 'users/%s/%s/%s' % args)
+    ret_dir = os.getcwd()
+    os.chdir(run_dir)
+    _logger.debug('Calling bin/onramp_status.py')
+    try:
+        output = check_output([os.path.join(pce_root, 'src/env/bin/python',
+                               'bin/onramp_status.py'])
+    except CalledProcessError as e:
+        output = 'bin/onramp_status.py exited with nonzero status.'
+    finally:
+        os.chdir(ret_dir)
+
+    return output
+
+def _build_job(job_id):
+    status_check_states = ['Scheduled', 'Queued', 'Running']
+    with JobState(job_id) as job_state:
+        if 'state' not in job_state.keys():
+            return {}
+
+        if job_state['state'] in status_check_states:
+            ini = ConfigObj(os.path.join(pce_root, 'onramp_pce_config.ini'),
+                            configspec=os.path.join(pce_root,
+                                                'src/onramp_config.inispec'))
+            ini.validate(Validator())
+            scheduler = Scheduler(ini['cluster']['batch_scheduler'])
+            sched_job_num = job_state['scheduler_job_num']
+            job_status = scheduler().check_status(sched_job_num)
+
+            # Bad.
+            if job_status != 0:
+                job_state['status_code'] = -3
+                job_state['status_msg'] = job_status[1]
+                if job_status != -2:
+                    job_state['state'] = job_status[1]
+                return copy.deepcopy(job_state)
+
+            # Good.
+            if job_status[1] == 'Done':
+                job_state['state'] = 'Postprocessing'
+                job_state['error'] = None
+                p = Process(target=_job_postprocess, args=(job_id,))
+                p.start()
+            elif job_status[1] == 'Running':
+                job_state['state'] = 'Running'
+                job_state['error'] = None
+                job_state['mod_output'] = _get_module_status_output(job_id)
+            elif job_status[1] == 'Queued':
+                job_state['state'] = 'Queued'
+                job_state['error'] = None
+
+        return copy.deepcopy(job_state)
+
 def get_jobs(job_id=None):
     """Return list of tracked jobs or single job.
 
@@ -207,20 +285,8 @@ def get_jobs(job_id=None):
             If None, return list of all tracked job resources.
     """
     if job_id:
-        with JobState(job_id) as job_state:
-            if 'state' in job_state.keys():
-                return copy.deepcopy(job_state)
-        return {
-            'job_id': job_id,
-            'mod_id': None,
-            'state': 'Does not exist',
-            'error': None
-        }
+        return _build_job(job_id)
 
-    results = []
-    for id in os.listdir(_job_state_dir):
-        next_job = {}
-        with JobState(id) as job_state:
-            next_job = copy.deepcopy(job_state)
-        results.append(next_job)
-    return results
+    return [_build_job(job_id) for job_id in
+            filter(lambda x: not x.startswith('.'),
+                   os.listdir(_job_state_dir))]

@@ -15,7 +15,7 @@ from configobj import ConfigObj
 from validate import Validator
 
 from PCE import pce_root
-from PCE.tools.jobs import launch_job
+from PCE.tools.jobs import get_jobs, launch_job
 from PCE.tools.modules import deploy_module, get_modules, \
                               get_available_modules, install_module
 
@@ -246,7 +246,10 @@ class Jobs(_OnRampDispatcher):
         self.log_call('GET')
 
         # Return the resource.
-        return self.get_response()
+        if id:
+            return self.get_response(job=get_jobs(job_id=id))
+        else:
+            return self.get_response(jobs=get_jobs())
 
     def POST(self, **kwargs):
         """Launch a new job.
