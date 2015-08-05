@@ -19,7 +19,7 @@ import os
 import shutil
 import sys
 from multiprocessing import Process
-from subprocess import CalledProcessError, check_output
+from subprocess import CalledProcessError, call, check_output
 
 from configobj import ConfigObj
 from validate import Validator
@@ -200,13 +200,15 @@ def launch_job(job_id, mod_id, username, run_name):
     return (0, 'Job scheduled')
 
 def _job_postprocess(job_id):
+    _logger.info('PCE.tools.jobs._job_postprocess() called')
     with JobState(job_id) as job_state:
-        args = (
-            job_state['username'],
-            job_state['mod_name'],
-            job_state['run_name']
-        )
-    run_dir = os.path.join(pce_root, 'users/%s/%s/%s' % args)
+        username = job_state['username']
+        mod_id = job_state['mod_id']
+        run_name = job_state['run_name']
+    with ModState(mod_id) as mod_state:
+        mod_name = mod_state['mod_name']
+    args = (username, mod_name, mod_id, run_name)
+    run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % args)
     ret_dir = os.getcwd()
     os.chdir(run_dir)
     _logger.debug('Calling bin/onramp_postprocess.py')
@@ -229,7 +231,7 @@ def _get_module_status_output(job_id):
     os.chdir(run_dir)
     _logger.debug('Calling bin/onramp_status.py')
     try:
-        output = check_output([os.path.join(pce_root, 'src/env/bin/python',
+        output = check_output([os.path.join(pce_root, 'src/env/bin/python'),
                                'bin/onramp_status.py'])
     except CalledProcessError as e:
         output = 'bin/onramp_status.py exited with nonzero status.'
@@ -251,12 +253,13 @@ def _build_job(job_id):
             ini.validate(Validator())
             scheduler = Scheduler(ini['cluster']['batch_scheduler'])
             sched_job_num = job_state['scheduler_job_num']
-            job_status = scheduler().check_status(sched_job_num)
+            job_status = scheduler.check_status(sched_job_num)
 
             # Bad.
-            if job_status != 0:
-                job_state['status_code'] = -3
-                job_state['status_msg'] = job_status[1]
+            if job_status[0] != 0:
+                _logger.debug('Bad job status: %s' % job_status[1])
+                job_state['state'] = 'Run failed'
+                job_state['error'] = job_status[1]
                 if job_status != -2:
                     job_state['state'] = job_status[1]
                 return copy.deepcopy(job_state)
@@ -270,7 +273,8 @@ def _build_job(job_id):
             elif job_status[1] == 'Running':
                 job_state['state'] = 'Running'
                 job_state['error'] = None
-                job_state['mod_output'] = _get_module_status_output(job_id)
+                mod_status_output = _get_module_status_output(job_id)
+                job_state['mod_status_output'] = mod_status_output
             elif job_status[1] == 'Queued':
                 job_state['state'] = 'Queued'
                 job_state['error'] = None

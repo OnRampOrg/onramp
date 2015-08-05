@@ -113,7 +113,7 @@ class SLURMScheduler(_BatchScheduler):
     def check_status(self, scheduler_job_num):
         try:
             job_info = check_output(['scontrol', 'show', 'job',
-                                     scheduler_job_num])
+                                     str(scheduler_job_num)])
         except CalledProcessError as e:
             msg = 'Job info call failed'
             self.logger.error(msg)
