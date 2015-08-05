@@ -71,7 +71,15 @@ class ModState(dict):
             file_contents = self._state_file.read()
             _logger.debug('File contents for %s:' % mod_state_file)
             _logger.debug(file_contents)
-            self.update(json.loads(file_contents))
+
+            try:
+                data = json.loads(file_contents)
+                # Valid json. Load it into self.
+                self.update(data)
+            except ValueError:
+                # Invalid json. Ignore (will be overwritten by _close().
+                pass
+
             self._state_file.seek(0)
 
     def __enter__(self):

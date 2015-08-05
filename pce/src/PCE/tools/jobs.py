@@ -68,7 +68,18 @@ class JobState(dict):
             # File already exists. Open and lock it.
             self._state_file = open(job_state_file, 'r+')
             fcntl.lockf(self._state_file, fcntl.LOCK_EX)
-            self.update(json.loads(self._state_file.read()))
+            file_contents = self._state_file.read()
+            _logger.debug('File contents for %s:' % job_state_file)
+            _logger.debug(file_contents)
+
+            try:
+                data = json.loads(file_contents)
+                # Valid json. Load it into self.
+                self.update(data)
+            except ValueError:
+                # Invalid json. Ignore (will be overwritten by _close().
+                pass
+
             self._state_file.seek(0)
 
     def __enter__(self):
