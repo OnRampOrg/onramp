@@ -807,16 +807,7 @@ class ClusterTest(PCEBase):
 class ModuleJobFlowTest(PCEBase):
     def setUp(self):
         super(ModuleJobFlowTest, self).setUp()
-        self.testmodule_path = os.path.join(pce_root, '../modules/testmodule')
-        self.testmodule_path = os.path.normpath(self.testmodule_path)
-        shutil.rmtree(self.testmodule_path, ignore_errors=True)
-        time.sleep(2)
-        shutil.copytree(os.path.join(pce_root, 'src/testing/testmodule'),
-                        self.testmodule_path)
-
-    def tearDown(self):
-        super(ModuleFlowTest, self).tearDown()
-        shutil.rmtree(self.testmodule_path, ignore_errors=True)
+        self.testmodule_path = os.path.join(pce_root, 'src/testing/testmodule')
 
     def test_module_job_flow(self):
         location = {
