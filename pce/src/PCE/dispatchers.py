@@ -142,7 +142,7 @@ class Modules(_OnRampDispatcher):
 
         # Return the resource.
         if id:
-            return self.get_response(module=get_modules(mod_id=id))
+            return self.get_response(module=get_modules(mod_id=int(id)))
         else:
             return self.get_response(modules=get_modules())
 
@@ -265,8 +265,8 @@ class Jobs(_OnRampDispatcher):
         
         # Launch job.
         args = (
-            data['job_id'],
-            data['mod_id'],
+            int(data['job_id']),
+            int(data['mod_id']),
             data['username'],
             data['run_name']
         )
