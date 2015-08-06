@@ -129,19 +129,16 @@ def launch_job(job_id, mod_id, username, run_name):
         job_state['scheduler_job_num'] = None
         job_state['state'] = 'Setting up launch'
         job_state['error'] = None
-
-    # Get module attrs.
-    with ModState(mod_id) as mod_state:
-        if ('state' not in mod_state.keys()
-            or mod_state['state'] != 'Module ready'):
-            msg = 'Module not ready'
-            with JobState(job_id) as job_state:
+        with ModState(mod_id) as mod_state:
+            if ('state' not in mod_state.keys()
+                or mod_state['state'] != 'Module ready'):
+                msg = 'Module not ready'
                 job_state['state'] = 'Launch failed'
                 job_state['error'] = msg
-            _logger.error(msg)
-            return (-1, 'Module not ready')
-        proj_loc = mod_state['installed_path']
-        mod_name = mod_state['mod_name']
+                _logger.error(msg)
+                return (-1, 'Module not ready')
+            proj_loc = mod_state['installed_path']
+            mod_name = mod_state['mod_name']
 
     if not os.path.isdir(proj_loc):
         msg = 'Project location does not exist'
