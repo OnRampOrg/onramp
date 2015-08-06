@@ -229,12 +229,13 @@ def _job_postprocess(job_id):
 
 def _get_module_status_output(job_id):
     with JobState(job_id) as job_state:
-        args = (
-            job_state['username'],
-            job_state['mod_name'],
-            job_state['run_name']
-        )
-    run_dir = os.path.join(pce_root, 'users/%s/%s/%s' % args)
+        username = job_state['username']
+        mod_id = job_state['mod_id']
+        run_name = job_state['run_name']
+    with ModState(mod_id) as mod_state:
+        mod_name = mod_state['mod_name']
+    args = (username, mod_name, mod_id, run_name)
+    run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % args)
     ret_dir = os.getcwd()
     os.chdir(run_dir)
     _logger.debug('Calling bin/onramp_status.py')
