@@ -129,13 +129,15 @@ def launch_job(job_id, mod_id, username, run_name):
         job_state['scheduler_job_num'] = None
         job_state['state'] = 'Setting up launch'
         job_state['error'] = None
+        job_state['mod_status_output'] = None
         with ModState(mod_id) as mod_state:
             if ('state' not in mod_state.keys()
                 or mod_state['state'] != 'Module ready'):
                 msg = 'Module not ready'
                 job_state['state'] = 'Launch failed'
                 job_state['error'] = msg
-                _logger.error(msg)
+                _logger.warn(msg)
+                _logger.warn('mod_state: %s' % str(mod_state))
                 return (-1, 'Module not ready')
             proj_loc = mod_state['installed_path']
             mod_name = mod_state['mod_name']
@@ -149,7 +151,7 @@ def launch_job(job_id, mod_id, username, run_name):
     user_dir = os.path.join(os.path.join(pce_root, 'users'), username)
     if not os.path.isdir(user_dir):
         os.mkdir(user_dir)
-    user_mod_dir = os.path.join(user_dir, '%s_%s' % (mod_name, mod_id))
+    user_mod_dir = os.path.join(user_dir, '%s_%d' % (mod_name, mod_id))
     if not os.path.isdir(user_mod_dir):
         os.mkdir(user_mod_dir)
     run_dir = os.path.join(user_mod_dir, run_name)
@@ -186,7 +188,6 @@ def launch_job(job_id, mod_id, username, run_name):
 
     # Write batch script.
     with open('script.sh', 'w') as f:
-        args =(username, mod_name, mod_id, job_id)
         f.write(scheduler.get_batch_script(run_name))
 
     # Schedule job.
@@ -277,6 +278,7 @@ def _build_job(job_id):
             if job_status[1] == 'Done':
                 job_state['state'] = 'Postprocessing'
                 job_state['error'] = None
+                job_state['mod_status_output'] = None
                 p = Process(target=_job_postprocess, args=(job_id,))
                 p.start()
             elif job_status[1] == 'Running':

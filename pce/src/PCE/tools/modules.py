@@ -141,7 +141,7 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
         verbose (bool): Controls level of printed output during installation.
     """
     mod_dir = os.path.join(os.path.join(pce_root, install_parent_folder),
-                           '%s_%s' % (mod_name, mod_id))
+                           '%s_%d' % (mod_name, mod_id))
     source_abs_path = os.path.normpath(os.path.abspath(source_path))
     _logger.debug('cwd: %s' % os.getcwd())
     _logger.debug('source_abs_path: %s' % source_abs_path)
