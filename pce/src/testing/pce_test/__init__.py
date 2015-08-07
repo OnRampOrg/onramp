@@ -20,6 +20,7 @@ from configobj import ConfigObj
 from validate import Validator
 
 from PCE import pce_root
+from PCE.tools.jobs import JobState
 from PCE.tools.modules import ModState
 
 def setup():
@@ -89,6 +90,29 @@ def pce_delete(endpoint, **kwargs):
 
 
 class PCEBase(unittest.TestCase):
+    def setUp(self):
+        self.ret_dir = os.getcwd()
+        os.chdir(pce_root)
+        self.source_dir = '../modules'
+        self.mod_state_dir = 'src/state/modules'
+        self.job_state_dir = 'src/state/jobs'
+        self.install_dir = 'modules'
+        self.avail_mods = ['template', 'mpi-ring', 'pi']
+
+        def not_hidden(x):
+            return not x.startswith('.')
+
+        time.sleep(2)
+        for name in os.listdir(self.install_dir):
+            shutil.rmtree('%s/%s' % (self.install_dir, name))
+        for name in filter(not_hidden, os.listdir(self.mod_state_dir)):
+            os.remove('%s/%s' % (self.mod_state_dir, name))
+        for name in filter(not_hidden, os.listdir(self.job_state_dir)):
+            os.remove('%s/%s' % (self.job_state_dir, name))
+
+    def tearDown(self):
+        os.chdir(self.ret_dir)
+
     def check_json(self, d, good=False):
         self.assertIsNotNone(d)
         self.assertIn('status_code', d.keys())
@@ -99,22 +123,6 @@ class PCEBase(unittest.TestCase):
             self.assertEqual(d['status_msg'], 'Success')
 
 class ModulesTest(PCEBase):
-    def setUp(self):
-        self.ret_dir = os.getcwd()
-        os.chdir(pce_root)
-        self.source_dir = '../modules'
-        self.state_dir = 'src/state/modules'
-        self.install_dir = 'modules'
-        self.avail_mods = ['template', 'mpi-ring']
-
-        for name in os.listdir(self.install_dir):
-            shutil.rmtree('%s/%s' % (self.install_dir, name))
-        for name in os.listdir(self.state_dir):
-            os.remove('%s/%s' % (self.state_dir, name))
-
-    def tearDown(self):
-        os.chdir(self.ret_dir)
-
     def verify_mod_install(self, id, name):
         with ModState(id) as mod_state:
             temp_path = os.path.join(pce_root, self.install_dir)
@@ -184,6 +192,10 @@ class ModulesTest(PCEBase):
                 }
             }
         }
+
+        mod_state_files = filter(lambda x: not x.startswith('.'),
+                                 os.listdir(self.mod_state_dir))
+        self.assertEqual(mod_state_files, [])
 
         # Check installed mods. Should be empty.
         r = pce_get('modules/')
@@ -510,6 +522,47 @@ class ModulesTest(PCEBase):
 
 
 class JobsTest(PCEBase):
+    def setUp(self):
+        super(JobsTest, self).setUp()
+
+        template_path = os.path.normpath(os.path.join(pce_root,
+                                                      '../modules/template'))
+        location = {
+            'type': 'local',
+            'path': template_path
+        }
+
+        # Install and deploy a module for use
+        r = pce_post('modules/', mod_id=1, mod_name='template',
+                     source_location=location)
+        self.assertEqual(r.status_code, 200)
+        time.sleep(3)
+        r = pce_post('modules/1/')
+        time.sleep(3)
+
+    def verify_launch(self, job_id, mod_id, username, run_name,
+                      script_should_exist=True):
+        with JobState(job_id) as job_state:
+            self.assertEqual(job_state['job_id'], job_id)
+            self.assertEqual(job_state['mod_id'], mod_id)
+            self.assertEqual(job_state['state'], 'Scheduled')
+            self.assertEqual(job_state['username'], username)
+            self.assertEqual(job_state['run_name'], run_name)
+            self.assertTrue(isinstance(job_state['scheduler_job_num'], int))
+            self.assertIsNone(job_state['error'])
+
+        with ModState(mod_id) as mod_state:
+            mod_name = '%s_%d' % (mod_state['mod_name'], mod_id)
+
+        folders = (username, mod_name, run_name)
+        run_dir = os.path.join(pce_root, 'users/%s/%s/%s' % folders)
+        self.assertTrue(os.path.isdir(run_dir))
+        script_exists = os.path.isfile(os.path.join(run_dir, 'script.sh'))
+        if script_should_exist:
+            self.assertTrue(script_exists)
+        else:
+            self.assertFalse(script_exists)
+
     def test_GET(self):
         r = pce_get('jobs/')
         self.assertEqual(r.status_code, 404)
@@ -526,10 +579,53 @@ class JobsTest(PCEBase):
         missing_msg_prefix = ('An invalid value or no value was received for the '
                               'following required parameter(s): ')
 
-        r = pce_post('jobs/', mod_id=1, job_id=1, username='testuser')
+        mod_state_files = filter(lambda x: not x.startswith('.'),
+                                 os.listdir(self.mod_state_dir))
+        self.assertEqual(mod_state_files, ['1'])
+        job_state_files = filter(lambda x: not x.startswith('.'),
+                                 os.listdir(self.job_state_dir))
+        self.assertEqual(job_state_files, [])
+
+        # Good post to jobs/
+        r = pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
+                     run_name='testrun1')
         self.assertEqual(r.status_code, 200)
         d = r.json()
-        self.check_json(d, good=True)
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Job launched')
+
+        # Second good post to jobs/
+        r = pce_post('jobs/', mod_id=1, job_id=2, username='testuser',
+                     run_name='testrun2')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Job launched')
+
+        # Verify stored state for launched jobs
+        time.sleep(10)
+        self.verify_launch(1, 1, 'testuser', 'testrun1')
+        self.verify_launch(2, 1, 'testuser', 'testrun2')
+
+        # Post to jobs/ with previously posted attrs
+        run_dir = os.path.join(pce_root, 'users/testuser/template_1/testrun1')
+        os.remove(os.path.join(run_dir, 'script.sh'))
+        os.remove(os.path.join(run_dir, 'output.txt'))
+        time.sleep(5)
+        r = pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
+                     run_name='testrun1')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Job launched')
+
+        # Verify stored state for relaunched job
+        time.sleep(10)
+        self.verify_launch(1, 1, 'testuser', 'testrun1',
+                           script_should_exist=False)
 
         r = pce_post('jobs/', job_id=1, username='testuser')
         self.assertEqual(r.status_code, 400)

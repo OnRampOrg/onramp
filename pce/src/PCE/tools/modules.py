@@ -68,7 +68,10 @@ class ModState(dict):
             # File already exists. Open and lock it.
             self._state_file = open(mod_state_file, 'r+')
             fcntl.lockf(self._state_file, fcntl.LOCK_EX)
-            self.update(json.loads(self._state_file.read()))
+            file_contents = self._state_file.read()
+            _logger.debug('File contents for %s:' % mod_state_file)
+            _logger.debug(file_contents)
+            self.update(json.loads(file_contents))
             self._state_file.seek(0)
 
     def __enter__(self):
@@ -257,7 +260,10 @@ def get_modules(mod_id=None):
         }
 
     results = []
-    for id in os.listdir(_mod_state_dir):
+
+    # Need to filter out hidden files because of .nfs* files.
+    for id in filter(lambda x: not x.startswith('.'),
+                     os.listdir(_mod_state_dir)):
         next_mod = {}
         with ModState(id) as mod_state:
             next_mod = copy.deepcopy(mod_state)

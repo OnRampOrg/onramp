@@ -15,6 +15,7 @@ from configobj import ConfigObj
 from validate import Validator
 
 from PCE import pce_root
+from PCE.tools.jobs import launch_job
 from PCE.tools.modules import deploy_module, get_modules, \
                               get_available_modules, install_module
 
@@ -260,7 +261,15 @@ class Jobs(_OnRampDispatcher):
             return result
         
         # Launch job.
-        return self.get_response()
+        args = (
+            data['job_id'],
+            data['mod_id'],
+            data['username'],
+            data['run_name']
+        )
+        p = Process(target=launch_job, args=args)
+        p.start()
+        return self.get_response(status_msg='Job launched')
 
     def PUT(self, id, **kwargs):
         """Update a specific job.

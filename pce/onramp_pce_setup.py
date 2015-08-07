@@ -23,6 +23,7 @@ modules_dir = 'modules'
 log_dir = 'log'
 prebuilt_dir = '../modules'
 module_state_dir = 'src/state/modules'
+job_state_dir = 'src/state/jobs'
 
 if os.path.exists(env_dir):
     print 'Server appears to be already installed.'
@@ -34,6 +35,7 @@ if os.path.exists(env_dir):
     shutil.rmtree(modules_dir, True)
     shutil.rmtree(log_dir, True)
     shutil.rmtree(module_state_dir, True)
+    shutil.rmtree(job_state_dir, True)
 
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
@@ -43,6 +45,8 @@ if not os.path.exists(modules_dir):
     os.makedirs(modules_dir)
 if not os.path.exists(module_state_dir):
     os.makedirs(module_state_dir)
+if not os.path.exists(job_state_dir):
+    os.makedirs(job_state_dir)
 
 # Setup virtual environment
 call(['virtualenv', '-p', 'python2.7', env_dir])
