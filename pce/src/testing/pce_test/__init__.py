@@ -892,7 +892,7 @@ class ModuleJobFlowTest(PCEBase):
         # Laucnh agains module currently being deployed.
         pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
                run_name='testrun1')
-        job_mod_not_deployed_response = pce_get('jobs/1/')
+        job_mod_still_not_deployed_response = pce_get('jobs/1/')
 
         # Let deploy finish.
         time.sleep(15)
@@ -965,6 +965,8 @@ class ModuleJobFlowTest(PCEBase):
         self.assertEqual(job_mod_not_installed_response.status_code, 200)
         d = job_mod_not_installed_response.json()
         self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'])
 
         print '---------------------------------'
         print 'mod_installed_response.text:'
@@ -984,6 +986,8 @@ class ModuleJobFlowTest(PCEBase):
         self.assertEqual(job_mod_not_deployed_response.status_code, 200)
         d = job_mod_not_deployed_response.json()
         self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'])
 
         print '---------------------------------'
         print 'mod_deploying_response.text:'
@@ -991,13 +995,20 @@ class ModuleJobFlowTest(PCEBase):
         self.assertEqual(mod_deploying_response.status_code, 200)
         d = mod_deploying_response.json()
         self.check_json(d, good=True)
+        self.assertIn('module', d.keys())
+        installed_path = os.path.join(pce_root, 'modules/testmodule_1')
+        self.check_mod(d['module'], source_location=location,
+                       installed_path=installed_path, mod_name='testmodule',
+                       state='Deploy in progress')
 
         print '---------------------------------'
-        print 'job_mod_not_deployed_response.text:'
-        print job_mod_not_deployed_response.text
-        self.assertEqual(job_mod_not_deployed_response.status_code, 200)
-        d = job_mod_not_deployed_response.json()
+        print 'job_mod_still_not_deployed_response.text:'
+        print job_mod_still_not_deployed_response.text
+        self.assertEqual(job_mod_still_not_deployed_response.status_code, 200)
+        d = job_mod_still_not_deployed_response.json()
         self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'])
 
         print '---------------------------------'
         print 'mod_deployed_response.text:'
@@ -1005,6 +1016,11 @@ class ModuleJobFlowTest(PCEBase):
         self.assertEqual(mod_deployed_response.status_code, 200)
         d = mod_deployed_response.json()
         self.check_json(d, good=True)
+        self.assertIn('module', d.keys())
+        installed_path = os.path.join(pce_root, 'modules/testmodule_1')
+        self.check_mod(d['module'], source_location=location,
+                       installed_path=installed_path, mod_name='testmodule',
+                       state='Module ready')
 
         print '---------------------------------'
         print 'job_launching_response.text:'
@@ -1012,6 +1028,8 @@ class ModuleJobFlowTest(PCEBase):
         self.assertEqual(job_launching_response.status_code, 200)
         d = job_launching_response.json()
         self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], state='Setting up launch')
 
         print '---------------------------------'
         print 'job_preprocessing_response.text:'
@@ -1019,6 +1037,8 @@ class ModuleJobFlowTest(PCEBase):
         self.assertEqual(job_preprocessing_response.status_code, 200)
         d = job_preprocessing_response.json()
         self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], state='Preprocessing')
 
         print '---------------------------------'
         print 'job_still_preprocessing_response.text:'
@@ -1026,6 +1046,8 @@ class ModuleJobFlowTest(PCEBase):
         self.assertEqual(job_still_preprocessing_response.status_code, 200)
         d = job_still_preprocessing_response.json()
         self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], state='Preprocessing')
 
         print '---------------------------------'
         print 'job_running_response.text:'
@@ -1033,6 +1055,8 @@ class ModuleJobFlowTest(PCEBase):
         self.assertEqual(job_running_response.status_code, 200)
         d = job_running_response.json()
         self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], state='Running', check_scheduler_job_num=True)
 
         print '---------------------------------'
         print 'job_still_running_response.text:'
@@ -1040,6 +1064,8 @@ class ModuleJobFlowTest(PCEBase):
         self.assertEqual(job_still_running_response.status_code, 200)
         d = job_still_running_response.json()
         self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], state='Running', check_scheduler_job_num=True)
 
         print '---------------------------------'
         print 'job_postprocessing_response.text:'
@@ -1047,6 +1073,8 @@ class ModuleJobFlowTest(PCEBase):
         self.assertEqual(job_postprocessing_response.status_code, 200)
         d = job_postprocessing_response.json()
         self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], state='Postprocessing')
 
         print '---------------------------------'
         print 'job_still_postprocessing_response.text:'
@@ -1054,6 +1082,8 @@ class ModuleJobFlowTest(PCEBase):
         self.assertEqual(job_postprocessing_response.status_code, 200)
         d = job_still_postprocessing_response.json()
         self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], state='Postprocessing')
 
         print '---------------------------------'
         print 'job_done_response.text:'
@@ -1061,8 +1091,5 @@ class ModuleJobFlowTest(PCEBase):
         self.assertEqual(job_done_response.status_code, 200)
         d = job_done_response.json()
         self.check_json(d, good=True)
-
-        print '---------------------------------'
-        print 'Dont forget to check mod_status_output when approprate'
-
-        self.assertTrue(False)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], state='Done')
