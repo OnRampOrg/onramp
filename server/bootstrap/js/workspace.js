@@ -1,13 +1,16 @@
 function PCE (data) {
 	var self = this;
 
-	self.ID = data['ID'];
-	self.name = data['name'];
-	self.status = data['status'];
-	self.nodes = data['nodes'];
-	self.corespernode = data['corespernode'];
-	self.mempernode = data['mempernode'];
+	self.ID = data['pce_id'];
+	self.name = data['pce_name'];
+	self.status = data['state'];
+	//self.nodes = data['nodes'];
+	//self.corespernode = data['corespernode'];
+	//self.mempernode = data['mempernode'];
 	self.description = data['description'];
+	self.location = data['location'];
+	self.modules = [];
+
 
 }
 
@@ -25,13 +28,11 @@ function Job(data){
 
 function Module(data){
 	var self = this;
-	self.mID = data['ID'];
-	self.name = data['name'];
-	self.desc = data['details'];
+	self.mID = data['module_id'];
+	self.name = data['module_name'];
+	self.desc = data['description'];
 	self.formFields = ko.observableArray();
-	for(k in data['formFields']){
-		self.formFields.push([k, data['formFields'][k]]);
-	}
+	self.PCEs = [];
 }
 
 
@@ -40,6 +41,7 @@ function Workspace(data){
 	self.wID = data['workspace_id'];
 	self.name = data['workspace_name'];
 	self.desc = data['description'];
+
 
 	self.captureWSID = function () {
 
@@ -67,6 +69,9 @@ function OnrampWorkspaceViewModel () {
 	self.Jobslist = ko.observableArray();
 	self.Modulelist = ko.observableArray();
 
+	self.allPCEs = [];
+	self.allModules = [];
+
 	self.welcome1 = ko.observable("not loaded yet");
 
 	self.selectedPCE = ko.observable();
@@ -91,97 +96,88 @@ function OnrampWorkspaceViewModel () {
 			self.workspaceInfo(new Workspace(conv_data));
 			self.welcome1(self.username + "'s " + self.workspaceInfo().name + " workspace");
 		}
-	);
+		);
 
-	$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/workspaces/" + self.workspaceID + "/pcemodulepairs?apikey=" + JSON.parse(self.auth_data).apikey,
-	//self.auth_data,
-	function (data){
-		// {"status": 0,
-		//  "status_message": "Success",
-		//  "users": {
-		//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-		//    "data": [2, "alice", "", "", 0, 1]}}
-		console.log(JSON.stringify(data));
-		for (var x = 0; x < data.users.data.length; x++){
-			var raw = data.users.data[x];
-			console.log(raw);
-			var conv_data = {};
-			for(var i = 0; i < data.users.fields.length; i++){
-				console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
-				conv_data[data.users.fields[i]] = raw[i];
+			$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/workspaces/" + self.workspaceID + "/pcemodulepairs?apikey=" + JSON.parse(self.auth_data).apikey,
+			//self.auth_data,
+			function (data){
+				// {"status": 0,
+				//  "status_message": "Success",
+				//  "users": {
+				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+				//    "data": [2, "alice", "", "", 0, 1]}}
+				console.log(JSON.stringify(data));
+				var pairs = data.workspaces.data;
+				var fields = data.workspaces.fields;
+				for(var i = 0; i < pairs.length; i++){
+					var pce = pairs[i][0];
+					var mod = pairs[i][2];
+					// get data for new pce and/or module
+					if(!self.allPCEs[pce]){
+						$.getJSON("http://flux.cs.uwlax.edu/onramp/api/pces/" + currPCEs[i] + "?apikey=" + JSON.parse(self.auth_data).apikey,
+						function(data){
+							var raw = data.pces.data;
+							console.log(raw);
+							var conv_data = {};
+							for(var i = 0; i < data.pces.fields.length; i++){
+								console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
+								conv_data[data.pces.fields[i]] = raw[i];
+							}
+							self.allPCEs[pce] = new PCE(conv_data);
+							self.allPCEs[pce].modules.push(mod);
+						}
+					);
+				}
+				else {
+					self.allPCEs[pce].modules.push(mod);
+				}
+				if(!self.allModules[mod]){
+					$.getJSON("http://flux.cs.uwlax.edu/onramp/api/modules/" + currMods[i] + "?apikey=" + JSON.parse(self.auth_data).apikey,
+					function(data){
+						var raw = data.modules.data;
+						console.log(raw);
+						var conv_data = {};
+						for(var i = 0; i < data.modules.fields.length; i++){
+							console.log("adding: " + data.modules.fields[i] + " = " + raw[i]);
+							conv_data[data.modules.fields[i]] = raw[i];
+						}
+						self.allModules[mod] = new Module(conv_data);
+						self.allModules[mod].PCEs.push(pce);
+					}
+				);
 			}
-			self.Jobslist.push(new Job(conv_data));
+			else {
+				self.allModules[mod].PCEs.push(pce);
+			}
 		}
 	}
 );
-
-
-// some hard coded data for now...
-
-// get workspace info
-
-// get PCE list
-self.PCElist.push(new PCE({'ID': 1,
-'name': 'flux',
-'description':'cluster',
-'status':'up',
-'nodes':4,
-'corespernode':16,
-'mempernode':'8GB'}));
-
-self.PCElist.push(new PCE({'ID': 1,
-'name': 'brie',
-'description':'LittleFe',
-'status':'up',
-'nodes':6,
-'corespernode':2,
-'mempernode':'1GB'}));
-
-self.PCElist.push(new PCE({'ID': 3,
-'name': 'gouda',
-'description':'LittleFe',
-'status':'up',
-'nodes':6,
-'corespernode':2,
-'mempernode':'0.5GB'}));
-
-// get job list
-self.Jobslist.push(new Job({'JobID' : 2,
-'Workspace' : 'default',
-'PCE' : 'flux',
-'Module' : 'Hello World',
-'RunName' :'test1',
-'Status' :'Running',
-'Runtime' : '0:00'}));
-
-// get module list
-self.Modulelist.push(new Module({'ID':1,
-'name':'Hello MPI',
-'details':'a first parallel program',
-'formFields':{
-	'runname':'',
-	'nodes':1,
-	'tasks':4}}));
-});
-
-
+}
+);
 
 
 
 // Behaviors
 self.selectPCE = function (PCE) {
 	self.selectedPCE(PCE);
-	self.selectedModule(null);
+	//self.selectedModule(null);
+	self.Modulelist.removeAll();
+	for(mod in PCE.modules){
+		self.Modulelist.push(mod);
+	}
 }
 
 self.selectModule = function (m) {
 	self.selectedModule(m);
+	self.PCElist.removeAll();
+	for(pce in m.PCEs){
+		self.PCElist.push(pce);
+	}
 }
 
 
 self.changePCE = function () {
 	self.selectedPCE(null);
-	self.selectedModule(null);
 }
 
 self.changeModule = function () {
@@ -264,5 +260,6 @@ $.alpaca({
 
 
 }
+
 
 ko.applyBindings(new OnrampWorkspaceViewModel());
