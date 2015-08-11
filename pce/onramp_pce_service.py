@@ -198,6 +198,14 @@ def _mod_test():
     deploy_path = abspath(expanduser(conf['deploy_path']))
     module_path = abspath(expanduser(conf['module_path']))
 
+    if os.path.exists(deploy_path):
+        print ('The deploy path exists. Would you like to remove the old path and continue?')
+        response = raw_input('(Y)es or (N)o? ')
+        if response == 'Y' or response == 'y':
+            shutil.rmtree(deploy_path)
+        else:
+            sys.exit('Aborted')
+
     shutil.copytree(module_path, deploy_path)
 
     os.chdir(deploy_path)
