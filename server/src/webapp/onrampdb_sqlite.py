@@ -9,6 +9,7 @@ import json
 import onrampdb
 import sqlite3
 from threading import Lock
+from time import sleep
 
 class Database_sqlite(onrampdb.Database):
     _name = '[DB SQLite]'
@@ -32,9 +33,11 @@ class Database_sqlite(onrampdb.Database):
 
     def _connect(self):
         #self._logger.debug(self._name + " Connecting...")
+        # Need a lock to protect a re-entrant thread situation
+        self._lock.acquire()
+
         self._connection = sqlite3.connect( self._auth['filename'] )
         self._cursor = self._connection.cursor()
-        self._lock.acquire()
 
     def is_connected(self):
         is_connected = self._connection is not None
@@ -49,6 +52,8 @@ class Database_sqlite(onrampdb.Database):
         self._connection.close()
         self._connection = None
         self._cursor = None
+
+        # Need a lock to protect a re-entrant thread situation
         self._lock.release()
 
     #######################################################################
