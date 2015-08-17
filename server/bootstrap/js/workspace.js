@@ -1,7 +1,7 @@
 function PCE (data) {
 	var self = this;
 
-	self.ID = data['pce_id'];
+	self.id = data['pce_id'];
 	self.name = data['pce_name'];
 	self.status = data['state'];
 	//self.nodes = data['nodes'];
@@ -9,14 +9,14 @@ function PCE (data) {
 	//self.mempernode = data['mempernode'];
 	self.description = data['description'];
 	self.location = data['location'];
-	self.modules = [];
+	self.modules = ko.observableArray();
 
 
 }
 
 function Job(data){
 	var self = this;
-	self.jID = data['job_id'];
+	self.id = data['job_id'];
 	self.user = data['user_id'];
 	self.ws = data['workspace_id'];
 	self.pce = data['pce_id'];
@@ -28,17 +28,23 @@ function Job(data){
 
 function Module(data){
 	var self = this;
-	self.mID = data['module_id'];
+	self.id = data['module_id'];
 	self.name = data['module_name'];
 	self.desc = data['description'];
 	self.formFields = ko.observableArray();
-	self.PCEs = [];
+	self.PCEs = ko.observableArray();
+
+	self.addDefaultFormFields = function () {
+		this.formFields.push({"field": "name", "value": "test"});
+		this.formFields.push({"field": "nodes", "value": 1});
+		this.formFields.push({"field": "processes", "value": 4});
+	}
 }
 
 
 function Workspace(data){
 	var self = this;
-	self.wID = data['workspace_id'];
+	self.id = data['workspace_id'];
 	self.name = data['workspace_name'];
 	self.desc = data['description'];
 
@@ -80,26 +86,26 @@ function OnrampWorkspaceViewModel () {
 	$(document).ready( function () {
 		// get data from server
 		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/workspaces/" + self.workspaceID + "?apikey=" + JSON.parse(self.auth_data).apikey,
-		function (data){
-			// {"status": 0,
-			//  "status_message": "Success",
-			//  "users": {
-			//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-			//    "data": [2, "alice", "", "", 0, 1]}}
-			var raw = data.workspaces.data;
-			console.log(raw);
-			var conv_data = {};
-			for(var i = 0; i < data.workspaces.fields.length; i++){
-				console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
-				conv_data[data.workspaces.fields[i]] = raw[i];
+			function (data){
+				// {"status": 0,
+				//  "status_message": "Success",
+				//  "users": {
+				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+				//    "data": [2, "alice", "", "", 0, 1]}}
+				var raw = data.workspaces.data;
+				console.log(raw);
+				var conv_data = {};
+				for(var i = 0; i < data.workspaces.fields.length; i++){
+					console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
+					conv_data[data.workspaces.fields[i]] = raw[i];
+				}
+				self.workspaceInfo(new Workspace(conv_data));
+				self.welcome1(self.username + "'s " + self.workspaceInfo().name + " workspace");
 			}
-			self.workspaceInfo(new Workspace(conv_data));
-			self.welcome1(self.username + "'s " + self.workspaceInfo().name + " workspace");
-		}
 		);
 
-			$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/workspaces/" + self.workspaceID + "/pcemodulepairs?apikey=" + JSON.parse(self.auth_data).apikey,
-			//self.auth_data,
+		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/workspaces/" + self.workspaceID + "/pcemodulepairs?apikey=" + JSON.parse(self.auth_data).apikey,
+		//self.auth_data,
 			function (data){
 				// {"status": 0,
 				//  "status_message": "Success",
@@ -109,87 +115,169 @@ function OnrampWorkspaceViewModel () {
 				console.log(JSON.stringify(data));
 				var pairs = data.workspaces.data;
 				var fields = data.workspaces.fields;
+				var setOfPCEIDs = [];
+				var setOfModIDs = [];
 				for(var i = 0; i < pairs.length; i++){
-					var pce = pairs[i][0];
-					var mod = pairs[i][2];
+					self.pce = pairs[i][0];
+					self.mod = pairs[i][2];
 					// get data for new pce and/or module
-					if(!self.allPCEs[pce]){
-						$.getJSON("http://flux.cs.uwlax.edu/onramp/api/pces/" + currPCEs[i] + "?apikey=" + JSON.parse(self.auth_data).apikey,
+					console.log("PCE - Mod id pair: " + self.pce + " - " + self.mod);
+					if(setOfPCEIDs.indexOf(self.pce) == -1){
+						setOfPCEIDs.push(self.pce);
+					}
+					if(setOfModIDs.indexOf(self.mod) == -1){
+						setOfModIDs.push(self.mod);
+					}
+				}
+
+				// get data for the set of PCEs
+				for(var i = 0; i < setOfPCEIDs.length; i++){
+					$.getJSON("http://flux.cs.uwlax.edu/onramp/api/pces/" + setOfPCEIDs[i] + "?apikey=" + JSON.parse(self.auth_data).apikey,
 						function(data){
 							var raw = data.pces.data;
 							console.log(raw);
 							var conv_data = {};
-							for(var i = 0; i < data.pces.fields.length; i++){
-								console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
-								conv_data[data.pces.fields[i]] = raw[i];
+							for(var j = 0; j < data.pces.fields.length; j++){
+								console.log("adding: " + data.pces.fields[j] + " = " + raw[j] + " (" + (raw[j] + 1 ) + ")");
+								conv_data[data.pces.fields[j]] = raw[j];
 							}
-							self.allPCEs[pce] = new PCE(conv_data);
-							self.allPCEs[pce].modules.push(mod);
+							var newpce = new PCE(conv_data);
+							for(var j = 0; j < pairs.length; j++){
+								var p = pairs[j][0];
+								var m = pairs[j][2];
+								if(p == raw[0]){
+									newpce.modules.push(m);
+								}
+							}
+							self.allPCEs.push(newpce);
+							self.PCElist.push(newpce);
 						}
 					);
 				}
-				else {
-					self.allPCEs[pce].modules.push(mod);
-				}
-				if(!self.allModules[mod]){
-					$.getJSON("http://flux.cs.uwlax.edu/onramp/api/modules/" + currMods[i] + "?apikey=" + JSON.parse(self.auth_data).apikey,
-					function(data){
-						var raw = data.modules.data;
-						console.log(raw);
-						var conv_data = {};
-						for(var i = 0; i < data.modules.fields.length; i++){
-							console.log("adding: " + data.modules.fields[i] + " = " + raw[i]);
-							conv_data[data.modules.fields[i]] = raw[i];
+
+				// get data for the set of Modules
+				for(var i = 0; i < setOfModIDs.length; i++){
+					$.getJSON("http://flux.cs.uwlax.edu/onramp/api/modules/" + setOfModIDs[i] + "?apikey=" + JSON.parse(self.auth_data).apikey,
+						function(data){
+							var raw = data.modules.data;
+							console.log(raw);
+							var conv_data = {};
+							for(var j = 0; j < data.modules.fields.length; j++){
+								console.log("adding: " + data.modules.fields[j] + " = " + raw[j]);
+								conv_data[data.modules.fields[j]] = raw[j];
+							}
+							var newmod = new Module(conv_data);
+							for(var j = 0; j < pairs.length; j++){
+								var p = pairs[j][0];
+								var m = pairs[j][2];
+								if(m == raw[0]){
+									newmod.PCEs.push(p);
+								}
+							}
+							// need to replace with real form fields
+							newmod.addDefaultFormFields();
+							self.allModules.push(newmod);
+							self.Modulelist.push(newmod);
 						}
-						self.allModules[mod] = new Module(conv_data);
-						self.allModules[mod].PCEs.push(pce);
-					}
-				);
+					);
+				}
 			}
-			else {
-				self.allModules[mod].PCEs.push(pce);
+		);
+	});
+
+
+
+	// Behaviors
+	self.selectPCE = function (PCE) {
+		self.selectedPCE(PCE);
+		console.log("Selected PCE: " + PCE.name + " (" + PCE.modules().length + ")");
+		//self.selectedModule(null);
+		if(! self.selectedModule()){
+			self.Modulelist.removeAll();
+			for(var i = 0; i < PCE.modules().length; i++){
+				console.log("Adding module id " + PCE.modules()[i] );
+				var mm = self.findById(self.allModules, PCE.modules()[i])
+				if(mm){
+					self.Modulelist.push(mm);
+				}
+				else {
+					console.log("can't find module id " + (PCE.modules()[i] + 1));
+				}
 			}
 		}
+		self.selectedPCE(PCE);
 	}
-);
-}
-);
 
-
-
-// Behaviors
-self.selectPCE = function (PCE) {
-	self.selectedPCE(PCE);
-	//self.selectedModule(null);
-	self.Modulelist.removeAll();
-	for(mod in PCE.modules){
-		self.Modulelist.push(mod);
+	self.selectModule = function (m) {
+		self.selectedModule(m);
+		console.log("Selected Module: " + m.name);
+		console.log(" (" + m.PCEs().length + ")");
+		if(! self.selectedPCE()){
+			self.PCElist.removeAll();
+			for(var i = 0; i < m.PCEs().length; i++){
+				console.log("Adding pce id " + m.PCEs()[i] );
+				self.PCElist.push(self.findById(self.allPCEs, m.PCEs()[i]));
+			}
+		}
+		self.selectedModule(m);
 	}
-}
 
-self.selectModule = function (m) {
-	self.selectedModule(m);
-	self.PCElist.removeAll();
-	for(pce in m.PCEs){
-		self.PCElist.push(pce);
+
+	self.changePCE = function () {
+
+		//self.selectedModule(null);
+		// display all PCEs
+		self.PCElist.removeAll();
+		if(self.selectedModule()){
+			console.log("Changing PCE, selected module is $$$$$" + self.selectedModule().name);
+			for(var i = 0; i < self.selectedModule().PCEs().length; i++){
+				self.PCElist.push(self.findById(self.allPCEs, self.selectedModule().PCEs()[i]));
+			}
+		}
+		else {
+			console.log("Changing PCE, selected module is null");
+			self.Modulelist.removeAll();
+			for(var i = 0; i < self.allPCEs.length; i++){
+				self.PCElist.push(self.allPCEs[i]);
+			}
+			for(var i = 0; i < self.allModules.length; i++){
+				console.log("adding module " + self.allModules[i] + " to the list");
+				self.Modulelist.push(self.allModules[i]);
+			}
+		}
+		self.selectedPCE(null);
 	}
-}
 
+	self.changeModule = function () {
 
-self.changePCE = function () {
-	self.selectedPCE(null);
-}
-
-self.changeModule = function () {
-	self.selectedModule(null);
-}
-
-this.launchJob = function (formData){
-	alert("Launching a job with the following data: " + formData);
-	for(k in formData.formFields){
-		console.log(k + " : " + formData[k]);
+		self.Modulelist.removeAll();
+		if(self.selectedPCE()){
+			console.log("Changing module, $$$$selected PCE is " + self.selectedPCE().name );
+			for(var i = 0; i < self.selectedPCE().modules().length; i++){
+					self.Modulelist.push(self.findById(self.allModules, self.selectedPCE().modules()[i]));
+			}
+		}
+		else{
+			self.PCElist.removeAll();
+			console.log("Changing module, selected PCE is null" );
+			for(var i = 0; i < self.allModules.length; i++){
+				console.log("adding module " + self.allModules[i] + " to the list");
+				self.Modulelist.push(self.allModules[i]);
+			}
+			for(var i = 0; i < self.allPCEs.length; i++){
+				self.PCElist.push(self.allPCEs[i]);
+			}
+		}
+		self.selectedModule(null);
 	}
-}
+
+
+	this.launchJob = function (formData){
+		alert("Launching a job with the following data: " + formData.name);
+		for(var i = 0; i < formData.formFields().length; i++){
+			console.log(formData.formFields()[i].field + " : " + formData.formFields()[i].value);
+		}
+	}
 /*
 this.alpacaForm = function (formData) {
 $.alpaca({
@@ -257,6 +345,17 @@ $.alpaca({
 // load data from server
 
 
+
+// helper functions
+self.findById = function (thisList, id){
+	for(var i = 0; i < thisList.length; i++){
+		if(thisList[i].id == id){
+			return thisList[i];
+
+		}
+	}
+	return null;
+}
 
 
 }
