@@ -273,10 +273,39 @@ function OnrampWorkspaceViewModel () {
 
 
 	this.launchJob = function (formData){
-		alert("Launching a job with the following data: " + formData.name);
+		var data_packet =
+							JSON.stringify({"auth": JSON.parse(self.auth_data),
+								"info": {
+									"workspace_id": self.workspaceID,
+									"module_id" : self.selectedModule().id,
+									"pce_id" : self.selectedPCE().id,
+									"user_id" : parseInt(self.userID),
+									"job_name" : formData.formFields()[0].value}});
 		for(var i = 0; i < formData.formFields().length; i++){
 			console.log(formData.formFields()[i].field + " : " + formData.formFields()[i].value);
 		}
+		// POST to jobs
+		$.ajax({
+			type: "POST",
+			url: "http://flux.cs.uwlax.edu/onramp/api/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+			data: data_packet,
+			complete: function (data){
+				// create confirm with job id info
+				if(data.status == 200){
+					console.log(JSON.stringify(data));
+					if(window.confirm("Job created.  ID " + JSON.parse(data.responseText).job.job_id + "\nClick OK to view job results page.  Cancel to stay on this page.")){
+						window.location.href = "job_details.html";
+					}
+					// else do nothing
+				}
+				else{
+					alert("Something went wrong when connecting to the server.  Status code: " + data.status);
+				}
+			},
+			dataType: 'application/json',
+			contentType: 'application/json'
+		});
+
 	}
 /*
 this.alpacaForm = function (formData) {
