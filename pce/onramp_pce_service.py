@@ -301,6 +301,8 @@ def _mod_test():
             print 'Simulating generation of onramp_runparams.ini'
         shutil.copyfile(custom_runparams, 'onramp_runparams.ini')
 
+    time.sleep(2)
+
     # Preprocess.
     result = run_section(script='bin/onramp_preprocess.py',
                          test=post_preprocess_test)
