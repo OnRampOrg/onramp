@@ -267,6 +267,12 @@ class Jobs(_OnRampDispatcher):
             data['username'],
             data['run_name']
         )
+
+        if 'ini_params' in data.keys():
+            args += (data['ini_params'],)
+        else:
+            args += (None,)
+
         p = Process(target=launch_job, args=args)
         p.start()
         return self.get_response(status_msg='Job launched')

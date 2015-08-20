@@ -90,7 +90,7 @@ class JobState(dict):
         self._state_file.close()
 
 
-def launch_job(job_id, mod_id, username, run_name):
+def launch_job(job_id, mod_id, username, run_name, run_params):
     """Schedule job launch using system batch scheduler as configured in
     onramp_pce_config.ini.
 
@@ -147,6 +147,17 @@ def launch_job(job_id, mod_id, username, run_name):
     run_dir = os.path.join(user_mod_dir, run_name)
     if not os.path.isdir(run_dir):
         shutil.copytree(proj_loc, run_dir)
+    if run_params:
+        spec = os.path.join(run_dir, 'config/onramp_uioptions.spec')
+        params = ConfigObj(run_params, configspec=spec)
+        result = params.validate(Validator())
+        if result:
+            with open(os.path.join(run_dir, 'onramp_runparams.ini')) as f:
+                params.write(f)
+        else:
+            msg = 'Runparams failed validation'
+            _logger.warn(msg)
+            return (-1, msg)
 
     ret_dir = os.getcwd()
     os.chdir(run_dir)
