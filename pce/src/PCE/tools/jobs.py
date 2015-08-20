@@ -148,6 +148,7 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
     if not os.path.isdir(run_dir):
         shutil.copytree(proj_loc, run_dir)
     if run_params:
+        _logger.debug('Handling run_params')
         spec = os.path.join(run_dir, 'config/onramp_uioptions.spec')
         params = ConfigObj(run_params, configspec=spec)
         result = params.validate(Validator())

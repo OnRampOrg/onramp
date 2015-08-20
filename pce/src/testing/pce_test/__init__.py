@@ -541,7 +541,7 @@ class JobsTest(PCEBase):
         time.sleep(3)
 
     def verify_launch(self, job_id, mod_id, username, run_name,
-                      script_should_exist=True):
+                      script_should_exist=True, runparams_should_exist=False):
         with JobState(job_id) as job_state:
             self.assertEqual(job_state['job_id'], job_id)
             self.assertEqual(job_state['mod_id'], mod_id)
@@ -562,6 +562,13 @@ class JobsTest(PCEBase):
             self.assertTrue(script_exists)
         else:
             self.assertFalse(script_exists)
+        runparams_file = os.path.join(run_dir, 'onramp_runparams.ini')
+        print runparams_file
+        runparams_exists = os.path.isfile(runparams_file)
+        if runparams_should_exist:
+            self.assertTrue(runparams_exists)
+        else:
+            self.assertFalse(runparams_exists)
 
     def test_GET(self):
         r = pce_get('jobs/')
