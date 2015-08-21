@@ -18,6 +18,7 @@ import logging
 import os
 import shutil
 import sys
+import time
 from multiprocessing import Process
 from subprocess import CalledProcessError, call, check_output
 
@@ -130,7 +131,9 @@ def launch_job(job_id, mod_id, username, run_name):
         job_state['state'] = 'Setting up launch'
         job_state['error'] = None
         job_state['mod_status_output'] = None
+        _logger.debug('Waiting on ModState at: %s' % time.time())
         with ModState(mod_id) as mod_state:
+            _logger.debug('Done waiting on ModState at: %s' % time.time())
             if ('state' not in mod_state.keys()
                 or mod_state['state'] != 'Module ready'):
                 msg = 'Module not ready'
@@ -253,7 +256,10 @@ def _get_module_status_output(job_id):
 def _build_job(job_id):
     status_check_states = ['Scheduled', 'Queued', 'Running']
     with JobState(job_id) as job_state:
+        _logger.debug('Building at %s' % time.time())
         if 'state' not in job_state.keys():
+            _logger.debug('No state at %s' % time.time())
+            _logger.debug('job_state keys: %s' % job_state.keys())
             return {}
 
         if job_state['state'] in status_check_states:

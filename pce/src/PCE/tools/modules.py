@@ -21,6 +21,7 @@ import logging
 import os
 import shutil
 import sys
+import time
 from subprocess import CalledProcessError, check_output
 
 from PCE import pce_root
@@ -258,6 +259,7 @@ def get_modules(mod_id=None):
         with ModState(mod_id) as mod_state:
             if 'state' in mod_state.keys():
                 return copy.deepcopy(mod_state)
+        _logger.debug('Mod does not exist at: %s' % time.time())
         return {
             'mod_id': mod_id,
             'mod_name': None,
