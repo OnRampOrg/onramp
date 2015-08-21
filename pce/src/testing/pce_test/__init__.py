@@ -831,7 +831,7 @@ class ModuleJobFlowTest(PCEBase):
         self.assertEqual(job['mod_id'], mod_id)
         self.assertEqual(job['mod_status_output'], mod_status_output)
         if check_scheduler_job_num:
-            self.assertTrue(isinstance(job['scheduler_job_num']), int)
+            self.assertTrue(isinstance(job['scheduler_job_num'], int))
         else:
             self.assertIsNone(job['scheduler_job_num'])
 
@@ -869,6 +869,7 @@ class ModuleJobFlowTest(PCEBase):
         # Checkout.
         pce_post('modules/', mod_id=1, mod_name='testmodule',
                source_location=location)
+        time.sleep(1)
         mod_installing_response = pce_get('modules/1/')
 
         # Launch against module currently being installed.
@@ -1029,7 +1030,7 @@ class ModuleJobFlowTest(PCEBase):
         d = job_launching_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        self.check_job(d['job'], state='Setting up launch')
+        self.check_job(d['job'], state='Setting up launch', error=None)
 
         print '---------------------------------'
         print 'job_preprocessing_response.text:'
@@ -1038,7 +1039,7 @@ class ModuleJobFlowTest(PCEBase):
         d = job_preprocessing_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        self.check_job(d['job'], state='Preprocessing')
+        self.check_job(d['job'], state='Preprocessing', error=None)
 
         print '---------------------------------'
         print 'job_still_preprocessing_response.text:'
@@ -1047,7 +1048,7 @@ class ModuleJobFlowTest(PCEBase):
         d = job_still_preprocessing_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        self.check_job(d['job'], state='Preprocessing')
+        self.check_job(d['job'], state='Preprocessing', error=None)
 
         print '---------------------------------'
         print 'job_running_response.text:'
@@ -1056,7 +1057,9 @@ class ModuleJobFlowTest(PCEBase):
         d = job_running_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        self.check_job(d['job'], state='Running', check_scheduler_job_num=True)
+        output = 'Output from bin/onramp_status.py\n'
+        self.check_job(d['job'], state='Running', check_scheduler_job_num=True,
+                       error=None, mod_status_output=output)
 
         print '---------------------------------'
         print 'job_still_running_response.text:'
@@ -1065,7 +1068,9 @@ class ModuleJobFlowTest(PCEBase):
         d = job_still_running_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        self.check_job(d['job'], state='Running', check_scheduler_job_num=True)
+        output = 'Output from bin/onramp_status.py\n'
+        self.check_job(d['job'], state='Running', check_scheduler_job_num=True,
+                       error=None, mod_status_output=output)
 
         print '---------------------------------'
         print 'job_postprocessing_response.text:'
@@ -1074,7 +1079,8 @@ class ModuleJobFlowTest(PCEBase):
         d = job_postprocessing_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        self.check_job(d['job'], state='Postprocessing')
+        self.check_job(d['job'], state='Postprocessing',
+                       check_scheduler_job_num=True, error=None)
 
         print '---------------------------------'
         print 'job_still_postprocessing_response.text:'
@@ -1083,7 +1089,8 @@ class ModuleJobFlowTest(PCEBase):
         d = job_still_postprocessing_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        self.check_job(d['job'], state='Postprocessing')
+        self.check_job(d['job'], state='Postprocessing',
+                       check_scheduler_job_num=True, error=None)
 
         print '---------------------------------'
         print 'job_done_response.text:'
@@ -1092,4 +1099,5 @@ class ModuleJobFlowTest(PCEBase):
         d = job_done_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        self.check_job(d['job'], state='Done')
+        self.check_job(d['job'], state='Done',
+                       check_scheduler_job_num=True, error=None)
