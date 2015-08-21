@@ -19,7 +19,7 @@ import os
 import shutil
 import sys
 from multiprocessing import Process
-from subprocess import CalledProcessError, check_output
+from subprocess import CalledProcessError, call, check_output
 
 from configobj import ConfigObj
 from validate import Validator
@@ -68,7 +68,18 @@ class JobState(dict):
             # File already exists. Open and lock it.
             self._state_file = open(job_state_file, 'r+')
             fcntl.lockf(self._state_file, fcntl.LOCK_EX)
-            self.update(json.loads(self._state_file.read()))
+            file_contents = self._state_file.read()
+            _logger.debug('File contents for %s:' % job_state_file)
+            _logger.debug(file_contents)
+
+            try:
+                data = json.loads(file_contents)
+                # Valid json. Load it into self.
+                self.update(data)
+            except ValueError:
+                # Invalid json. Ignore (will be overwritten by _close().
+                pass
+
             self._state_file.seek(0)
 
     def __enter__(self):
@@ -118,19 +129,18 @@ def launch_job(job_id, mod_id, username, run_name):
         job_state['scheduler_job_num'] = None
         job_state['state'] = 'Setting up launch'
         job_state['error'] = None
-
-    # Get module attrs.
-    with ModState(mod_id) as mod_state:
-        if ('state' not in mod_state.keys()
-            or mod_state['state'] != 'Module ready'):
-            msg = 'Module not ready'
-            with JobState(job_id) as job_state:
+        job_state['mod_status_output'] = None
+        with ModState(mod_id) as mod_state:
+            if ('state' not in mod_state.keys()
+                or mod_state['state'] != 'Module ready'):
+                msg = 'Module not ready'
                 job_state['state'] = 'Launch failed'
                 job_state['error'] = msg
-            _logger.error(msg)
-            return (-1, 'Module not ready')
-        proj_loc = mod_state['installed_path']
-        mod_name = mod_state['mod_name']
+                _logger.warn(msg)
+                _logger.warn('mod_state: %s' % str(mod_state))
+                return (-1, 'Module not ready')
+            proj_loc = mod_state['installed_path']
+            mod_name = mod_state['mod_name']
 
     if not os.path.isdir(proj_loc):
         msg = 'Project location does not exist'
@@ -141,7 +151,7 @@ def launch_job(job_id, mod_id, username, run_name):
     user_dir = os.path.join(os.path.join(pce_root, 'users'), username)
     if not os.path.isdir(user_dir):
         os.mkdir(user_dir)
-    user_mod_dir = os.path.join(user_dir, '%s_%s' % (mod_name, mod_id))
+    user_mod_dir = os.path.join(user_dir, '%s_%d' % (mod_name, mod_id))
     if not os.path.isdir(user_mod_dir):
         os.mkdir(user_mod_dir)
     run_dir = os.path.join(user_mod_dir, run_name)
@@ -178,7 +188,6 @@ def launch_job(job_id, mod_id, username, run_name):
 
     # Write batch script.
     with open('script.sh', 'w') as f:
-        args =(username, mod_name, mod_id, job_id)
         f.write(scheduler.get_batch_script(run_name))
 
     # Schedule job.
@@ -199,6 +208,90 @@ def launch_job(job_id, mod_id, username, run_name):
     os.chdir(ret_dir)
     return (0, 'Job scheduled')
 
+def _job_postprocess(job_id):
+    _logger.info('PCE.tools.jobs._job_postprocess() called')
+    with JobState(job_id) as job_state:
+        username = job_state['username']
+        mod_id = job_state['mod_id']
+        run_name = job_state['run_name']
+    with ModState(mod_id) as mod_state:
+        mod_name = mod_state['mod_name']
+    args = (username, mod_name, mod_id, run_name)
+    run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % args)
+    ret_dir = os.getcwd()
+    os.chdir(run_dir)
+    _logger.debug('Calling bin/onramp_postprocess.py')
+    call([os.path.join(pce_root, 'src/env/bin/python'),
+          'bin/onramp_postprocess.py'])
+    os.chdir(ret_dir)
+    with JobState(job_id) as job_state:
+        job_state['state'] = 'Done'
+        job_state['error'] = None
+
+def _get_module_status_output(job_id):
+    with JobState(job_id) as job_state:
+        username = job_state['username']
+        mod_id = job_state['mod_id']
+        run_name = job_state['run_name']
+    with ModState(mod_id) as mod_state:
+        mod_name = mod_state['mod_name']
+    args = (username, mod_name, mod_id, run_name)
+    run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % args)
+    ret_dir = os.getcwd()
+    os.chdir(run_dir)
+    _logger.debug('Calling bin/onramp_status.py')
+    try:
+        output = check_output([os.path.join(pce_root, 'src/env/bin/python'),
+                               'bin/onramp_status.py'])
+    except CalledProcessError as e:
+        output = 'bin/onramp_status.py exited with nonzero status.'
+    finally:
+        os.chdir(ret_dir)
+
+    return output
+
+def _build_job(job_id):
+    status_check_states = ['Scheduled', 'Queued', 'Running']
+    with JobState(job_id) as job_state:
+        if 'state' not in job_state.keys():
+            return {}
+
+        if job_state['state'] in status_check_states:
+            ini = ConfigObj(os.path.join(pce_root, 'onramp_pce_config.ini'),
+                            configspec=os.path.join(pce_root,
+                                                'src/onramp_config.inispec'))
+            ini.validate(Validator())
+            scheduler = Scheduler(ini['cluster']['batch_scheduler'])
+            sched_job_num = job_state['scheduler_job_num']
+            job_status = scheduler.check_status(sched_job_num)
+
+            # Bad.
+            if job_status[0] != 0:
+                _logger.debug('Bad job status: %s' % job_status[1])
+                job_state['state'] = 'Run failed'
+                job_state['error'] = job_status[1]
+                if job_status != -2:
+                    job_state['state'] = job_status[1]
+                return copy.deepcopy(job_state)
+
+            # Good.
+            if job_status[1] == 'Done':
+                job_state['state'] = 'Postprocessing'
+                job_state['error'] = None
+                job_state['mod_status_output'] = None
+                p = Process(target=_job_postprocess, args=(job_id,))
+                p.start()
+            elif job_status[1] == 'Running':
+                job_state['state'] = 'Running'
+                job_state['error'] = None
+                mod_status_output = _get_module_status_output(job_id)
+                job_state['mod_status_output'] = mod_status_output
+            elif job_status[1] == 'Queued':
+                job_state['state'] = 'Queued'
+                job_state['error'] = None
+
+        return copy.deepcopy(job_state)
+
 def get_jobs(job_id=None):
     """Return list of tracked jobs or single job.
 
@@ -207,20 +300,8 @@ def get_jobs(job_id=None):
             If None, return list of all tracked job resources.
     """
     if job_id:
-        with JobState(job_id) as job_state:
-            if 'state' in job_state.keys():
-                return copy.deepcopy(job_state)
-        return {
-            'job_id': job_id,
-            'mod_id': None,
-            'state': 'Does not exist',
-            'error': None
-        }
+        return _build_job(job_id)
 
-    results = []
-    for id in os.listdir(_job_state_dir):
-        next_job = {}
-        with JobState(id) as job_state:
-            next_job = copy.deepcopy(job_state)
-        results.append(next_job)
-    return results
+    return [_build_job(job_id) for job_id in
+            filter(lambda x: not x.startswith('.'),
+                   os.listdir(_job_state_dir))]
