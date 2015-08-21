@@ -864,6 +864,7 @@ class ModuleJobFlowTest(PCEBase):
         # Launch against non-existant module.
         pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
                run_name='testrun1')
+        time.sleep(1)
         job_no_mod_response = pce_get('jobs/1/')
 
         # Checkout.
@@ -875,6 +876,7 @@ class ModuleJobFlowTest(PCEBase):
         # Launch against module currently being installed.
         pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
                run_name='testrun1')
+        time.sleep(1)
         job_mod_not_installed_response = pce_get('jobs/1/')
 
         # Let install finish.
@@ -884,6 +886,7 @@ class ModuleJobFlowTest(PCEBase):
         # Launch against module installed but not deployed.
         pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
                run_name='testrun1')
+        time.sleep(1)
         job_mod_not_deployed_response = pce_get('jobs/1/')
 
         # Deploy.
@@ -893,6 +896,7 @@ class ModuleJobFlowTest(PCEBase):
         # Laucnh agains module currently being deployed.
         pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
                run_name='testrun1')
+        time.sleep(1)
         job_mod_still_not_deployed_response = pce_get('jobs/1/')
 
         # Let deploy finish.
