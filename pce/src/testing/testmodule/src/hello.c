@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
     /*
      * Print a message from this process
      */
-    printf("Hello, %s! I am %2d of %d on %s!\n", name, rank, size, processor);
+    printf("Hello, this will result in deterministic output!");
 
     /*
      * Shutdown the MPI library before exiting
