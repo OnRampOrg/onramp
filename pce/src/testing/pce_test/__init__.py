@@ -97,6 +97,7 @@ class PCEBase(unittest.TestCase):
         self.mod_state_dir = 'src/state/modules'
         self.job_state_dir = 'src/state/jobs'
         self.install_dir = 'modules'
+        self.users_dir = 'users'
         self.avail_mods = ['template', 'mpi-ring', 'pi']
 
         def not_hidden(x):
@@ -109,6 +110,8 @@ class PCEBase(unittest.TestCase):
             os.remove('%s/%s' % (self.mod_state_dir, name))
         for name in filter(not_hidden, os.listdir(self.job_state_dir)):
             os.remove('%s/%s' % (self.job_state_dir, name))
+        for name in os.listdir(self.users_dir):
+            shutil.rmtree('%s/%s' % (self.users_dir, name))
 
     def tearDown(self):
         os.chdir(self.ret_dir)
@@ -123,7 +126,7 @@ class PCEBase(unittest.TestCase):
             self.assertEqual(d['status_msg'], 'Success')
 
 class ModulesTest(PCEBase):
-    __test__ = False
+    #__test__ = False
     def verify_mod_install(self, id, name):
         with ModState(id) as mod_state:
             temp_path = os.path.join(pce_root, self.install_dir)
@@ -523,23 +526,24 @@ class ModulesTest(PCEBase):
 
 
 class JobsTest(PCEBase):
-    __test__ = False
+    #__test__ = False
     def setUp(self):
         super(JobsTest, self).setUp()
 
-        template_path = os.path.normpath(os.path.join(pce_root,
-                                                      '../modules/template'))
+        testmodule_path = os.path.normpath(os.path.join(pce_root,
+                                                      'src/testing/testmodule2'))
         location = {
             'type': 'local',
-            'path': template_path
+            'path': testmodule_path
         }
 
         # Install and deploy a module for use
-        r = pce_post('modules/', mod_id=1, mod_name='template',
+        r = pce_post('modules/', mod_id=1, mod_name='testmodule2',
                      source_location=location)
         self.assertEqual(r.status_code, 200)
         time.sleep(3)
         r = pce_post('modules/1/')
+        self.assertEqual(r.status_code, 200)
         time.sleep(3)
 
     def verify_launch(self, job_id, mod_id, username, run_name,
@@ -591,7 +595,7 @@ class JobsTest(PCEBase):
         self.check_json(d)
         self.assertEqual(d['status_code'], 0)
         self.assertEqual(d['status_msg'], 'Job launched')
-        time.sleep(3)
+        time.sleep(5)
         self.verify_launch(1, 1, 'testuser', 'testrun1')
 
         r = pce_get('jobs/1/')
@@ -657,7 +661,7 @@ class JobsTest(PCEBase):
         self.verify_launch(2, 1, 'testuser', 'testrun2')
 
         # Post to jobs/ with previously posted attrs
-        run_dir = os.path.join(pce_root, 'users/testuser/template_1/testrun1')
+        run_dir = os.path.join(pce_root, 'users/testuser/testmodule2_1/testrun1')
         os.remove(os.path.join(run_dir, 'script.sh'))
         os.remove(os.path.join(run_dir, 'output.txt'))
         time.sleep(5)
@@ -771,7 +775,7 @@ class JobsTest(PCEBase):
 
 
 class ClusterTest(PCEBase):
-    __test__ = False
+    #__test__ = False
     def test_GET(self):
         r = pce_get('cluster/')
         self.assertEqual(r.status_code, 200)
@@ -812,7 +816,7 @@ class ModuleJobFlowTest(PCEBase):
     def check_job(self, job, username='testuser', job_id=1,
                   error='Module not ready', check_scheduler_job_num=False,
                   state='Launch failed', run_name='testrun1', mod_id=1,
-                  mod_status_output=None):
+                  mod_status_output=None, output=None):
 
         keys = job.keys()
         self.assertIn('username', keys)
@@ -830,6 +834,7 @@ class ModuleJobFlowTest(PCEBase):
         self.assertEqual(job['run_name'], run_name)
         self.assertEqual(job['mod_id'], mod_id)
         self.assertEqual(job['mod_status_output'], mod_status_output)
+        self.assertEqual(job['output'], output)
         if check_scheduler_job_num:
             self.assertTrue(isinstance(job['scheduler_job_num'], int))
         else:
@@ -909,7 +914,7 @@ class ModuleJobFlowTest(PCEBase):
         job_launching_response = pce_get('jobs/1/')
 
         # Wait a bit and check again.
-        time.sleep(2)
+        time.sleep(4)
         job_preprocessing_response = pce_get('jobs/1/')
 
         # Wait and check again.
@@ -1103,5 +1108,9 @@ class ModuleJobFlowTest(PCEBase):
         d = job_done_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
+        output = ('Hello, this will result in deterministic output!Hello, this '
+                  'will result in deterministic output!Hello, this will result '
+                  'in deterministic output!Hello, this will result in '
+                  'deterministic output!')
         self.check_job(d['job'], state='Done',
-                       check_scheduler_job_num=True, error=None)
+                       check_scheduler_job_num=True, error=None, output=output)
