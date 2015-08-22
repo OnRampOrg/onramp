@@ -15,6 +15,7 @@ class _BatchScheduler(object):
         get_batch_script: Return a batch script formatted for
             the given batch scheduler.
         schedule: Schedule a job with the given batch scheduler.
+        check_status: Get status of a job from the given batch scheduler.
         is_scheduler_for (classmethod): Returns boolean indicating whether the
             class provides an interface to the batch scheduler given.
     """
@@ -111,6 +112,12 @@ class SLURMScheduler(_BatchScheduler):
         }
 
     def check_status(self, scheduler_job_num):
+        """Return job status from scheduler.
+
+        Args:
+            scheduler_job_num (int): Job number of the job to check state on as
+                given by the scheduler, not as given by OnRamp.
+        """
         try:
             job_info = check_output(['scontrol', 'show', 'job',
                                      str(scheduler_job_num)])

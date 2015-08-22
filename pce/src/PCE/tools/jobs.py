@@ -213,7 +213,14 @@ def launch_job(job_id, mod_id, username, run_name):
     return (0, 'Job scheduled')
 
 def _job_postprocess(job_id):
+    """Run bin/onramp_postprocess.py for job_id and update state to reflect.
+
+    Args:
+        job_id (int): Id of the job to launch bin/onramp_postprocess.py for.
+    """
     _logger.info('PCE.tools.jobs._job_postprocess() called')
+
+    # Get attrs needed.
     with JobState(job_id) as job_state:
         username = job_state['username']
         mod_id = job_state['mod_id']
@@ -223,19 +230,30 @@ def _job_postprocess(job_id):
     args = (username, mod_name, mod_id, run_name)
     run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % args)
     ret_dir = os.getcwd()
+
     os.chdir(run_dir)
     _logger.debug('Calling bin/onramp_postprocess.py')
     call([os.path.join(pce_root, 'src/env/bin/python'),
           'bin/onramp_postprocess.py'])
+
+    # Grab job output.
     with open('output.txt', 'r') as f:
         output = f.read()
     os.chdir(ret_dir)
+
+    # Update state.
     with JobState(job_id) as job_state:
         job_state['state'] = 'Done'
         job_state['error'] = None
         job_state['output'] = output
 
 def _get_module_status_output(job_id):
+    """Run bin/onramp_status.py for job and return any output.
+
+    Args:
+        job_id (int): Id of the job to launch bin/onramp_status.py for.
+    """
+    # Get attrs needed.
     with JobState(job_id) as job_state:
         username = job_state['username']
         mod_id = job_state['mod_id']
@@ -245,6 +263,8 @@ def _get_module_status_output(job_id):
     args = (username, mod_name, mod_id, run_name)
     run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % args)
     ret_dir = os.getcwd()
+
+    # Run bin/onramp_status.py and grab output.
     os.chdir(run_dir)
     _logger.debug('Calling bin/onramp_status.py')
     try:
@@ -258,6 +278,16 @@ def _get_module_status_output(job_id):
     return output
 
 def _build_job(job_id):
+    """Launch actions required to maintain job state and/or currate job results
+    and return the state.
+
+    When current job state (as a function of both PCE state tracking and
+    scheduler output) warrants, initiate job postprocessing and/or status
+    checking prior to building and returning state.
+
+    Args:
+        job_id (int): Id of the job to get state for.
+    """
     status_check_states = ['Scheduled', 'Queued', 'Running']
     with JobState(job_id) as job_state:
         _logger.debug('Building at %s' % time.time())
