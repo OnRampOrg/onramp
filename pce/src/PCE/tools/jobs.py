@@ -131,6 +131,7 @@ def launch_job(job_id, mod_id, username, run_name):
         job_state['state'] = 'Setting up launch'
         job_state['error'] = None
         job_state['mod_status_output'] = None
+        job_state['output'] = None
         _logger.debug('Waiting on ModState at: %s' % time.time())
         with ModState(mod_id) as mod_state:
             _logger.debug('Done waiting on ModState at: %s' % time.time())
@@ -226,10 +227,13 @@ def _job_postprocess(job_id):
     _logger.debug('Calling bin/onramp_postprocess.py')
     call([os.path.join(pce_root, 'src/env/bin/python'),
           'bin/onramp_postprocess.py'])
+    with open('output.txt', 'r') as f:
+        output = f.read()
     os.chdir(ret_dir)
     with JobState(job_id) as job_state:
         job_state['state'] = 'Done'
         job_state['error'] = None
+        job_state['output'] = output
 
 def _get_module_status_output(job_id):
     with JobState(job_id) as job_state:
