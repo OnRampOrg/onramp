@@ -175,10 +175,11 @@ def launch_job(job_id, mod_id, username, run_name):
         result = check_output([os.path.join(pce_root, 'src/env/bin/python'),
                                'bin/onramp_preprocess.py'])
     except CalledProcessError as e:
-        msg = 'Preprocess failed'
+        msg = ('Preprocess exited with return status %d and output: %s'
+               % (e.returncode, e.output))
         with JobState(job_id) as job_state:
-            job_state['state'] = msg
-            job_state['error'] = 'Return status: %d' % e.output
+            job_state['state'] = 'Preprocess failed'
+            job_state['error'] = msg
         _logger.error(msg)
         os.chdir(ret_dir)
         return (-1, msg)
@@ -233,8 +234,18 @@ def _job_postprocess(job_id):
 
     os.chdir(run_dir)
     _logger.debug('Calling bin/onramp_postprocess.py')
-    call([os.path.join(pce_root, 'src/env/bin/python'),
-          'bin/onramp_postprocess.py'])
+    try:
+        result = check_output([os.path.join(pce_root, 'src/env/bin/python'),
+                               'bin/onramp_postprocess.py'])
+    except CalledProcessError as e:
+        msg = ('Postprocess exited with return status %d and output: %s'
+               % (e.returncode, e.output))
+        with JobState(job_id) as job_state:
+            job_state['state'] = 'Postprocess failed'
+            job_state['error'] = msg
+        _logger.error(msg)
+        os.chdir(ret_dir)
+        return (-1, msg)
 
     # Grab job output.
     with open('output.txt', 'r') as f:
