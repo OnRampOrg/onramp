@@ -187,8 +187,11 @@ def launch_job(job_id, mod_id, username, run_name):
         result = check_output([os.path.join(pce_root, 'src/env/bin/python'),
                                'bin/onramp_preprocess.py'])
     except CalledProcessError as e:
+        code = e.returncode
+        if code > 127:
+            code -= 256
         msg = ('Preprocess exited with return status %d and output: %s'
-               % (e.returncode, e.output))
+               % (code, e.output))
         with JobState(job_id) as job_state:
             job_state['state'] = 'Preprocess failed'
             job_state['error'] = msg
@@ -250,8 +253,11 @@ def _job_postprocess(job_id):
         result = check_output([os.path.join(pce_root, 'src/env/bin/python'),
                                'bin/onramp_postprocess.py'])
     except CalledProcessError as e:
+        code = e.returncode
+        if code > 127:
+            code -= 256
         msg = ('Postprocess exited with return status %d and output: %s'
-               % (e.returncode, e.output))
+               % (code, e.output))
         with JobState(job_id) as job_state:
             job_state['state'] = 'Postprocess failed'
             job_state['error'] = msg
