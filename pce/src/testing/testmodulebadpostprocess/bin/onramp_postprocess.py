@@ -15,6 +15,7 @@ import time
 
 # Exit 0 if all is ok
 print "We're pretending like there was an error in this script."
+sys.stderr.write('This to stderr')
 sys.exit(-1)
 # Exit with a negative value if there was a problem
 #sys.exit(-1)

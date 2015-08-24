@@ -789,8 +789,8 @@ class JobsTest(PCEBase):
         print d
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        err = ("Preprocess exited with return status -1 and output: We're "
-               "pretending this is a bad preprocess.\n")
+        err = ("Preprocess exited with return status -1 and output: This to "
+               "stderrWe're pretending this is a bad preprocess.\n")
         self.check_job(d['job'], job_id=3, state='Preprocess failed',
                        run_name='testrunbadpreprocess', mod_id=2, error=err)
 
@@ -818,8 +818,8 @@ class JobsTest(PCEBase):
         print d
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        err = ("Postprocess exited with return status -1 and output: We're "
-               "pretending like there was an error in this script.\n")
+        err = ("Postprocess exited with return status -1 and output: This to "
+               "stderrWe're pretending like there was an error in this script.\n")
         self.check_job(d['job'], job_id=4, state='Postprocess failed',
                        run_name='testrunbadpostprocess', mod_id=3, error=err)
 

@@ -9,4 +9,5 @@
 import sys
 
 print "We're pretending this is a bad preprocess."
+sys.stderr.write('This to stderr')
 sys.exit(-1)

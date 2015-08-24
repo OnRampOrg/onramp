@@ -20,7 +20,7 @@ import shutil
 import sys
 import time
 from multiprocessing import Process
-from subprocess import CalledProcessError, call, check_output
+from subprocess import CalledProcessError, call, check_output, STDOUT
 
 from configobj import ConfigObj
 from validate import Validator
@@ -185,7 +185,7 @@ def launch_job(job_id, mod_id, username, run_name):
 
     try:
         result = check_output([os.path.join(pce_root, 'src/env/bin/python'),
-                               'bin/onramp_preprocess.py'])
+                               'bin/onramp_preprocess.py'], stderr=STDOUT)
     except CalledProcessError as e:
         code = e.returncode
         if code > 127:
@@ -251,7 +251,7 @@ def _job_postprocess(job_id):
     _logger.debug('Calling bin/onramp_postprocess.py')
     try:
         result = check_output([os.path.join(pce_root, 'src/env/bin/python'),
-                               'bin/onramp_postprocess.py'])
+                               'bin/onramp_postprocess.py'], stderr=STDOUT)
     except CalledProcessError as e:
         code = e.returncode
         if code > 127:
@@ -298,7 +298,7 @@ def _get_module_status_output(job_id):
     _logger.debug('Calling bin/onramp_status.py')
     try:
         output = check_output([os.path.join(pce_root, 'src/env/bin/python'),
-                               'bin/onramp_status.py'])
+                               'bin/onramp_status.py'], stderr=STDOUT)
     except CalledProcessError as e:
         output = 'bin/onramp_status.py exited with nonzero status.'
     finally:
