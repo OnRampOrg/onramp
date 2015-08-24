@@ -12,13 +12,10 @@ import time
 from subprocess import call
 from configobj import ConfigObj
 
-#
-# Read the configobj values
-#
-# This will always be the name of the file, so fine to hardcode here
-conf_file = "onramp_runparams.ini"
-# Already validated the file in our onramp_preprocess.py script - no need to do it again
-config    = ConfigObj(conf_file)
+config = {
+    'onramp': {'np': '4'},
+    'hello': {'name': 'hello'}
+}
 
 #
 # Run my program
