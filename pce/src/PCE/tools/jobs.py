@@ -351,7 +351,7 @@ def _build_job(job_id):
                 _logger.debug('Bad job status: %s' % job_status[1])
                 job_state['state'] = 'Run failed'
                 job_state['error'] = job_status[1]
-                if job_status != -2:
+                if job_status[0] != -2:
                     job_state['state'] = job_status[1]
                 return copy.deepcopy(job_state)
 
