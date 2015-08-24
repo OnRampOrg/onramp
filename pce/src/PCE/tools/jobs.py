@@ -146,21 +146,33 @@ def launch_job(job_id, mod_id, username, run_name):
             proj_loc = mod_state['installed_path']
             mod_name = mod_state['mod_name']
 
+    _logger.debug('Testing project location')
     if not os.path.isdir(proj_loc):
         msg = 'Project location does not exist'
         _logger.error(msg)
         return (-1, msg)
+    _logger.debug('Project location good')
 
     # Initialize dir structure.
     user_dir = os.path.join(os.path.join(pce_root, 'users'), username)
-    if not os.path.isdir(user_dir):
-        os.mkdir(user_dir)
     user_mod_dir = os.path.join(user_dir, '%s_%d' % (mod_name, mod_id))
-    if not os.path.isdir(user_mod_dir):
-        os.mkdir(user_mod_dir)
     run_dir = os.path.join(user_mod_dir, run_name)
-    if not os.path.isdir(run_dir):
+    try:
+        os.mkdir(user_dir)
+    except OSError:
+        # Thrown if dir already exists.
+        pass
+    try:
+        os.mkdir(user_mod_dir)
+    except OSError:
+        # Thrown if dir already exists.
+        pass
+    # The way the following is setup, if a run_dir has already been setup with
+    # this run_name, it will be used (that is, not overwritten) for this launch.
+    try:
         shutil.copytree(proj_loc, run_dir)
+    except shutil.Error as e:
+        pass
 
     ret_dir = os.getcwd()
     os.chdir(run_dir)
