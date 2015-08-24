@@ -830,6 +830,23 @@ class JobsTest(PCEBase):
         self.check_job(d['job'], job_id=4, state='Postprocess failed',
                        run_name='testrunbadpostprocess', mod_id=3, error=err)
 
+        # Check handling of ini_params
+        params = {'np': '4', 'nodes': '4', 'onramp':{}, 'hello':{'name': 'testname'}}
+        r = pce_post('jobs/', mod_id=1, job_id=5, username='testuser',
+                     run_name='testruniniparams', ini_params=params)
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Job launched')
+        # Verify stored state for launched ini_param job
+        time.sleep(5)
+        self.verify_launch(5, 1, 'testuser', 'testruniniparams', runparams_should_exist=True)
+        folders = ('testuser', 'testmodule2_1', 'testruniniparams')
+        run_dir = os.path.join(pce_root, 'users/%s/%s/%s' % folders)
+        conf = ConfigObj(os.path.join(run_dir, 'onramp_runparams.ini'))
+        self.assertEqual(conf, params)
+
     def test_PUT(self):
         r = pce_put('jobs/')
         self.assertEqual(r.status_code, 404)
