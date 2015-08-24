@@ -52,6 +52,8 @@ CREATE TABLE pce (
     description  text DEFAULT '',
 
     -- TODO: UNIX Auth?
+    pce_username text DEFAULT 'onramp',
+
     -- TODO: Files?
 
     -- Constraints
@@ -119,6 +121,9 @@ CREATE TABLE module_to_pce (
 
     -- Other data
     state integer DEFAULT 0, -- See onrampdb.py for state values
+
+    src_location_type text DEFAULT 'local',
+    src_location_path text DEFAULT '',
 
     install_location text DEFAULT '',
     is_visible boolean DEFAULT 1, -- 1 (true), 0 (false)

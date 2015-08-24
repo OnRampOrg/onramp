@@ -8,8 +8,11 @@ import exceptions
 
 class Database():
 
+    # JJH TODO Need a reverse lookup
+
     pce_states    = { 0 : "Running",
-                      1 : "Down",
+                      1 : "Establishing Connection",
+                      2 : "Down",
                       -1 : "Error: Undefined",
                       }
 
@@ -136,19 +139,31 @@ class Database():
         raise NotImplemented("Please implement this method")
 
     ##########################################################
-    def get_pce_id(self, name):
+    def get_all_pce_ids(self):
         raise NotImplemented("Please implement this method")
 
-    def add_pce(self, name):
+    def get_pce_id(self, info):
+        raise NotImplemented("Please implement this method")
+
+    def add_pce(self, info):
         raise NotImplemented("Please implement this method")
 
     def lookup_module_in_pce(self, pce_id, module_id):
         raise NotImplemented("Please implement this method")
 
-    def add_module_to_pce(self, pce_id, module_id):
+    def add_module_to_pce(self, pce_id, module_id, src_location_type='local', src_location_path=''):
+        raise NotImplemented("Please implement this method")
+
+    def update_pce_module_state(self, pce_id, module_id, state):
         raise NotImplemented("Please implement this method")
 
     def get_pce_info(self, pce_id=None):
+        raise NotImplemented("Please implement this method")
+
+    def get_pce_state(self, pce_id):
+        raise NotImplemented("Please implement this method")
+
+    def update_pce_state(self, pce_id, state):
         raise NotImplemented("Please implement this method")
 
     def get_pce_doc(self, pce_id):
@@ -566,19 +581,28 @@ class DBAccess():
     ##########################################
     # PCE Management
     ##########################################
-    def pce_add_if_new(self, name):
+    def pce_get_all_ids(self):
+        self._db.connect()
+        info = self._db.get_all_pce_ids()
+        self._db.disconnect()
+        return info
+
+    def pce_add_if_new(self, data):
         self._db.connect()
 
         info = {}
 
-        pce_id = self._db.get_pce_id(name)
+        pce_id = self._db.get_pce_id(data)
         if pce_id is not None:
             info['exists'] = True
         else:
             info['exists'] = False
-            pce_id = self._db.add_pce(name)
+            pce_id = self._db.add_pce(data)
+
+        pce_state = self._db.get_pce_state(pce_id)
 
         info['id'] = pce_id
+        info['state'] = pce_state
 
         self._db.disconnect()
         return info
@@ -598,7 +622,7 @@ class DBAccess():
         return pce_id
 
     ##########################################
-    def pce_add_module(self, pce_id, module_id ):
+    def pce_add_module(self, pce_id, module_id, src_location_type='local', src_location_path='' ):
         self._db.connect()
 
         info = {}
@@ -618,7 +642,7 @@ class DBAccess():
             info['exists'] = True
         else:
             info['exists'] = False
-            pair_id = self._db.add_module_to_pce(pce_id, module_id)
+            pair_id = self._db.add_module_to_pce(pce_id, module_id, src_location_type, src_location_path)
 
         info['id'] = pair_id
 
@@ -626,15 +650,61 @@ class DBAccess():
         return info
 
     ##########################################
+    def pce_update_module_state(self, pce_id, module_id, state):
+        self._db.connect()
+
+        pm_pair_id = self._db.lookup_module_in_pce(pce_id, module_id)
+        if pm_pair_id is None:
+            self._logger.error("Invalid Module / PCE Pair (module="+str(module_id)+", pce="+str(pce_id)+")")
+            self._db.disconnect()
+            return None
+
+        pce_info = self._db.update_pce_module_state(pce_id, module_id, state)
+        self._db.disconnect()
+        return pce_info
+
+
+    ##########################################
     def pce_get_info(self, pce_id=None):
         self._db.connect()
 
         if pce_id is not None and self._db.is_valid_pce_id(pce_id) is False:
-            self._logger.error("Invalid Pce ID ("+str(pce_id)+")")
+            self._logger.error("Invalid PCE ID ("+str(pce_id)+")")
             self._db.disconnect()
             return None
 
         pce_info = self._db.get_pce_info(pce_id)
+        self._db.disconnect()
+        return pce_info
+
+    ##########################################
+    def pce_get_state(self, pce_id):
+        self._db.connect()
+
+        if pce_id is not None and self._db.is_valid_pce_id(pce_id) is False:
+            self._logger.error("Invalid PCE ID ("+str(pce_id)+")")
+            self._db.disconnect()
+            return None
+
+        pce_state = self._db.get_pce_state(pce_id)
+        self._db.disconnect()
+        return pce_state
+
+    ##########################################
+    def pce_update_state(self, pce_id, state):
+        self._db.connect()
+
+        if pce_id is not None and self._db.is_valid_pce_id(pce_id) is False:
+            self._logger.error("Invalid PCE ID ("+str(pce_id)+")")
+            self._db.disconnect()
+            return None
+
+        if state not in self._db.pce_states:
+            self._logger.error("Invalid PCE State ("+str(state)+")")
+            self._db.disconnect()
+            return None
+
+        pce_info = self._db.update_pce_state(pce_id, state)
         self._db.disconnect()
         return pce_info
 

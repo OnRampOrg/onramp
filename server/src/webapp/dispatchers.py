@@ -70,7 +70,17 @@ class _ServerResourceBase:
         self.logger.debug("Setup database credentials")
         self._db = onrampdb.DBAccess(self.logger, 'sqlite', {'filename' : os.getcwd() + '/../tmp/onramp_sqlite.db'} )
         if self._db is None:
+            self.logger.error("No DB connection present")
             sys.exit(-1)
+
+        # Setup an object for the PCE connections
+        self._pces = {}
+        self.logger.debug("Checking PCE Connections")
+        all_pce_ids = self._db.pce_get_all_ids()
+        if len(all_pce_ids) <= 0:
+            self.logger.info("No PCE Connections Available")
+        for pce_id in all_pce_ids:
+            self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id)
 
     def _get_is_valid_fns(self):
         return {'user' :      self._db.is_valid_user_id,
@@ -1354,8 +1364,19 @@ class Admin(_ServerResourceBase):
         #
         if pce_id is None:
             self.logger.info(prefix + " Adding \"" + data["name"] + "\"")
-            rdata = self._db.pce_add_if_new( data["name"] )
+            rdata = self._db.pce_add_if_new( data )
             pce_id = rdata['id']
+
+            #
+            # Connect to the PCE
+            #
+            if rdata['exists'] is True:
+                self._pces[pce_id].check_connection(data)
+            else:
+                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id)
+                self._pces[pce_id].establish_connection(data)
+
+            rdata['state'] = self._db.pce_get_state(pce_id)
         #
         # Associate a module with a PCE
         # /admin/pce/:PCEID/module/:MODULEID

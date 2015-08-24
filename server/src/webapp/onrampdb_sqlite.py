@@ -490,12 +490,32 @@ class Database_sqlite(onrampdb.Database):
 
 
     ##########################################################
-    def get_pce_id(self, name):
-        self._logger.debug(self._name + "get_pce_id(" + name + ")")
+    def get_all_pce_ids(self):
+        self._logger.debug(self._name + "get_all_pce_ids()")
+
+        sql = "SELECT pce_id FROM pce"
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._connect()
+        self._cursor.execute(sql)
+        all_rows = self._cursor.fetchall()
+        self._disconnect()
+
+        ids = []
+        if all_rows is None:
+            return ids
+        else:
+            for row in all_rows:
+                ids.append(row[0])
+            return ids
+
+    def get_pce_id(self, info):
+        self._logger.debug(self._name + "get_pce_id(" + info['name'] + ", "+info['url']+", "+str(info['port'])+")")
 
         args = None
-        sql = "SELECT pce_id FROM pce WHERE pce_name = ?"
-        args = (name, )
+        sql = "SELECT pce_id FROM pce WHERE pce_name = ? AND ip_addr = ? AND ip_port = ?"
+        args = (info['name'], info['url'], info['port'] )
 
         self._logger.debug(self._name + " " + sql)
         
@@ -509,11 +529,11 @@ class Database_sqlite(onrampdb.Database):
 
         return row[0]
 
-    def add_pce(self, name):
-        self._logger.debug(self._name + "add_pce(" + name + ")")
+    def add_pce(self, info):
+        self._logger.debug(self._name + "add_pce(" + info['name'] + ", "+info['url']+", "+str(info['port'])+")")
 
-        sql = "INSERT INTO pce (pce_name) VALUES (?)"
-        args = (name,)
+        sql = "INSERT INTO pce (pce_name, ip_addr, ip_port, contact_info, location, description, pce_username) VALUES (?,?,?,?,?,?,?)"
+        args = (info['name'],info['url'],info['port'],info['contact_info'],info['location'],info['description'],info['pce_username'])
 
         self._logger.debug(self._name + " " + sql)
         
@@ -543,11 +563,41 @@ class Database_sqlite(onrampdb.Database):
         else:
             return row[0]
 
-    def add_module_to_pce(self, pce_id, module_id):
+    def update_pce_state(self, pce_id, state):
+        self._logger.debug(self._name + "update_pce_state (" + str(pce_id) +" in " + str(state) + ")")
+
+        sql = "UPDATE pce SET state = ? WHERE pce_id = ?"
+        args = (state, pce_id)
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._connect()
+        self._cursor.execute(sql, args )
+        rowid = self._cursor.lastrowid
+        self._disconnect()
+
+        return rowid
+
+    def add_module_to_pce(self, pce_id, module_id, src_location_type='local', src_location_path=''):
         self._logger.debug(self._name + "add_module_to_pce (" + str(module_id) +" in " + str(pce_id) + ")")
 
-        sql = "INSERT INTO module_to_pce (pce_id, module_id) VALUES (?, ?)"
-        args = (pce_id, module_id)
+        sql = "INSERT INTO module_to_pce (pce_id, module_id, state, src_location_type, src_location_path) VALUES (?, ?, ?, ?, ?)"
+        args = (pce_id, module_id, 0, src_location_type, src_location_path)
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._connect()
+        self._cursor.execute(sql, args )
+        rowid = self._cursor.lastrowid
+        self._disconnect()
+
+        return rowid
+
+    def update_pce_module_state(self, pce_id, module_id, state):
+        self._logger.debug(self._name + "update_pce_module_state (" + str(pce_id) +" / "+str(module_id)+" in " + str(state) + ")")
+
+        sql = "UPDATE module_to_pce SET state = ? WHERE pce_id = ? AND module_id = ?"
+        args = (state, pce_id, module_id)
 
         self._logger.debug(self._name + " " + sql)
         
@@ -587,6 +637,24 @@ class Database_sqlite(onrampdb.Database):
                 return None
             return {"fields": fields, "data": all_rows }
 
+    def get_pce_state(self, pce_id):
+        self._logger.debug(self._name + "get_pce_state(" + str(pce_id)+")")
+
+        sql = "SELECT state FROM pce WHERE pce_id = ?"
+        args = (pce_id, )
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._connect()
+        self._cursor.execute(sql, args )
+        row = self._cursor.fetchone()
+        self._disconnect()
+
+        if row is not None:
+            return row[0]
+        else:
+            return None
+
     def get_pce_doc(self, pce_id):
         self._logger.debug(self._name + "get_pce_doc(" + str(pce_id)+")")
 
@@ -615,7 +683,8 @@ class Database_sqlite(onrampdb.Database):
         self._logger.debug(self._name + "get_pce_modules(" + str(pce_id)+")")
 
         fields = ("module_id", "module_name")
-        sql  = "SELECT "+ (",".join(map('M.{0}'.format, fields)))
+        pa_fields = ("state", "install_location", "is_visible", "src_location_type", "src_location_path")
+        sql  = "SELECT "+ (",".join(map('M.{0}'.format, fields))) + ", " + (",".join(map('PA.{0}'.format, pa_fields)))
         sql += " FROM module_to_pce AS PA"
         sql += " JOIN module AS M on M.module_id = PA.module_id"
         sql += " WHERE pce_id = ?"
@@ -628,7 +697,7 @@ class Database_sqlite(onrampdb.Database):
         all_rows = self._cursor.fetchall()
         self._disconnect()
 
-        return {"fields": fields, "data": all_rows }
+        return {"fields": fields + pa_fields, "data": all_rows }
 
     def get_pce_jobs(self, pce_id, search_params):
         self._logger.debug(self._name + "get_pce_jobs(" + str(pce_id)+")")
