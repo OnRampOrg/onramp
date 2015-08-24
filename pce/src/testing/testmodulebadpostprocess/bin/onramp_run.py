@@ -25,8 +25,6 @@ config    = ConfigObj(conf_file)
 #
 os.chdir('src')
 call(['mpirun', '-np', config['onramp']['np'], 'hello', config['hello']['name']])
-time.sleep(10)
-
 
 # Exit 0 if all is ok
 sys.exit(0)

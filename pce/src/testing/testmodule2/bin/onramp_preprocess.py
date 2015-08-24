@@ -37,9 +37,6 @@ if results != True:
 
     sys.exit(-11)
 
-time.sleep(10)
-
-
 # Nothing else to do for this module
 
 

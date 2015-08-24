@@ -7,14 +7,7 @@
 # - onramp_run_params.ini file is available in current working directory
 #
 import sys
-import time
 
-
-# No postprocessing required
-time.sleep(10)
-
-
-# Exit 0 if all is ok
-sys.exit(0)
-# Exit with a negative value if there was a problem
-#sys.exit(-1)
+print "We're pretending this is a bad preprocess."
+sys.stderr.write('This to stderr')
+sys.exit(-1)
