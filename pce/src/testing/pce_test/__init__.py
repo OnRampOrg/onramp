@@ -97,6 +97,7 @@ class PCEBase(unittest.TestCase):
         self.mod_state_dir = 'src/state/modules'
         self.job_state_dir = 'src/state/jobs'
         self.install_dir = 'modules'
+        self.users_dir = 'users'
         self.avail_mods = ['template', 'mpi-ring', 'pi']
 
         def not_hidden(x):
@@ -109,6 +110,8 @@ class PCEBase(unittest.TestCase):
             os.remove('%s/%s' % (self.mod_state_dir, name))
         for name in filter(not_hidden, os.listdir(self.job_state_dir)):
             os.remove('%s/%s' % (self.job_state_dir, name))
+        for name in os.listdir(self.users_dir):
+            shutil.rmtree('%s/%s' % (self.users_dir, name))
 
     def tearDown(self):
         os.chdir(self.ret_dir)
@@ -123,6 +126,7 @@ class PCEBase(unittest.TestCase):
             self.assertEqual(d['status_msg'], 'Success')
 
 class ModulesTest(PCEBase):
+    #__test__ = False
     def verify_mod_install(self, id, name):
         with ModState(id) as mod_state:
             temp_path = os.path.join(pce_root, self.install_dir)
@@ -522,22 +526,50 @@ class ModulesTest(PCEBase):
 
 
 class JobsTest(PCEBase):
+    #__test__ = False
     def setUp(self):
         super(JobsTest, self).setUp()
 
-        template_path = os.path.normpath(os.path.join(pce_root,
-                                                      '../modules/template'))
-        location = {
+        testmodule_path = os.path.normpath(os.path.join(pce_root,
+                                                      'src/testing/testmodule2'))
+        bad_preprocess_path = os.path.normpath(os.path.join(pce_root,
+                                                      'src/testing/testmodulebadpreprocess'))
+        bad_postprocess_path = os.path.normpath(os.path.join(pce_root,
+                                                      'src/testing/testmodulebadpostprocess'))
+        good_mod_location = {
             'type': 'local',
-            'path': template_path
+            'path': testmodule_path
+        }
+        bad_preprocess_location = {
+            'type': 'local',
+            'path': bad_preprocess_path
+        }
+        bad_postprocess_location = {
+            'type': 'local',
+            'path': bad_postprocess_path
         }
 
-        # Install and deploy a module for use
-        r = pce_post('modules/', mod_id=1, mod_name='template',
-                     source_location=location)
+        # Install and deploy test modules for use.
+        r = pce_post('modules/', mod_id=1, mod_name='testmodule2',
+                     source_location=good_mod_location)
         self.assertEqual(r.status_code, 200)
         time.sleep(3)
         r = pce_post('modules/1/')
+        self.assertEqual(r.status_code, 200)
+        time.sleep(3)
+        r = pce_post('modules/', mod_id=2, mod_name='testmodulebadpreprocess',
+                     source_location=bad_preprocess_location)
+        self.assertEqual(r.status_code, 200)
+        time.sleep(3)
+        r = pce_post('modules/2/')
+        self.assertEqual(r.status_code, 200)
+        time.sleep(3)
+        r = pce_post('modules/', mod_id=3, mod_name='testmodulebadpostprocess',
+                     source_location=bad_postprocess_location)
+        self.assertEqual(r.status_code, 200)
+        time.sleep(3)
+        r = pce_post('modules/3/')
+        self.assertEqual(r.status_code, 200)
         time.sleep(3)
 
     def verify_launch(self, job_id, mod_id, username, run_name,
@@ -563,14 +595,59 @@ class JobsTest(PCEBase):
         else:
             self.assertFalse(script_exists)
 
+    def check_job(self, job, username='testuser', job_id=1, error=None,
+                  state='Done', run_name='testrun1', mod_id=1):
+        keys = job.keys()
+        self.assertIn('username', keys)
+        self.assertIn('job_id', keys)
+        self.assertIn('error', keys)
+        self.assertIn('scheduler_job_num', keys)
+        self.assertIn('state', keys)
+        self.assertIn('run_name', keys)
+        self.assertIn('mod_id', keys)
+        self.assertEqual(job['username'], username)
+        self.assertEqual(job['job_id'], job_id)
+        self.assertEqual(job['error'], error)
+        self.assertEqual(job['state'], state)
+        self.assertEqual(job['run_name'], run_name)
+        self.assertEqual(job['mod_id'], mod_id)
+
     def test_GET(self):
-        r = pce_get('jobs/')
-        self.assertEqual(r.status_code, 404)
+        # Launch a job
+        r = pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
+                     run_name='testrun1')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Job launched')
+        time.sleep(5)
+        self.verify_launch(1, 1, 'testuser', 'testrun1')
 
         r = pce_get('jobs/1/')
         self.assertEqual(r.status_code, 200)
         d = r.json()
         self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], state='Postprocessing')
+
+        time.sleep(2)
+        r = pce_get('jobs/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'])
+
+        r = pce_get('jobs/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'])
+
+        r = pce_get('jobs/')
+        self.assertEqual(r.status_code, 404)
 
         r = pce_get('jobs/45/99/')
         self.assertEqual(r.status_code, 404)
@@ -581,7 +658,7 @@ class JobsTest(PCEBase):
 
         mod_state_files = filter(lambda x: not x.startswith('.'),
                                  os.listdir(self.mod_state_dir))
-        self.assertEqual(mod_state_files, ['1'])
+        self.assertEqual(mod_state_files, ['1', '2', '3'])
         job_state_files = filter(lambda x: not x.startswith('.'),
                                  os.listdir(self.job_state_dir))
         self.assertEqual(job_state_files, [])
@@ -605,12 +682,12 @@ class JobsTest(PCEBase):
         self.assertEqual(d['status_msg'], 'Job launched')
 
         # Verify stored state for launched jobs
-        time.sleep(10)
+        time.sleep(5)
         self.verify_launch(1, 1, 'testuser', 'testrun1')
         self.verify_launch(2, 1, 'testuser', 'testrun2')
 
         # Post to jobs/ with previously posted attrs
-        run_dir = os.path.join(pce_root, 'users/testuser/template_1/testrun1')
+        run_dir = os.path.join(pce_root, 'users/testuser/testmodule2_1/testrun1')
         os.remove(os.path.join(run_dir, 'script.sh'))
         os.remove(os.path.join(run_dir, 'output.txt'))
         time.sleep(5)
@@ -698,6 +775,54 @@ class JobsTest(PCEBase):
         r = pce_post('jobs/45/')
         self.assertEqual(r.status_code, 404)
 
+        # Check output from module with preprocess error.
+        r = pce_post('jobs/', mod_id=2, job_id=3, username='testuser',
+                     run_name='testrunbadpreprocess')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Job launched')
+        time.sleep(20)
+        r = pce_get('jobs/3/')
+        d = r.json()
+        print d
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        err = ("Preprocess exited with return status -1 and output: This to "
+               "stderrWe're pretending this is a bad preprocess.\n")
+        self.check_job(d['job'], job_id=3, state='Preprocess failed',
+                       run_name='testrunbadpreprocess', mod_id=2, error=err)
+
+        # Check output from module with postprocess error.
+        r = pce_post('jobs/', mod_id=3, job_id=4, username='testuser',
+                     run_name='testrunbadpostprocess')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Job launched')
+        time.sleep(8)
+        # Trigger postprocessing by requesting job data:
+        r = pce_get('jobs/4/')
+        d = r.json()
+        print d
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], job_id=4, state='Postprocessing',
+                       run_name='testrunbadpostprocess', mod_id=3)
+        time.sleep(12)
+        # Check for postprocessing failure.
+        r = pce_get('jobs/4/')
+        d = r.json()
+        print d
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        err = ("Postprocess exited with return status -1 and output: This to "
+               "stderrWe're pretending like there was an error in this script.\n")
+        self.check_job(d['job'], job_id=4, state='Postprocess failed',
+                       run_name='testrunbadpostprocess', mod_id=3, error=err)
+
     def test_PUT(self):
         r = pce_put('jobs/')
         self.assertEqual(r.status_code, 404)
@@ -724,6 +849,7 @@ class JobsTest(PCEBase):
 
 
 class ClusterTest(PCEBase):
+    #__test__ = False
     def test_GET(self):
         r = pce_get('cluster/')
         self.assertEqual(r.status_code, 200)
@@ -753,3 +879,312 @@ class ClusterTest(PCEBase):
 
         r = pce_delete('cluster/1/')
         self.assertEqual(r.status_code, 405)
+
+
+class ModuleJobFlowTest(PCEBase):
+    #__test__ = False
+    def setUp(self):
+        super(ModuleJobFlowTest, self).setUp()
+        self.testmodule_path = os.path.join(pce_root, 'src/testing/testmodule')
+
+    def check_job(self, job, username='testuser', job_id=1,
+                  error='Module not ready', check_scheduler_job_num=False,
+                  state='Launch failed', run_name='testrun1', mod_id=1,
+                  mod_status_output=None, output=None):
+
+        keys = job.keys()
+        self.assertIn('username', keys)
+        self.assertIn('job_id', keys)
+        self.assertIn('error', keys)
+        self.assertIn('scheduler_job_num', keys)
+        self.assertIn('state', keys)
+        self.assertIn('run_name', keys)
+        self.assertIn('mod_id', keys)
+        self.assertIn('mod_status_output', keys)
+        self.assertEqual(job['username'], username)
+        self.assertEqual(job['job_id'], job_id)
+        self.assertEqual(job['error'], error)
+        self.assertEqual(job['state'], state)
+        self.assertEqual(job['run_name'], run_name)
+        self.assertEqual(job['mod_id'], mod_id)
+        self.assertEqual(job['mod_status_output'], mod_status_output)
+        self.assertEqual(job['output'], output)
+        if check_scheduler_job_num:
+            self.assertTrue(isinstance(job['scheduler_job_num'], int))
+        else:
+            self.assertIsNone(job['scheduler_job_num'])
+
+    def check_mod(self, mod, source_location=None, installed_path=None,
+                  state='Does not exist', mod_name=None, error=None, mod_id=1):
+
+        keys = mod.keys()
+        self.assertIn('source_location', keys)
+        self.assertIn('installed_path', keys)
+        self.assertIn('state', keys)
+        self.assertIn('mod_name', keys)
+        self.assertIn('error', keys)
+        self.assertIn('mod_id', keys)
+        self.assertEqual(mod['source_location'], source_location)
+        self.assertEqual(mod['installed_path'], installed_path)
+        self.assertEqual(mod['state'], state)
+        self.assertEqual(mod['mod_name'], mod_name)
+        self.assertEqual(mod['error'], error)
+        self.assertEqual(mod['mod_id'], mod_id)
+
+    def test_module_job_flow(self):
+        location = {
+            'type': 'local',
+            'path': self.testmodule_path
+        }
+
+        # Get mod that doesn't exist.
+        mod_not_installed_response = pce_get('modules/1/')
+
+        # Launch against non-existant module.
+        pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
+               run_name='testrun1')
+        time.sleep(1)
+        job_no_mod_response = pce_get('jobs/1/')
+
+        # Checkout.
+        pce_post('modules/', mod_id=1, mod_name='testmodule',
+               source_location=location)
+        time.sleep(1)
+        mod_installing_response = pce_get('modules/1/')
+
+        # Launch against module currently being installed.
+        pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
+               run_name='testrun1')
+        time.sleep(1)
+        job_mod_not_installed_response = pce_get('jobs/1/')
+
+        # Let install finish.
+        time.sleep(10)
+        mod_installed_response = pce_get('modules/1/')
+
+        # Launch against module installed but not deployed.
+        pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
+               run_name='testrun1')
+        time.sleep(1)
+        job_mod_not_deployed_response = pce_get('jobs/1/')
+
+        # Deploy.
+        pce_post('modules/1/')
+        mod_deploying_response = pce_get('modules/1/')
+
+        # Laucnh agains module currently being deployed.
+        pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
+               run_name='testrun1')
+        time.sleep(1)
+        job_mod_still_not_deployed_response = pce_get('jobs/1/')
+
+        # Let deploy finish.
+        time.sleep(15)
+        mod_deployed_response = pce_get('modules/1/')
+
+        # Launch against ready module.
+        pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
+               run_name='testrun1')
+        job_launching_response = pce_get('jobs/1/')
+
+        # Wait a bit and check again.
+        time.sleep(4)
+        job_preprocessing_response = pce_get('jobs/1/')
+
+        # Wait and check again.
+        time.sleep(2)
+        job_still_preprocessing_response = pce_get('jobs/1/')
+
+        # Let preprocessing finish.
+        time.sleep(8)
+        job_running_response = pce_get('jobs/1/')
+
+        # Wait a bit and check again.
+        time.sleep(2)
+        job_still_running_response = pce_get('jobs/1/')
+
+        # Let job finish.
+        time.sleep(8)
+        job_postprocessing_response = pce_get('jobs/1/')
+
+        # Wait a bit and check again.
+        time.sleep(2)
+        job_still_postprocessing_response = pce_get('jobs/1/')
+
+        # Let postprocessing finish.
+        time.sleep(10)
+        job_done_response = pce_get('jobs/1/')
+
+        print '---------------------------------'
+        print 'mod_not_installed_response.text:'
+        print mod_not_installed_response.text
+        self.assertEqual(mod_not_installed_response.status_code, 200)
+        d = mod_not_installed_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('module', d.keys())
+        self.check_mod(d['module'])
+
+        print '---------------------------------'
+        print 'job_no_mod_response.text:'
+        print job_no_mod_response.text
+        self.assertEqual(job_no_mod_response.status_code, 200)
+        d = job_no_mod_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'])
+
+        print '---------------------------------'
+        print 'mod_installing_response.text:'
+        print mod_installing_response.text
+        self.assertEqual(mod_installing_response.status_code, 200)
+        d = mod_installing_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('module', d.keys())
+        self.check_mod(d['module'], source_location=location,
+                       state='Checkout in progress', mod_name='testmodule')
+
+        print '---------------------------------'
+        print 'job_mod_not_installed_response.text:'
+        print job_mod_not_installed_response.text
+        self.assertEqual(job_mod_not_installed_response.status_code, 200)
+        d = job_mod_not_installed_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'])
+
+        print '---------------------------------'
+        print 'mod_installed_response.text:'
+        print mod_installed_response.text
+        self.assertEqual(mod_installed_response.status_code, 200)
+        d = mod_installed_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('module', d.keys())
+        installed_path = os.path.join(pce_root, 'modules/testmodule_1')
+        self.check_mod(d['module'], source_location=location,
+                       installed_path=installed_path, mod_name='testmodule',
+                       state='Installed')
+
+        print '---------------------------------'
+        print 'job_mod_not_deployed_response.text:'
+        print job_mod_not_deployed_response.text
+        self.assertEqual(job_mod_not_deployed_response.status_code, 200)
+        d = job_mod_not_deployed_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'])
+
+        print '---------------------------------'
+        print 'mod_deploying_response.text:'
+        print mod_deploying_response.text
+        self.assertEqual(mod_deploying_response.status_code, 200)
+        d = mod_deploying_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('module', d.keys())
+        installed_path = os.path.join(pce_root, 'modules/testmodule_1')
+        self.check_mod(d['module'], source_location=location,
+                       installed_path=installed_path, mod_name='testmodule',
+                       state='Deploy in progress')
+
+        print '---------------------------------'
+        print 'job_mod_still_not_deployed_response.text:'
+        print job_mod_still_not_deployed_response.text
+        self.assertEqual(job_mod_still_not_deployed_response.status_code, 200)
+        d = job_mod_still_not_deployed_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'])
+
+        print '---------------------------------'
+        print 'mod_deployed_response.text:'
+        print mod_deployed_response.text
+        self.assertEqual(mod_deployed_response.status_code, 200)
+        d = mod_deployed_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('module', d.keys())
+        installed_path = os.path.join(pce_root, 'modules/testmodule_1')
+        self.check_mod(d['module'], source_location=location,
+                       installed_path=installed_path, mod_name='testmodule',
+                       state='Module ready')
+
+        print '---------------------------------'
+        print 'job_launching_response.text:'
+        print job_launching_response.text
+        self.assertEqual(job_launching_response.status_code, 200)
+        d = job_launching_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], state='Setting up launch', error=None)
+
+        print '---------------------------------'
+        print 'job_preprocessing_response.text:'
+        print job_preprocessing_response.text
+        self.assertEqual(job_preprocessing_response.status_code, 200)
+        d = job_preprocessing_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], state='Preprocessing', error=None)
+
+        print '---------------------------------'
+        print 'job_still_preprocessing_response.text:'
+        print job_still_preprocessing_response.text
+        self.assertEqual(job_still_preprocessing_response.status_code, 200)
+        d = job_still_preprocessing_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], state='Preprocessing', error=None)
+
+        print '---------------------------------'
+        print 'job_running_response.text:'
+        print job_running_response.text
+        self.assertEqual(job_running_response.status_code, 200)
+        d = job_running_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        output = 'Output from bin/onramp_status.py\n'
+        self.check_job(d['job'], state='Running', check_scheduler_job_num=True,
+                       error=None, mod_status_output=output)
+
+        print '---------------------------------'
+        print 'job_still_running_response.text:'
+        print job_still_running_response.text
+        self.assertEqual(job_still_running_response.status_code, 200)
+        d = job_still_running_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        output = 'Output from bin/onramp_status.py\n'
+        self.check_job(d['job'], state='Running', check_scheduler_job_num=True,
+                       error=None, mod_status_output=output)
+
+        print '---------------------------------'
+        print 'job_postprocessing_response.text:'
+        print job_postprocessing_response.text
+        self.assertEqual(job_postprocessing_response.status_code, 200)
+        d = job_postprocessing_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], state='Postprocessing',
+                       check_scheduler_job_num=True, error=None)
+
+        print '---------------------------------'
+        print 'job_still_postprocessing_response.text:'
+        print job_still_postprocessing_response.text
+        self.assertEqual(job_postprocessing_response.status_code, 200)
+        d = job_still_postprocessing_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], state='Postprocessing',
+                       check_scheduler_job_num=True, error=None)
+
+        print '---------------------------------'
+        print 'job_done_response.text:'
+        print job_done_response.text
+        self.assertEqual(job_done_response.status_code, 200)
+        d = job_done_response.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        output = ('Hello, this will result in deterministic output!Hello, this '
+                  'will result in deterministic output!Hello, this will result '
+                  'in deterministic output!Hello, this will result in '
+                  'deterministic output!')
+        self.check_job(d['job'], state='Done',
+                       check_scheduler_job_num=True, error=None, output=output)

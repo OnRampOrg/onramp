@@ -11,7 +11,6 @@ import time
 
 
 # No postprocessing required
-time.sleep(10)
 
 
 # Exit 0 if all is ok

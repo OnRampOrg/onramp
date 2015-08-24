@@ -19,7 +19,6 @@ os.chdir('src')
 # Make the program
 #
 call(['make'])
-time.sleep(10)
 
 #
 # Exit 0 if the module is ready to use

@@ -21,6 +21,7 @@ import logging
 import os
 import shutil
 import sys
+import time
 from subprocess import CalledProcessError, check_output
 
 from PCE import pce_root
@@ -71,7 +72,15 @@ class ModState(dict):
             file_contents = self._state_file.read()
             _logger.debug('File contents for %s:' % mod_state_file)
             _logger.debug(file_contents)
-            self.update(json.loads(file_contents))
+
+            try:
+                data = json.loads(file_contents)
+                # Valid json. Load it into self.
+                self.update(data)
+            except ValueError:
+                # Invalid json. Ignore (will be overwritten by _close().
+                pass
+
             self._state_file.seek(0)
 
     def __enter__(self):
@@ -133,7 +142,7 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
         verbose (bool): Controls level of printed output during installation.
     """
     mod_dir = os.path.join(os.path.join(pce_root, install_parent_folder),
-                           '%s_%s' % (mod_name, mod_id))
+                           '%s_%d' % (mod_name, mod_id))
     source_abs_path = os.path.normpath(os.path.abspath(source_path))
     _logger.debug('cwd: %s' % os.getcwd())
     _logger.debug('source_abs_path: %s' % source_abs_path)
@@ -250,6 +259,7 @@ def get_modules(mod_id=None):
         with ModState(mod_id) as mod_state:
             if 'state' in mod_state.keys():
                 return copy.deepcopy(mod_state)
+        _logger.debug('Mod does not exist at: %s' % time.time())
         return {
             'mod_id': mod_id,
             'mod_name': None,
