@@ -7,38 +7,6 @@
 # - onramp_run_params.ini file is available in current working directory
 #
 import sys
-import time
-from configobj import ConfigObj, flatten_errors
-from validate import Validator, ValidateError, is_integer
-
-#
-# Validate the configobj file we received from the server
-# Note: The OnRamp server already does this for you, so you can trust
-#       the validity of the file.
-#
-# This will always be the name of the file, so fine to hardcode here
-conf_file = "onramp_runparams.ini"
-
-config    = ConfigObj(conf_file, configspec="config/onramp_uioptions.spec")
-validator = Validator()
-results   = config.validate(validator, preserve_errors=True)
-if results != True:
-    print "Configuration file validation failed!"
-    for entry in flatten_errors(config, results):
-        section_list, key, error = entry
-        if key is not None:
-            section_list.append(key)
-        else:
-            section_list.append("[missing section]")
-        section_str = ', '.join(section_list)
-        if error == False:
-            error = "Missing value or section."
-        print section_str, ' = ', error
-
-    sys.exit(-11)
-
-# Nothing else to do for this module
-
 
 # Exit 0 if all is ok
 sys.exit(0)
