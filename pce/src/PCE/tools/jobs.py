@@ -20,7 +20,7 @@ import shutil
 import sys
 import time
 from multiprocessing import Process
-from subprocess import CalledProcessError, call, check_output
+from subprocess import CalledProcessError, call, check_output, STDOUT
 
 from configobj import ConfigObj
 from validate import Validator
@@ -146,21 +146,33 @@ def launch_job(job_id, mod_id, username, run_name):
             proj_loc = mod_state['installed_path']
             mod_name = mod_state['mod_name']
 
+    _logger.debug('Testing project location')
     if not os.path.isdir(proj_loc):
         msg = 'Project location does not exist'
         _logger.error(msg)
         return (-1, msg)
+    _logger.debug('Project location good')
 
     # Initialize dir structure.
     user_dir = os.path.join(os.path.join(pce_root, 'users'), username)
-    if not os.path.isdir(user_dir):
-        os.mkdir(user_dir)
     user_mod_dir = os.path.join(user_dir, '%s_%d' % (mod_name, mod_id))
-    if not os.path.isdir(user_mod_dir):
-        os.mkdir(user_mod_dir)
     run_dir = os.path.join(user_mod_dir, run_name)
-    if not os.path.isdir(run_dir):
+    try:
+        os.mkdir(user_dir)
+    except OSError:
+        # Thrown if dir already exists.
+        pass
+    try:
+        os.mkdir(user_mod_dir)
+    except OSError:
+        # Thrown if dir already exists.
+        pass
+    # The way the following is setup, if a run_dir has already been setup with
+    # this run_name, it will be used (that is, not overwritten) for this launch.
+    try:
         shutil.copytree(proj_loc, run_dir)
+    except shutil.Error as e:
+        pass
 
     ret_dir = os.getcwd()
     os.chdir(run_dir)
@@ -173,12 +185,16 @@ def launch_job(job_id, mod_id, username, run_name):
 
     try:
         result = check_output([os.path.join(pce_root, 'src/env/bin/python'),
-                               'bin/onramp_preprocess.py'])
+                               'bin/onramp_preprocess.py'], stderr=STDOUT)
     except CalledProcessError as e:
-        msg = 'Preprocess failed'
+        code = e.returncode
+        if code > 127:
+            code -= 256
+        msg = ('Preprocess exited with return status %d and output: %s'
+               % (code, e.output))
         with JobState(job_id) as job_state:
-            job_state['state'] = msg
-            job_state['error'] = 'Return status: %d' % e.output
+            job_state['state'] = 'Preprocess failed'
+            job_state['error'] = msg
         _logger.error(msg)
         os.chdir(ret_dir)
         return (-1, msg)
@@ -233,8 +249,21 @@ def _job_postprocess(job_id):
 
     os.chdir(run_dir)
     _logger.debug('Calling bin/onramp_postprocess.py')
-    call([os.path.join(pce_root, 'src/env/bin/python'),
-          'bin/onramp_postprocess.py'])
+    try:
+        result = check_output([os.path.join(pce_root, 'src/env/bin/python'),
+                               'bin/onramp_postprocess.py'], stderr=STDOUT)
+    except CalledProcessError as e:
+        code = e.returncode
+        if code > 127:
+            code -= 256
+        msg = ('Postprocess exited with return status %d and output: %s'
+               % (code, e.output))
+        with JobState(job_id) as job_state:
+            job_state['state'] = 'Postprocess failed'
+            job_state['error'] = msg
+        _logger.error(msg)
+        os.chdir(ret_dir)
+        return (-1, msg)
 
     # Grab job output.
     with open('output.txt', 'r') as f:
@@ -269,7 +298,7 @@ def _get_module_status_output(job_id):
     _logger.debug('Calling bin/onramp_status.py')
     try:
         output = check_output([os.path.join(pce_root, 'src/env/bin/python'),
-                               'bin/onramp_status.py'])
+                               'bin/onramp_status.py'], stderr=STDOUT)
     except CalledProcessError as e:
         output = 'bin/onramp_status.py exited with nonzero status.'
     finally:

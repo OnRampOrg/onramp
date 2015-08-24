@@ -532,17 +532,43 @@ class JobsTest(PCEBase):
 
         testmodule_path = os.path.normpath(os.path.join(pce_root,
                                                       'src/testing/testmodule2'))
-        location = {
+        bad_preprocess_path = os.path.normpath(os.path.join(pce_root,
+                                                      'src/testing/testmodulebadpreprocess'))
+        bad_postprocess_path = os.path.normpath(os.path.join(pce_root,
+                                                      'src/testing/testmodulebadpostprocess'))
+        good_mod_location = {
             'type': 'local',
             'path': testmodule_path
         }
+        bad_preprocess_location = {
+            'type': 'local',
+            'path': bad_preprocess_path
+        }
+        bad_postprocess_location = {
+            'type': 'local',
+            'path': bad_postprocess_path
+        }
 
-        # Install and deploy a module for use
+        # Install and deploy test modules for use.
         r = pce_post('modules/', mod_id=1, mod_name='testmodule2',
-                     source_location=location)
+                     source_location=good_mod_location)
         self.assertEqual(r.status_code, 200)
         time.sleep(3)
         r = pce_post('modules/1/')
+        self.assertEqual(r.status_code, 200)
+        time.sleep(3)
+        r = pce_post('modules/', mod_id=2, mod_name='testmodulebadpreprocess',
+                     source_location=bad_preprocess_location)
+        self.assertEqual(r.status_code, 200)
+        time.sleep(3)
+        r = pce_post('modules/2/')
+        self.assertEqual(r.status_code, 200)
+        time.sleep(3)
+        r = pce_post('modules/', mod_id=3, mod_name='testmodulebadpostprocess',
+                     source_location=bad_postprocess_location)
+        self.assertEqual(r.status_code, 200)
+        time.sleep(3)
+        r = pce_post('modules/3/')
         self.assertEqual(r.status_code, 200)
         time.sleep(3)
 
@@ -632,7 +658,7 @@ class JobsTest(PCEBase):
 
         mod_state_files = filter(lambda x: not x.startswith('.'),
                                  os.listdir(self.mod_state_dir))
-        self.assertEqual(mod_state_files, ['1'])
+        self.assertEqual(mod_state_files, ['1', '2', '3'])
         job_state_files = filter(lambda x: not x.startswith('.'),
                                  os.listdir(self.job_state_dir))
         self.assertEqual(job_state_files, [])
@@ -656,7 +682,7 @@ class JobsTest(PCEBase):
         self.assertEqual(d['status_msg'], 'Job launched')
 
         # Verify stored state for launched jobs
-        time.sleep(10)
+        time.sleep(5)
         self.verify_launch(1, 1, 'testuser', 'testrun1')
         self.verify_launch(2, 1, 'testuser', 'testrun2')
 
@@ -748,6 +774,54 @@ class JobsTest(PCEBase):
 
         r = pce_post('jobs/45/')
         self.assertEqual(r.status_code, 404)
+
+        # Check output from module with preprocess error.
+        r = pce_post('jobs/', mod_id=2, job_id=3, username='testuser',
+                     run_name='testrunbadpreprocess')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Job launched')
+        time.sleep(20)
+        r = pce_get('jobs/3/')
+        d = r.json()
+        print d
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        err = ("Preprocess exited with return status -1 and output: This to "
+               "stderrWe're pretending this is a bad preprocess.\n")
+        self.check_job(d['job'], job_id=3, state='Preprocess failed',
+                       run_name='testrunbadpreprocess', mod_id=2, error=err)
+
+        # Check output from module with postprocess error.
+        r = pce_post('jobs/', mod_id=3, job_id=4, username='testuser',
+                     run_name='testrunbadpostprocess')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Job launched')
+        time.sleep(8)
+        # Trigger postprocessing by requesting job data:
+        r = pce_get('jobs/4/')
+        d = r.json()
+        print d
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.check_job(d['job'], job_id=4, state='Postprocessing',
+                       run_name='testrunbadpostprocess', mod_id=3)
+        time.sleep(12)
+        # Check for postprocessing failure.
+        r = pce_get('jobs/4/')
+        d = r.json()
+        print d
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        err = ("Postprocess exited with return status -1 and output: This to "
+               "stderrWe're pretending like there was an error in this script.\n")
+        self.check_job(d['job'], job_id=4, state='Postprocess failed',
+                       run_name='testrunbadpostprocess', mod_id=3, error=err)
 
     def test_PUT(self):
         r = pce_put('jobs/')
