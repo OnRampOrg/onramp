@@ -162,6 +162,7 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
         mod_state['installed_path'] = None
         mod_state['state'] = 'Checkout in progress'
         mod_state['error'] = None
+        mod_state['uioptions'] = None
         mod_state['source_location'] = {
             'type': source_type,
             'path': source_abs_path
