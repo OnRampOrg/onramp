@@ -24,6 +24,8 @@ import sys
 import time
 from subprocess import CalledProcessError, check_output
 
+from configobj import ConfigObj
+
 from PCE import pce_root
 
 _mod_state_dir = os.path.join(pce_root, 'src/state/modules')
@@ -258,7 +260,16 @@ def get_modules(mod_id=None):
     if mod_id:
         with ModState(mod_id) as mod_state:
             if 'state' in mod_state.keys():
-                return copy.deepcopy(mod_state)
+                mod = copy.deepcopy(mod_state)
+                if mod_state['state'] == 'Module ready':
+                    uifile = os.path.join(mod_state['installed_path'],
+                                          'config/onramp_uioptions.spec')
+                    if os.path.isfile(uifile):
+                        ui = ConfigObj(uifile)
+                        mod['uioptions'] = ui.dict()
+                    else:
+                        mod['uioptions'] = None
+                return mod
         _logger.debug('Mod does not exist at: %s' % time.time())
         return {
             'mod_id': mod_id,
