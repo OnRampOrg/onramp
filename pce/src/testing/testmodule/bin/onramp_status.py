@@ -8,6 +8,7 @@
 #
 import sys
 
+sys.stderr.write('Output to stderr')
 print 'Output from bin/onramp_status.py'
 #
 # Display any special message you want the user to see, or leave blank if nothing.

@@ -1088,6 +1088,9 @@ class ModuleJobFlowTest(PCEBase):
         pre_contents_end = '\n\nOutput to stderrThis is an output log test.\n'
         post_contents_start = 'The following output was logged '
         post_contents_end = '\n\nOutput to stderrThis is an output log test.\n'
+        status_contents_start = 'The following output was logged '
+        status_contents_end = ('\n\nOutput to stderrOutput from '
+                               'bin/onramp_status.py\n')
         with open(os.path.join(run_dir, 'log/onramp_deploy.log'), 'r') as f:
             contents = f.read()
             print contents
@@ -1103,6 +1106,11 @@ class ModuleJobFlowTest(PCEBase):
             print contents
             self.assertTrue(contents.startswith(post_contents_start))
             self.assertTrue(contents.endswith(post_contents_end))
+        with open(os.path.join(run_dir, 'log/onramp_status.log'), 'r') as f:
+            contents = f.read()
+            print contents
+            self.assertTrue(contents.startswith(status_contents_start))
+            self.assertTrue(contents.endswith(status_contents_end))
 
         print '---------------------------------'
         print 'mod_not_installed_response.text:'
@@ -1229,7 +1237,7 @@ class ModuleJobFlowTest(PCEBase):
         d = job_running_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        output = 'Output from bin/onramp_status.py\n'
+        output = 'Output to stderrOutput from bin/onramp_status.py\n'
         self.check_job(d['job'], state='Running', check_scheduler_job_num=True,
                        error=None, mod_status_output=output)
 
@@ -1240,7 +1248,7 @@ class ModuleJobFlowTest(PCEBase):
         d = job_still_running_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        output = 'Output from bin/onramp_status.py\n'
+        output = 'Output to stderrOutput from bin/onramp_status.py\n'
         self.check_job(d['job'], state='Running', check_scheduler_job_num=True,
                        error=None, mod_status_output=output)
 
