@@ -245,6 +245,7 @@ def deploy_module(mod_id, verbose=False):
             mod_state['error'] = output
             return (1, msg)
     except OSError as e1:
+        output = str(e1)
         _logger.debug(e1)
         with ModState(mod_id) as mod_state:
             mod_state['state'] = 'Deploy failed'
