@@ -103,7 +103,6 @@ class PCEBase(unittest.TestCase):
         def not_hidden(x):
             return not x.startswith('.')
 
-        time.sleep(2)
         for name in os.listdir(self.install_dir):
             shutil.rmtree('%s/%s' % (self.install_dir, name))
         for name in filter(not_hidden, os.listdir(self.mod_state_dir)):
@@ -112,6 +111,7 @@ class PCEBase(unittest.TestCase):
             os.remove('%s/%s' % (self.job_state_dir, name))
         for name in os.listdir(self.users_dir):
             shutil.rmtree('%s/%s' % (self.users_dir, name))
+        time.sleep(2)
 
     def tearDown(self):
         os.chdir(self.ret_dir)
