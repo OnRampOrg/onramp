@@ -37,6 +37,9 @@ if results != True:
 
     sys.exit(-11)
 
+print 'This is an output log test.'
+sys.stderr.write('Output to stderr')
+
 time.sleep(10)
 
 

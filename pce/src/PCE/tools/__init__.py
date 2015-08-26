@@ -2,13 +2,13 @@
 administer system users, and launch parallel jobs.
 
 Exports:
-    launch_job: Launch a parallel job on system.
-    encrypt: Encrypt a message.
-    decrypt: Decript a message.
-    create_admin: Create admin user with default settings.
-    authenticate: Authenticate a user.
-    admin_authenticate: Authenticate an admin user.
-    modules: Functionality for working with OnRamp educational modules.
+    launch_job: Launch a parallel job on system. DEPRECATED.
+    encrypt: Encrypt a message. DEPRECATED.
+    decrypt: Decript a message. DEPRECATED.
+    create_admin: Create admin user with default settings. DEPRECATED.
+    authenticate: Authenticate a user. DEPRECATED.
+    admin_authenticate: Authenticate an admin user. DEPRECATED.
+    modules: Functionality for working with OnRamp educational modules. DEPRECATED.
 """
 
 import glob
@@ -16,11 +16,31 @@ import hashlib
 import json
 import logging
 import os
+from datetime import datetime
+from subprocess import CalledProcessError, call, check_output
 
 from Crypto import Random
 from Crypto.Cipher import AES
 
-from subprocess import CalledProcessError, call, check_output
+
+def module_log(mod_root, log_id, msg):
+    """Log a message to one of the log/onramp_*.log files in a module.
+
+    Overwrite existing log entry if any. Prefix message with preamble,
+    timestamp, and blank line.
+
+    Args:
+        mod_root (str): Absolute path of module root folder.
+        log_id (str): Determines logfile to use: log/onramp_{log_id}.log.
+        msg (str): Message to be logged.
+    """
+    logname = os.path.join(mod_root, 'log/onramp_%s.log' % log_id)
+    with open(logname, 'w') as f:
+        f.write('The following output was logged %s:\n\n' % str(datetime.now()))
+        f.write(msg)
+        
+    
+# Everything below is deprecated. ----------------------------------------------
 
 def launch_job(project_loc, run_name, batch_scheduler, numtasks=4, email=None,
                **kwargs):

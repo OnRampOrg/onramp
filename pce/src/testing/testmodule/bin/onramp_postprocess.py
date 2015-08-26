@@ -9,6 +9,8 @@
 import sys
 import time
 
+print 'This is an output log test.'
+sys.stderr.write('Output to stderr')
 
 # No postprocessing required
 time.sleep(10)

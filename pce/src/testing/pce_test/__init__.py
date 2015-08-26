@@ -103,7 +103,6 @@ class PCEBase(unittest.TestCase):
         def not_hidden(x):
             return not x.startswith('.')
 
-        time.sleep(2)
         for name in os.listdir(self.install_dir):
             shutil.rmtree('%s/%s' % (self.install_dir, name))
         for name in filter(not_hidden, os.listdir(self.mod_state_dir)):
@@ -112,6 +111,7 @@ class PCEBase(unittest.TestCase):
             os.remove('%s/%s' % (self.job_state_dir, name))
         for name in os.listdir(self.users_dir):
             shutil.rmtree('%s/%s' % (self.users_dir, name))
+        time.sleep(5)
 
     def tearDown(self):
         os.chdir(self.ret_dir)
@@ -283,7 +283,7 @@ class ModulesTest(PCEBase):
         self.assertEqual(r.status_code, 200)
         d = r.json()
         self.check_json(d)
-        time.sleep(3)
+        time.sleep(4)
         r = pce_get('modules/10/')
         self.assertEqual(r.status_code, 200)
         d = r.json()
@@ -1079,6 +1079,39 @@ class ModuleJobFlowTest(PCEBase):
         time.sleep(10)
         job_done_response = pce_get('jobs/1/')
 
+        # Verify contents of module log files
+        run_dir = os.path.join(pce_root, 'users/testuser/testmodule_1/testrun1')
+        deploy_contents_start = 'The following output was logged '
+        deploy_contents_end = ('\n\nOutput to stderrmpicc -o hello -Wall -g -O0'
+                               ' hello.c\nThis is an output log test.\n')
+        pre_contents_start = 'The following output was logged '
+        pre_contents_end = '\n\nOutput to stderrThis is an output log test.\n'
+        post_contents_start = 'The following output was logged '
+        post_contents_end = '\n\nOutput to stderrThis is an output log test.\n'
+        status_contents_start = 'The following output was logged '
+        status_contents_end = ('\n\nOutput to stderrOutput from '
+                               'bin/onramp_status.py\n')
+        with open(os.path.join(run_dir, 'log/onramp_deploy.log'), 'r') as f:
+            contents = f.read()
+            print contents
+            self.assertTrue(contents.startswith(deploy_contents_start))
+            self.assertTrue(contents.endswith(deploy_contents_end))
+        with open(os.path.join(run_dir, 'log/onramp_preprocess.log'), 'r') as f:
+            contents = f.read()
+            print contents
+            self.assertTrue(contents.startswith(pre_contents_start))
+            self.assertTrue(contents.endswith(pre_contents_end))
+        with open(os.path.join(run_dir, 'log/onramp_postprocess.log'), 'r') as f:
+            contents = f.read()
+            print contents
+            self.assertTrue(contents.startswith(post_contents_start))
+            self.assertTrue(contents.endswith(post_contents_end))
+        with open(os.path.join(run_dir, 'log/onramp_status.log'), 'r') as f:
+            contents = f.read()
+            print contents
+            self.assertTrue(contents.startswith(status_contents_start))
+            self.assertTrue(contents.endswith(status_contents_end))
+
         print '---------------------------------'
         print 'mod_not_installed_response.text:'
         print mod_not_installed_response.text
@@ -1204,7 +1237,7 @@ class ModuleJobFlowTest(PCEBase):
         d = job_running_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        output = 'Output from bin/onramp_status.py\n'
+        output = 'Output to stderrOutput from bin/onramp_status.py\n'
         self.check_job(d['job'], state='Running', check_scheduler_job_num=True,
                        error=None, mod_status_output=output)
 
@@ -1215,7 +1248,7 @@ class ModuleJobFlowTest(PCEBase):
         d = job_still_running_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        output = 'Output from bin/onramp_status.py\n'
+        output = 'Output to stderrOutput from bin/onramp_status.py\n'
         self.check_job(d['job'], state='Running', check_scheduler_job_num=True,
                        error=None, mod_status_output=output)
 
