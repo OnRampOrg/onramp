@@ -319,10 +319,14 @@ def _get_module_status_output(job_id):
         output = check_output([os.path.join(pce_root, 'src/env/bin/python'),
                                'bin/onramp_status.py'], stderr=STDOUT)
     except CalledProcessError as e:
-        output = 'bin/onramp_status.py exited with nonzero status.'
-    finally:
-        os.chdir(ret_dir)
+        code = e.returncode
+        if code > 127:
+            code -= 256
+        output = ('Status exited with return status %d and output: %s'
+               % (code, e.output))
 
+    module_log(run_dir, 'status', output)
+    os.chdir(ret_dir)
     return output
 
 def _build_job(job_id):
