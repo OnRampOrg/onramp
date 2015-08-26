@@ -258,6 +258,46 @@ class ModulesTest(PCEBase):
             self.assertIsNone(mod['error'])
             self.assertEqual(mod, rxd_mods[k])
 
+        # Install and deploy module to allow testing of uioptions
+        testmodule_path = os.path.normpath(os.path.join(pce_root,
+                                                    'src/testing/testmodule2'))
+        location = {
+            'type': 'local',
+            'path': testmodule_path
+        }
+        install_path = os.path.join(install_dir, '%s_%d' % ('testmodule2_ui',
+                                                            10))
+        conf = ConfigObj(os.path.join(location['path'],
+                                      'config/onramp_uioptions.spec'))
+        expected_conf = conf.dict()
+        self.assertIsNotNone(expected_conf)
+        r = pce_post('modules/', mod_id=10, mod_name='testmodule2_ui',
+                     source_location=location)
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Checkout initiated')
+        time.sleep(3)
+        r = pce_post('modules/10/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        time.sleep(3)
+        r = pce_get('modules/10/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+        self.assertIn('module', d.keys())
+        mod = d['module']
+        self.assertEqual(mod['mod_id'], 10)
+        self.assertEqual(mod['mod_name'], 'testmodule2_ui')
+        self.assertEqual(mod['source_location'], location)
+        self.assertEqual(mod['state'], 'Module ready')
+        self.assertEqual(mod['installed_path'], install_path)
+        self.assertEqual(mod['uioptions'], expected_conf)
+        self.assertIsNone(mod['error'])
+
         # Bad URL
         r = pce_get('modules/45/99/')
         self.assertEqual(r.status_code, 404)
