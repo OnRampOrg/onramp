@@ -474,10 +474,13 @@ def _job_launch():
     parser.add_argument('mod_id', help='Id of the module', type=int)
     parser.add_argument('username', help='Username of user launching job')
     parser.add_argument('run_name', help='Name for this job run')
+    parser.add_argument('run_params',
+                        help='Ini file containing params for this run')
     args = parser.parse_args(args=sys.argv[2:])
 
+    params = ConfigObj(args.run_params)
     result, msg = launch_job(args.job_id, args.mod_id, args.username,
-                             args.run_name)
+                             args.run_name, params)
 
     if result != 0:
         sys.stderr.write(msg + '\n')
