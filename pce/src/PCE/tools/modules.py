@@ -219,13 +219,16 @@ def deploy_module(mod_id, verbose=False):
         _logger.debug('Back from bin/onramp_deploy.py')
     except CalledProcessError as e:
         if e.returncode != 1:
+            code = e.returncode
+            if code > 127:
+                code -= 256
             with ModState(mod_id) as mod_state:
-                error = ('bin/onramp_deploy.py returned invalid status %d'
-                         % e.returncode)
+                msg = ('Deploy exited with return status %d and output: %s'
+                         % (code, e.output))
                 _logger.debug(error)
                 mod_state['state'] = 'Deploy failed'
-                mod_state['error'] = error
-            return (-1, error)
+                mod_state['error'] = msg
+            return (-1, msg)
 
         with ModState(mod_id) as mod_state:
             msg = 'Admin required'
