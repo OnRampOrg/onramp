@@ -111,7 +111,7 @@ class PCEBase(unittest.TestCase):
             os.remove('%s/%s' % (self.job_state_dir, name))
         for name in os.listdir(self.users_dir):
             shutil.rmtree('%s/%s' % (self.users_dir, name))
-        time.sleep(2)
+        time.sleep(5)
 
     def tearDown(self):
         os.chdir(self.ret_dir)
@@ -1078,6 +1078,31 @@ class ModuleJobFlowTest(PCEBase):
         # Let postprocessing finish.
         time.sleep(10)
         job_done_response = pce_get('jobs/1/')
+
+        # Verify contents of module log files
+        run_dir = os.path.join(pce_root, 'users/testuser/testmodule_1/testrun1')
+        deploy_contents_start = 'The following output was logged '
+        deploy_contents_end = ('\n\nmpicc -o hello -Wall -g -O0 hello.c\n'
+                               'This is an output log test.\n')
+        pre_contents_start = 'The following output was logged '
+        pre_contents_end = '\n\nOutput to stderrThis is an output log test.\n'
+        post_contents_start = 'The following output was logged '
+        post_contents_end = '\n\nOutput to stderrThis is an output log test.\n'
+        with open(os.path.join(run_dir, 'log/onramp_deploy.log'), 'r') as f:
+            contents = f.read()
+            print contents
+            self.assertTrue(contents.startswith(deploy_contents_start))
+            self.assertTrue(contents.endswith(deploy_contents_end))
+        with open(os.path.join(run_dir, 'log/onramp_preprocess.log'), 'r') as f:
+            contents = f.read()
+            print contents
+            self.assertTrue(contents.startswith(pre_contents_start))
+            self.assertTrue(contents.endswith(pre_contents_end))
+        with open(os.path.join(run_dir, 'log/onramp_postprocess.log'), 'r') as f:
+            contents = f.read()
+            print contents
+            self.assertTrue(contents.startswith(post_contents_start))
+            self.assertTrue(contents.endswith(post_contents_end))
 
         print '---------------------------------'
         print 'mod_not_installed_response.text:'
