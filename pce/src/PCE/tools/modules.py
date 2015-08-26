@@ -27,6 +27,7 @@ from subprocess import CalledProcessError, check_output
 from configobj import ConfigObj
 
 from PCE import pce_root
+from PCE.tools import module_log
 
 _mod_state_dir = os.path.join(pce_root, 'src/state/modules')
 _shipped_mod_dir = os.path.join(pce_root, '../modules')
@@ -177,6 +178,12 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
             mod_state['error'] = result
         return (-2, result)
 
+    try:
+        os.mkdir(os.path.join(mod_dir, 'log'))
+    except OSError:
+        # Dir already exists. All good.
+        pass
+
     with ModState(mod_id) as mod_state:
         mod_state['state'] = 'Installed'
         mod_state['error'] = None
@@ -214,27 +221,27 @@ def deploy_module(mod_id, verbose=False):
     try:
         _logger.debug('Calling bin/onramp_deploy.py')
         _logger.debug('CWD: %s' % os.getcwd())
-        check_output([os.path.join(pce_root, 'src/env/bin/python'),
-                      'bin/onramp_deploy.py'])
+        output = check_output([os.path.join(pce_root, 'src/env/bin/python'),
+                              'bin/onramp_deploy.py'])
         _logger.debug('Back from bin/onramp_deploy.py')
     except CalledProcessError as e:
-        if e.returncode != 1:
-            code = e.returncode
-            if code > 127:
-                code -= 256
+        code = e.returncode
+        if code > 127:
+            code -= 256
+        output = e.output
+        if code != 1:
             with ModState(mod_id) as mod_state:
                 msg = ('Deploy exited with return status %d and output: %s'
-                         % (code, e.output))
+                         % (code, output))
                 _logger.debug(error)
                 mod_state['state'] = 'Deploy failed'
                 mod_state['error'] = msg
             return (-1, msg)
-
         with ModState(mod_id) as mod_state:
             msg = 'Admin required'
             _logger.debug(msg)
             mod_state['state'] = msg
-            mod_state['error'] = e.output
+            mod_state['error'] = output
             return (1, msg)
     except OSError as e1:
         _logger.debug(e1)
@@ -243,9 +250,8 @@ def deploy_module(mod_id, verbose=False):
             mod_state['error'] = str(e1)
         return (-1, str(e1))
     finally:
-        _logger.debug('finally')
         os.chdir(ret_dir)
-        _logger.debug('Back to ret_dir')
+        module_log(mod_dir, 'deploy', output)
 
     _logger.debug("Updating state to 'Module ready'")
     with ModState(mod_id) as mod_state:
