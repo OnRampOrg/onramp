@@ -10,6 +10,8 @@ import sys
 import time
 from subprocess import call
 
+print 'This is an output log test.'
+sys.stderr.write('Output to stderr')
 
 #
 # Change to the 'src' directory

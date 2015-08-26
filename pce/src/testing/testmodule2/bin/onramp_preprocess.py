@@ -8,7 +8,6 @@
 #
 import sys
 
-print 'This is to test bin script logging.'
 
 # Exit 0 if all is ok
 sys.exit(0)

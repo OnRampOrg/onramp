@@ -11,7 +11,6 @@ import time
 from subprocess import call
 
 
-print 'This is an output log test.'
 #
 # Change to the 'src' directory
 #
