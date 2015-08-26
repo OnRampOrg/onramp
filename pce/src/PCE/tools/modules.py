@@ -22,7 +22,7 @@ import os
 import shutil
 import sys
 import time
-from subprocess import CalledProcessError, check_output
+from subprocess import CalledProcessError, check_output, STDOUT
 
 from configobj import ConfigObj
 
@@ -223,7 +223,7 @@ def deploy_module(mod_id, verbose=False):
         _logger.debug('Calling bin/onramp_deploy.py')
         _logger.debug('CWD: %s' % os.getcwd())
         output = check_output([os.path.join(pce_root, 'src/env/bin/python'),
-                              'bin/onramp_deploy.py'])
+                              'bin/onramp_deploy.py'], stderr=STDOUT)
         _logger.debug('Back from bin/onramp_deploy.py')
     except CalledProcessError as e:
         code = e.returncode

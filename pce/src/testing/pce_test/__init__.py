@@ -1082,8 +1082,8 @@ class ModuleJobFlowTest(PCEBase):
         # Verify contents of module log files
         run_dir = os.path.join(pce_root, 'users/testuser/testmodule_1/testrun1')
         deploy_contents_start = 'The following output was logged '
-        deploy_contents_end = ('\n\nmpicc -o hello -Wall -g -O0 hello.c\n'
-                               'This is an output log test.\n')
+        deploy_contents_end = ('\n\nOutput to stderrmpicc -o hello -Wall -g -O0'
+                               ' hello.c\nThis is an output log test.\n')
         pre_contents_start = 'The following output was logged '
         pre_contents_end = '\n\nOutput to stderrThis is an output log test.\n'
         post_contents_start = 'The following output was logged '
