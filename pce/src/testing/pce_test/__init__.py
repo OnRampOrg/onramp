@@ -283,7 +283,7 @@ class ModulesTest(PCEBase):
         self.assertEqual(r.status_code, 200)
         d = r.json()
         self.check_json(d)
-        time.sleep(3)
+        time.sleep(4)
         r = pce_get('modules/10/')
         self.assertEqual(r.status_code, 200)
         d = r.json()
