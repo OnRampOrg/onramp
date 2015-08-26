@@ -10,6 +10,7 @@ import sys
 import time
 
 
+print 'This is to test bin script logging.'
 # No postprocessing required
 
 

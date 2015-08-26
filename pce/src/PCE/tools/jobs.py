@@ -26,6 +26,7 @@ from configobj import ConfigObj
 from validate import Validator
 
 from PCE import pce_root
+from PCE.tools import module_log
 from PCE.tools.modules import ModState
 from PCE.tools.schedulers import Scheduler
 
@@ -202,14 +203,17 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
         code = e.returncode
         if code > 127:
             code -= 256
+        result = e.output
         msg = ('Preprocess exited with return status %d and output: %s'
-               % (code, e.output))
+               % (code, result))
         with JobState(job_id) as job_state:
             job_state['state'] = 'Preprocess failed'
             job_state['error'] = msg
         _logger.error(msg)
         os.chdir(ret_dir)
         return (-1, msg)
+    finally:
+        module_log(run_dir, 'preprocess', result)
 
     # Determine batch scheduler to user from config.
     ini = ConfigObj(os.path.join(pce_root, 'onramp_pce_config.ini'),
@@ -268,14 +272,17 @@ def _job_postprocess(job_id):
         code = e.returncode
         if code > 127:
             code -= 256
+        result = e.output
         msg = ('Postprocess exited with return status %d and output: %s'
-               % (code, e.output))
+               % (code, result))
         with JobState(job_id) as job_state:
             job_state['state'] = 'Postprocess failed'
             job_state['error'] = msg
         _logger.error(msg)
         os.chdir(ret_dir)
         return (-1, msg)
+    finally:
+        module_log(run_dir, 'postprocess', result)
 
     # Grab job output.
     with open('output.txt', 'r') as f:
