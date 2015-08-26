@@ -178,6 +178,7 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
             mod_state['error'] = result
         return (-2, result)
 
+    # Setup log dir.
     try:
         os.mkdir(os.path.join(mod_dir, 'log'))
     except OSError:
