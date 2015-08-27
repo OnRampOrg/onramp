@@ -19,15 +19,35 @@ import os
 from datetime import datetime
 from subprocess import CalledProcessError, call, check_output
 
+from configobj import ConfigObj
 from Crypto import Random
 from Crypto.Cipher import AES
 
 from PCE import pce_root
 
-def get_file(dirs):
-    globs = ['*.txt', '*.sh']
-    run_dir = os.path.join(os.path.join(pce_root, 'users'), '/'.join(dirs[:3]))
-    filename = os.path.join(run_dir, '/'.join(dirs[3:]))
+def get_visible_file(dirs):
+    num_parent_dirs = 3
+    if len(dirs) <= num_parent_dirs or '..' in dirs:
+        return (-4, 'Bad request')
+
+    run_dir = os.path.join(os.path.join(pce_root, 'users'),
+                           '/'.join(dirs[:num_parent_dirs]))
+    filename = os.path.join(run_dir, '/'.join(dirs[num_parent_dirs:]))
+
+    ini_file = os.path.join(run_dir, 'config/onramp_metadata.ini')
+    try:
+        conf = ConfigObj(ini_file, file_error=True)
+    except (IOError, SyntaxError):
+        return (-3, 'Badly formed or non-existant config/onramp_metadata.ini') 
+
+    if 'onramp' in conf.keys() and 'visible' in conf['onramp'].keys():
+        globs = conf['onramp']['visible']
+        if isinstance(globs, basestring):
+            # Globs is only a single string. Convert to list.
+            globs = [globs]
+    else:
+        globs = []
+
 
     if not os.path.isfile(filename):
         return (-2, 'Requested file not found') 

@@ -15,7 +15,7 @@ from configobj import ConfigObj
 from validate import Validator
 
 from PCE import pce_root
-from PCE.tools import get_file
+from PCE.tools import get_visible_file
 from PCE.tools.jobs import get_jobs, launch_job
 from PCE.tools.modules import deploy_module, get_modules, \
                               get_available_modules, install_module
@@ -27,7 +27,7 @@ class Files:
         self.logger = logging.getLogger(log_name)
 
     def GET(self, *args, **kwargs):
-        result = get_file(args)
+        result = get_visible_file(args)
         if result[0] == 0:
             # Good.
             cherrypy.response.headers['Content-Type'] = 'text/plain'
@@ -37,6 +37,12 @@ class Files:
         if result[0] == -2:
             # Not found
             cherrypy.response.status = 404
+        if result[0] == -3:
+            # Not found
+            cherrypy.response.status = 500
+        if result[0] == -4:
+            # Not found
+            cherrypy.response.status = 400
 
         return result[1]
 
