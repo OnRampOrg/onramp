@@ -22,6 +22,21 @@ from subprocess import CalledProcessError, call, check_output
 from Crypto import Random
 from Crypto.Cipher import AES
 
+from PCE import pce_root
+
+def get_file(dirs):
+    globs = ['*.txt', '*.sh']
+    run_dir = os.path.join(os.path.join(pce_root, 'users'), '/'.join(dirs[:3]))
+    filename = os.path.join(run_dir, '/'.join(dirs[3:]))
+
+    if not os.path.isfile(filename):
+        return (-2, 'Requested file not found') 
+
+    for entry in globs:
+        if filename in glob.glob(os.path.join(run_dir, entry)):
+            return (0, open(os.path.join(run_dir, filename), 'r'))
+
+    return (-1, 'Requested file not configured to be visible')
 
 def module_log(mod_root, log_id, msg):
     """Log a message to one of the log/onramp_*.log files in a module.
