@@ -387,6 +387,9 @@ def _build_job(job_id):
         job = copy.deepcopy(job_state)
 
     with ModState(job['mod_id']) as mod_state:
+        if 'mod_name' not in mod_state.keys():
+            # Jobs is in initial (or null) stage.
+            return job
         mod_name = mod_state['mod_name']
 
     # Build visible files.
@@ -409,15 +412,26 @@ def _build_job(job_id):
     else:
         globs = []
 
+    ret_dir = os.getcwd()
+    os.chdir(run_dir)
     filenames = [
         name for name in
         chain.from_iterable(
-            map(lambda x: glob.glob(os.path.join(run_dir, x)), globs)
+            map(glob.glob, globs)
         )
     ]
 
-    visible_files = [{'name': filename} for filename in filenames]
-    job['visible_files'] = visible_files
+    prefix = os.path.join(pce_root, 'users') + '/'
+    url_prefix = run_dir.split(prefix)[1]
+
+    job['visible_files'] = [{
+            'name': filename,
+            'size': os.path.getsize(os.path.join(run_dir, filename)),
+            'url': os.path.join('files', os.path.join(url_prefix, filename))
+        } for filename in filenames
+    ]
+    os.chdir(ret_dir)
+
     return job
 
 def get_jobs(job_id=None):
