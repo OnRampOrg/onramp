@@ -38,10 +38,8 @@ class Files:
             # Not found
             cherrypy.response.status = 404
         if result[0] == -3:
-            # Not found
             cherrypy.response.status = 500
         if result[0] == -4:
-            # Not found
             cherrypy.response.status = 400
 
         return result[1]

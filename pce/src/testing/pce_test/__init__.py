@@ -126,7 +126,7 @@ class PCEBase(unittest.TestCase):
             self.assertEqual(d['status_msg'], 'Success')
 
 class ModulesTest(PCEBase):
-    #__test__ = False
+    __test__ = False
     def verify_mod_install(self, id, name):
         with ModState(id) as mod_state:
             temp_path = os.path.join(pce_root, self.install_dir)
@@ -566,7 +566,7 @@ class ModulesTest(PCEBase):
 
 
 class JobsTest(PCEBase):
-    #__test__ = False
+    __test__ = False
     def setUp(self):
         super(JobsTest, self).setUp()
 
@@ -913,7 +913,7 @@ class JobsTest(PCEBase):
 
 
 class ClusterTest(PCEBase):
-    #__test__ = False
+    __test__ = False
     def test_GET(self):
         r = pce_get('cluster/')
         self.assertEqual(r.status_code, 200)
@@ -1285,3 +1285,37 @@ class ModuleJobFlowTest(PCEBase):
                   'deterministic output!')
         self.check_job(d['job'], state='Done',
                        check_scheduler_job_num=True, error=None, output=output)
+        
+        r = pce_get('files/testuser/testmodule_1/testrun1/output.txt')
+        self.assertEqual(r.status_code, 200)
+        fname = os.path.join(pce_root,
+                             'users/testuser/testmodule_1/testrun1/output.txt')
+        with open(fname) as f:
+            self.assertEqual(r.text, f.read())
+
+        r = pce_get('files/testuser/testmodule_1/testrun1/onramp_runparams.ini')
+        self.assertEqual(r.status_code, 403)
+        self.assertEqual(r.text, 'Requested file not configured to be visible')
+
+        r = pce_get('files/testuser/testmodule_1/testrun1/script.sh')
+        self.assertEqual(r.status_code, 200)
+        fname = os.path.join(pce_root,
+                             'users/testuser/testmodule_1/testrun1/script.sh')
+        with open(fname) as f:
+            self.assertEqual(r.text, f.read())
+
+        r = pce_get('files/testuser/testmodule_1/testrun1/bin/onramp_status.py')
+        self.assertEqual(r.status_code, 200)
+        fname = os.path.join(pce_root,
+                             ('users/testuser/testmodule_1/'
+                              'testrun1/bin/onramp_status.py'))
+        with open(fname) as f:
+            self.assertEqual(r.text, f.read())
+
+        r = pce_get('files/testuser/testmodule_1/testrun1/')
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.text, 'Bad request')
+
+        r = pce_get('files/testuser/testmodule_1/')
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.text, 'Bad request')
