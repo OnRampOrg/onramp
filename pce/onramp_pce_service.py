@@ -23,6 +23,9 @@ Commands:
     modinstall
         Installs OnRamp educational module into environment.
 
+    moddelete
+        Remove OnRamp educational module from environment.
+
     joblaunch
         Launches an Onramp job.
 
@@ -44,7 +47,8 @@ from os.path import abspath, expanduser
 
 from PCE import tools
 from PCE.tools.jobs import launch_job
-from PCE.tools.modules import deploy_module, get_source_types, install_module
+from PCE.tools.modules import delete_module, deploy_module, get_source_types, \
+                              install_module
 
 _pidfile = 'src/.onrampRESTservice.pid'
 _script_name = 'src/RESTservice.py'
@@ -379,7 +383,7 @@ def _mod_test():
 def _mod_install():
     """Install an OnRamp educational module from the given location.
 
-    Usage: install_module.py [-h] [-v]
+    Usage: ./onramp_pce_service.py modinstall [-h] [-v]
                              {local} source_path install_parent_folder mod_id
                              mod_name
     
@@ -397,7 +401,7 @@ def _mod_install():
     
     """
     descrip = 'Install an OnRamp educational module from the given location.'
-    parser = argparse.ArgumentParser(prog='install_module.py',
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py modinstall',
                                      description=descrip)
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='increase output verbosity')
@@ -424,7 +428,7 @@ def _mod_install():
 def _mod_deploy():
     """Deploy an installed OnRamp educational module.
 
-    Usage: install_module.py [-h] [-v] mod_id
+    Usage: ./onramp_pce_service.py moddeploy [-h] [-v] mod_id
 
     positional arguments:
       mod_id         Id of the module
@@ -435,7 +439,7 @@ def _mod_deploy():
 
     """
     descrip = 'Deploy an installed OnRamp educational module.'
-    parser = argparse.ArgumentParser(prog='install_module.py',
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py moddeploy',
                                      description=descrip)
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='increase output verbosity')
@@ -443,6 +447,36 @@ def _mod_deploy():
     args = parser.parse_args(args=sys.argv[2:])
 
     result, msg = deploy_module(args.mod_id, verbose=args.verbose)
+
+    if result != 0:
+        sys.stderr.write(msg + '\n')
+    else:
+        print msg
+
+    sys.exit(result)
+
+def _mod_delete():
+    """Remove OnRamp educational module from environment.
+
+    Usage: ./onramp_pce_service.py moddelete [-h] [-v] mod_id
+
+    positional arguments:
+      mod_id         Id of the module
+
+      optional arguments:
+        -h, --help     show this help message and exit
+        -v, --verbose  increase output verbosity
+
+    """
+    descrip = 'Remove OnRamp educational module from environment'
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py moddelete',
+                                     description=descrip)
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='increase output verbosity')
+    parser.add_argument('mod_id', help='Id of the module', type=int)
+    args = parser.parse_args(args=sys.argv[2:])
+
+    result, msg = delete_module(args.mod_id)
 
     if result != 0:
         sys.stderr.write(msg + '\n')
@@ -513,6 +547,7 @@ switch = {
     'modtest': _mod_test,
     'modinstall': _mod_install,
     'moddeploy': _mod_deploy,
+    'moddelete': _mod_delete,
     'joblaunch': _job_launch,
     'shell': _shell
 }
