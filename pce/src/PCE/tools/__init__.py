@@ -19,9 +19,44 @@ import os
 from datetime import datetime
 from subprocess import CalledProcessError, call, check_output
 
+from configobj import ConfigObj
 from Crypto import Random
 from Crypto.Cipher import AES
 
+from PCE import pce_root
+
+def get_visible_file(dirs):
+    num_parent_dirs = 3
+    if len(dirs) <= num_parent_dirs or '..' in dirs:
+        return (-4, 'Bad request')
+
+    run_dir = os.path.join(os.path.join(pce_root, 'users'),
+                           '/'.join(dirs[:num_parent_dirs]))
+    filename = os.path.join(run_dir, '/'.join(dirs[num_parent_dirs:]))
+
+    ini_file = os.path.join(run_dir, 'config/onramp_metadata.ini')
+    try:
+        conf = ConfigObj(ini_file, file_error=True)
+    except (IOError, SyntaxError):
+        return (-3, 'Badly formed or non-existant config/onramp_metadata.ini') 
+
+    if 'onramp' in conf.keys() and 'visible' in conf['onramp'].keys():
+        globs = conf['onramp']['visible']
+        if isinstance(globs, basestring):
+            # Globs is only a single string. Convert to list.
+            globs = [globs]
+    else:
+        globs = []
+
+
+    if not os.path.isfile(filename):
+        return (-2, 'Requested file not found') 
+
+    for entry in globs:
+        if filename in glob.glob(os.path.join(run_dir, entry)):
+            return (0, open(os.path.join(run_dir, filename), 'r'))
+
+    return (-1, 'Requested file not configured to be visible')
 
 def module_log(mod_root, log_id, msg):
     """Log a message to one of the log/onramp_*.log files in a module.
