@@ -135,6 +135,7 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
         job_state['error'] = None
         job_state['mod_status_output'] = None
         job_state['output'] = None
+        job_state['visible_files'] = None
         _logger.debug('Waiting on ModState at: %s' % time.time())
         with ModState(mod_id) as mod_state:
             _logger.debug('Done waiting on ModState at: %s' % time.time())
