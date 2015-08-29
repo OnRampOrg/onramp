@@ -14,11 +14,13 @@ import copy
 import errno
 import fcntl
 import json
+import glob
 import logging
 import os
 import shutil
 import sys
 import time
+from itertools import chain
 from multiprocessing import Process
 from subprocess import CalledProcessError, call, check_output, STDOUT
 
@@ -382,7 +384,41 @@ def _build_job(job_id):
                 job_state['state'] = 'Queued'
                 job_state['error'] = None
 
-        return copy.deepcopy(job_state)
+        job = copy.deepcopy(job_state)
+
+    with ModState(job['mod_id']) as mod_state:
+        mod_name = mod_state['mod_name']
+
+    # Build visible files.
+    dir_args = (job['username'], mod_name, job['mod_id'], job['run_name'])
+    run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % dir_args)
+    ini_file = os.path.join(run_dir, 'config/onramp_metadata.ini')
+    try:
+        conf = ConfigObj(ini_file, file_error=True)
+    except (IOError, SyntaxError):
+        # Badly formed or non-existant config/onramp_metadata.ini.
+        _logger.debug('Bad metadata')
+        _logger.debug(ini_file)
+        return job
+
+    if 'onramp' in conf.keys() and 'visible' in conf['onramp'].keys():
+        globs = conf['onramp']['visible']
+        if isinstance(globs, basestring):
+            # Globs is only a single string. Convert to list.
+            globs = [globs]
+    else:
+        globs = []
+
+    filenames = [
+        name for name in
+        chain.from_iterable(
+            map(lambda x: glob.glob(os.path.join(run_dir, x)), globs)
+        )
+    ]
+
+    visible_files = [{'name': filename} for filename in filenames]
+    job['visible_files'] = visible_files
+    return job
 
 def get_jobs(job_id=None):
     """Return list of tracked jobs or single job.
