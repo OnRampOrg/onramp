@@ -126,7 +126,7 @@ class PCEBase(unittest.TestCase):
             self.assertEqual(d['status_msg'], 'Success')
 
 class ModulesTest(PCEBase):
-    __test__ = False
+    #__test__ = False
     def verify_mod_install(self, id, name):
         with ModState(id) as mod_state:
             temp_path = os.path.join(pce_root, self.install_dir)
@@ -566,7 +566,7 @@ class ModulesTest(PCEBase):
 
 
 class JobsTest(PCEBase):
-    __test__ = False
+    #__test__ = False
     def setUp(self):
         super(JobsTest, self).setUp()
 
@@ -913,7 +913,7 @@ class JobsTest(PCEBase):
 
 
 class ClusterTest(PCEBase):
-    __test__ = False
+    #__test__ = False
     def test_GET(self):
         r = pce_get('cluster/')
         self.assertEqual(r.status_code, 200)
