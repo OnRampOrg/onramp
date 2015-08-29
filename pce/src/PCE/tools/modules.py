@@ -9,6 +9,7 @@ Exports:
     get_source_types: Return list of acceptable module source types (local, git,
         etc.).
     deploy_module: Deploy an installed OnRamp educational module.
+    delete_module: Delete given module.
     get_modules: Return list of tracked modules or single module.
     get_available_modules: Return list of modules shipped with OnRamp.
 """
@@ -320,3 +321,27 @@ def get_available_modules():
         }
     } for name in filter(verify_module_path,
                          os.listdir(_shipped_mod_dir))]
+
+def delete_module(mod_id):
+    """Delete given module.
+
+    Both state for and contents of module will be removed.
+
+    Args:
+        mod_id (int): Id of the module to remove.
+    """
+    checkout = False
+    with ModState(mod_id) as mod_state:
+        if 'state' not in mod_state.keys():
+            return (-1, 'Module %d not currently installed' % mod_id)
+        state = mod_state['state']
+        if state in ['Does not exist', 'Available']:
+            return (-1, 'Module %d not currently installed' % mod_id)
+        if state == 'Checkout in progress':
+            return (-1, 'Checkout currently underway for module %d' % mod_id)
+        path = mod_state['installed_path']
+
+    mod_state_file = os.path.join(_mod_state_dir, str(mod_id))
+    os.remove(mod_state_file)
+    shutil.rmtree(path)
+    return (0, 'Module %d deleted' % mod_id)
