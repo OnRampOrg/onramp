@@ -1285,6 +1285,20 @@ class ModuleJobFlowTest(PCEBase):
                   'deterministic output!')
         self.check_job(d['job'], state='Done',
                        check_scheduler_job_num=True, error=None, output=output)
+        self.assertIn('visible_files', d['job'].keys())
+        visible_files = d['job']['visible_files']
+        self.assertEqual(len(visible_files), 3)
+        names = []
+        for f in visible_files:
+            keys = f.keys()
+            self.assertIn('name', keys)
+            self.assertIn('size', keys)
+            self.assertIn('url', keys)
+            self.assertTrue(f['url'].endswith(f['name']))
+            names.append(f['name'])
+        self.assertIn('output.txt', names)
+        self.assertIn('script.sh', names)
+        self.assertIn('bin/onramp_status.py', names)
         
         r = pce_get('files/testuser/testmodule_1/testrun1/output.txt')
         self.assertEqual(r.status_code, 200)
