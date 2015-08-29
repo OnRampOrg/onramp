@@ -136,6 +136,7 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
         job_state['mod_status_output'] = None
         job_state['output'] = None
         job_state['visible_files'] = None
+        job_state['mod_name'] = None
         _logger.debug('Waiting on ModState at: %s' % time.time())
         with ModState(mod_id) as mod_state:
             _logger.debug('Done waiting on ModState at: %s' % time.time())
@@ -147,6 +148,7 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
                 _logger.warn(msg)
                 _logger.warn('mod_state: %s' % str(mod_state))
                 return (-1, 'Module not ready')
+            job_state['mod_name'] = mod_state['mod_name']
             proj_loc = mod_state['installed_path']
             mod_name = mod_state['mod_name']
 
@@ -260,8 +262,7 @@ def _job_postprocess(job_id):
         username = job_state['username']
         mod_id = job_state['mod_id']
         run_name = job_state['run_name']
-    with ModState(mod_id) as mod_state:
-        mod_name = mod_state['mod_name']
+        mod_name = job_state['mod_name']
     args = (username, mod_name, mod_id, run_name)
     run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % args)
     ret_dir = os.getcwd()
@@ -309,8 +310,7 @@ def _get_module_status_output(job_id):
         username = job_state['username']
         mod_id = job_state['mod_id']
         run_name = job_state['run_name']
-    with ModState(mod_id) as mod_state:
-        mod_name = mod_state['mod_name']
+        mod_name = job_state['mod_name']
     args = (username, mod_name, mod_id, run_name)
     run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % args)
     ret_dir = os.getcwd()
@@ -387,14 +387,13 @@ def _build_job(job_id):
 
         job = copy.deepcopy(job_state)
 
-    with ModState(job['mod_id']) as mod_state:
-        if 'mod_name' not in mod_state.keys():
-            # Jobs is in initial (or null) stage.
-            return job
-        mod_name = mod_state['mod_name']
+    if job['state'] == 'Launch failed':
+        return job
 
     # Build visible files.
-    dir_args = (job['username'], mod_name, job['mod_id'], job['run_name'])
+    _logger.debug('job state: %s' % str(job))
+    dir_args = (job['username'], job['mod_name'], job['mod_id'],
+                job['run_name'])
     run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % dir_args)
     ini_file = os.path.join(run_dir, 'config/onramp_metadata.ini')
     try:
