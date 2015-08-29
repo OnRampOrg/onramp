@@ -2,6 +2,8 @@
 administer system users, and launch parallel jobs.
 
 Exports:
+    get_visible_file: Verify access allowed to requested file and return it.
+    module_log: Log a message to one of the log/onramp_*.log files in a module.
     launch_job: Launch a parallel job on system. DEPRECATED.
     encrypt: Encrypt a message. DEPRECATED.
     decrypt: Decript a message. DEPRECATED.
@@ -26,6 +28,12 @@ from Crypto.Cipher import AES
 from PCE import pce_root
 
 def get_visible_file(dirs):
+    """Verify access allowed to requested file and return it.
+
+    Args:
+        dirs (list of str): Ordered list of folder names between base_dir
+            (currently onramp/pce/users) and specific file.
+    """
     num_parent_dirs = 3
     if len(dirs) <= num_parent_dirs or '..' in dirs:
         return (-4, 'Bad request')

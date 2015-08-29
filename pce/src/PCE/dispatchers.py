@@ -1,6 +1,7 @@
 """Dispatchers implementing the OnRamp PCE API.
 
 Exports:
+    Files: Access visible files from job runs.
     Modules: View, add, update, and remove PCE educational modules.
     Jobs: Launch, update, remove, and get status of PCE jobs.
     Cluster: View cluster status.
@@ -21,12 +22,29 @@ from PCE.tools.modules import deploy_module, get_modules, \
                               get_available_modules, install_module
 
 class Files:
+    """Provide access to visible files in job runs.
+
+    Methods:
+        GET: Return requested file.
+    """
     exposed = True
     def __init__(self, conf, log_name):
+        """Initialize Files dispatcher.
+
+        Args:
+            conf (ConfigObj): Application/server configuration object.
+            log_name (str): Name of an initialized logger to use.
+        """
         self.conf = conf
         self.logger = logging.getLogger(log_name)
 
     def GET(self, *args, **kwargs):
+        """Return requested file, or indication of error.
+
+        *args (list): Ordered list of folders between base dir and specific
+            file requested.
+        **kwargs: Unused
+        """
         result = get_visible_file(args)
         if result[0] == 0:
             # Good.
