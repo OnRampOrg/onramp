@@ -1,6 +1,7 @@
 """Dispatchers implementing the OnRamp PCE API.
 
 Exports:
+    Files: Access visible files from job runs.
     Modules: View, add, update, and remove PCE educational modules.
     Jobs: Launch, update, remove, and get status of PCE jobs.
     Cluster: View cluster status.
@@ -15,9 +16,52 @@ from configobj import ConfigObj
 from validate import Validator
 
 from PCE import pce_root
+from PCE.tools import get_visible_file
 from PCE.tools.jobs import get_jobs, launch_job
 from PCE.tools.modules import deploy_module, get_modules, \
                               get_available_modules, install_module
+
+class Files:
+    """Provide access to visible files in job runs.
+
+    Methods:
+        GET: Return requested file.
+    """
+    exposed = True
+    def __init__(self, conf, log_name):
+        """Initialize Files dispatcher.
+
+        Args:
+            conf (ConfigObj): Application/server configuration object.
+            log_name (str): Name of an initialized logger to use.
+        """
+        self.conf = conf
+        self.logger = logging.getLogger(log_name)
+
+    def GET(self, *args, **kwargs):
+        """Return requested file, or indication of error.
+
+        *args (list): Ordered list of folders between base dir and specific
+            file requested.
+        **kwargs: Unused
+        """
+        result = get_visible_file(args)
+        if result[0] == 0:
+            # Good.
+            cherrypy.response.headers['Content-Type'] = 'text/plain'
+        if result[0] == -1:
+            # Not visible
+            cherrypy.response.status = 403
+        if result[0] == -2:
+            # Not found
+            cherrypy.response.status = 404
+        if result[0] == -3:
+            cherrypy.response.status = 500
+        if result[0] == -4:
+            cherrypy.response.status = 400
+
+        return result[1]
+
 
 class _OnRampDispatcher:
     """Base class for OnRamp PCE dispatchers."""
