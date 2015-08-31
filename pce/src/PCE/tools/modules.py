@@ -169,6 +169,7 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
             'type': source_type,
             'path': source_abs_path
         }
+        mod_state['_marked_for_del'] = False
 
     # Checkout module.
     result = source_handlers[source_type](source_abs_path, mod_dir)
@@ -177,6 +178,9 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
         with ModState(mod_id) as mod_state:
             mod_state['state'] = 'Checkout failed'
             mod_state['error'] = result
+            if mod_state['_marked_for_del']:
+                _delete_module(mod_state)
+                return (-3, 'Module %d deleted' % mod_id)
         return (-2, result)
 
     # Setup log dir.
@@ -190,6 +194,9 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
         mod_state['state'] = 'Installed'
         mod_state['error'] = None
         mod_state['installed_path'] = mod_dir
+        if mod_state['_marked_for_del']:
+            _delete_module(mod_state)
+            return (-3, 'Module %d deleted' % mod_id)
 
     return (0, 'Module %d installed' % mod_id)
 
@@ -238,12 +245,18 @@ def deploy_module(mod_id, verbose=False):
                 _logger.debug(error)
                 mod_state['state'] = 'Deploy failed'
                 mod_state['error'] = msg
+                if mod_state['_marked_for_del']:
+                    _delete_module(mod_state)
+                    return (-3, 'Module %d deleted' % mod_id)
             return (-1, msg)
         with ModState(mod_id) as mod_state:
             msg = 'Admin required'
             _logger.debug(msg)
             mod_state['state'] = msg
             mod_state['error'] = output
+            if mod_state['_marked_for_del']:
+                _delete_module(mod_state)
+                return (-3, 'Module %d deleted' % mod_id)
             return (1, msg)
     except OSError as e1:
         output = str(e1)
@@ -260,6 +273,9 @@ def deploy_module(mod_id, verbose=False):
     with ModState(mod_id) as mod_state:
         mod_state['state'] = 'Module ready'
         mod_state['error'] = None
+        if mod_state['_marked_for_del']:
+            _delete_module(mod_state)
+            return (-3, 'Module %d deleted' % mod_id)
 
     return (0, 'Module %d ready' % mod_id)
 
@@ -322,26 +338,44 @@ def get_available_modules():
     } for name in filter(verify_module_path,
                          os.listdir(_shipped_mod_dir))]
 
-def delete_module(mod_id):
-    """Delete given module.
+def init_module_delete(mod_id):
+    """Initiate the deletion of a module.
 
-    Both state for and contents of module will be removed.
+    If module is in a state where deletion is an acceptable action, module will
+    be deleted immediately. If not, module will be marked for deletion.
+    Transistions from unacceptable delete states to acceptable delete states
+    should check the module to see if deletion has been requested.
 
     Args:
-        mod_id (int): Id of the module to remove.
+        mod_id (int): Id of the module to delete.
     """
-    checkout = False
+    accepted_states = ['Checkout failed', 'Installed', 'Deploy failed',
+                       'Module ready']
     with ModState(mod_id) as mod_state:
         if 'state' not in mod_state.keys():
             return (-1, 'Module %d not currently installed' % mod_id)
         state = mod_state['state']
         if state in ['Does not exist', 'Available']:
             return (-1, 'Module %d not currently installed' % mod_id)
-        if state == 'Checkout in progress':
-            return (-1, 'Checkout currently underway for module %d' % mod_id)
-        path = mod_state['installed_path']
+        if state in accepted_states:
+            _delete_module(mod_state)
+            return (0, 'Module %d deleted' % mod_id)
 
+        mod_state['_marked_for_del'] = True
+        return (0, 'Module %d marked for deletion' % mod_id)
+        
+def _delete_module(mod_state):
+    """Delete given module.
+
+    Both state for and contents of module will be removed.
+
+    Args:
+        mod_state (ModState): State object for the module to remove.
+    """
+    mod_id = mod_state['mod_id']
     mod_state_file = os.path.join(_mod_state_dir, str(mod_id))
     os.remove(mod_state_file)
-    shutil.rmtree(path)
-    return (0, 'Module %d deleted' % mod_id)
+    if 'installed_path' in mod_state.keys():
+        path = mod_state['installed_path']
+        shutil.rmtree(path)
+    mod_state.clear()

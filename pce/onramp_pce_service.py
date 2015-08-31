@@ -47,8 +47,8 @@ from os.path import abspath, expanduser
 
 from PCE import tools
 from PCE.tools.jobs import launch_job
-from PCE.tools.modules import delete_module, deploy_module, get_source_types, \
-                              install_module
+from PCE.tools.modules import init_module_delete, deploy_module, \
+                              get_source_types, install_module
 
 _pidfile = 'src/.onrampRESTservice.pid'
 _script_name = 'src/RESTservice.py'
@@ -476,7 +476,7 @@ def _mod_delete():
     parser.add_argument('mod_id', help='Id of the module', type=int)
     args = parser.parse_args(args=sys.argv[2:])
 
-    result, msg = delete_module(args.mod_id)
+    result, msg = init_module_delete(args.mod_id)
 
     if result != 0:
         sys.stderr.write(msg + '\n')
