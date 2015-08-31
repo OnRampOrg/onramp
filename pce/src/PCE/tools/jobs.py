@@ -148,6 +148,9 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
                 job_state['error'] = msg
                 _logger.warn(msg)
                 _logger.warn('mod_state: %s' % str(mod_state))
+                if job_state['_marked_for_del']:
+                    _delete_job(job_state)
+                    return (-2, 'Job %d deleted' % job_id)
                 return (-1, 'Module not ready')
             job_state['mod_name'] = mod_state['mod_name']
             proj_loc = mod_state['installed_path']
@@ -215,8 +218,11 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
         with JobState(job_id) as job_state:
             job_state['state'] = 'Preprocess failed'
             job_state['error'] = msg
-        _logger.error(msg)
-        os.chdir(ret_dir)
+            _logger.error(msg)
+            os.chdir(ret_dir)
+            if job_state['_marked_for_del']:
+                _delete_job(job_state)
+                return (-2, 'Job %d deleted' % job_id)
         return (-1, msg)
     finally:
         module_log(run_dir, 'preprocess', result)
@@ -239,15 +245,20 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
         with JobState(job_id) as job_state:
             job_state['state'] = 'Schedule failed'
             job_state['error'] = result['msg']
-        os.chdir(ret_dir)
+            os.chdir(ret_dir)
+            if job_state['_marked_for_del']:
+                _delete_job(job_state)
+                return (-2, 'Job %d deleted' % job_id)
         return (result['returncode'], result['msg'])
     
     with JobState(job_id) as job_state:
         job_state['state'] = 'Scheduled'
         job_state['error'] = None
         job_state['scheduler_job_num'] = result['job_num']
-
-    os.chdir(ret_dir)
+        os.chdir(ret_dir)
+        if job_state['_marked_for_del']:
+            _delete_job(job_state)
+            return (-2, 'Job %d deleted' % job_id)
     return (0, 'Job scheduled')
 
 def _job_postprocess(job_id):
@@ -283,8 +294,11 @@ def _job_postprocess(job_id):
         with JobState(job_id) as job_state:
             job_state['state'] = 'Postprocess failed'
             job_state['error'] = msg
-        _logger.error(msg)
-        os.chdir(ret_dir)
+            _logger.error(msg)
+            os.chdir(ret_dir)
+            if job_state['_marked_for_del']:
+                _delete_job(job_state)
+                return (-2, 'Job %d deleted' % job_id)
         return (-1, msg)
     finally:
         module_log(run_dir, 'postprocess', result)
@@ -299,6 +313,9 @@ def _job_postprocess(job_id):
         job_state['state'] = 'Done'
         job_state['error'] = None
         job_state['output'] = output
+        if job_state['_marked_for_del']:
+            _delete_job(job_state)
+            return (-2, 'Job %d deleted' % job_id)
 
 def _get_module_status_output(job_id):
     """Run bin/onramp_status.py for job and return any output.
@@ -368,11 +385,19 @@ def _build_job(job_id):
                 job_state['error'] = job_status[1]
                 if job_status[0] != -2:
                     job_state['state'] = job_status[1]
+                if job_state['_marked_for_del']:
+                    _delete_job(job_state)
+                    # FIXME: This might cause trouble. About to return {}.
+                    return copy.deepcopy(job_state)
                 return copy.deepcopy(job_state)
 
             # Good.
             if job_status[1] == 'Done':
                 job_state['state'] = 'Postprocessing'
+                if job_state['_marked_for_del']:
+                    _delete_job(job_state)
+                    # FIXME: This might cause trouble. About to return {}.
+                    return copy.deepcopy(job_state)
                 job_state['error'] = None
                 job_state['mod_status_output'] = None
                 p = Process(target=_job_postprocess, args=(job_id,))
@@ -380,11 +405,19 @@ def _build_job(job_id):
             elif job_status[1] == 'Running':
                 job_state['state'] = 'Running'
                 job_state['error'] = None
+                if job_state['_marked_for_del']:
+                    _delete_job(job_state)
+                    # FIXME: This might cause trouble. About to return {}.
+                    return copy.deepcopy(job_state)
                 mod_status_output = _get_module_status_output(job_id)
                 job_state['mod_status_output'] = mod_status_output
             elif job_status[1] == 'Queued':
                 job_state['state'] = 'Queued'
                 job_state['error'] = None
+                if job_state['_marked_for_del']:
+                    _delete_job(job_state)
+                    # FIXME: This might cause trouble. About to return {}.
+                    return copy.deepcopy(job_state)
 
         job = copy.deepcopy(job_state)
 
@@ -469,13 +502,6 @@ def init_job_delete(job_id):
         if 'state' not in job_state.keys():
             return (-1, 'Job %d does not exist' % job_id)
         state = job_state['state']
-        if state in job_cancel_states:
-            inifile = os.path.join(pce_root, 'onramp_pce_config.ini')
-            specfile = os.path.join(pce_root, 'src/onramp_config.inispec')
-            ini = ConfigObj(inifile, configspec=specfile)
-            ini.validate(Validator())
-            scheduler = Scheduler(ini['cluster']['batch_scheduler'])
-            scheduler.cancel_job(job_state['scheduler_job_num'])
         if state in accepted_states:
             _delete_job(job_state)
             return (0, 'Job %d deleted' % job_id)
@@ -491,8 +517,16 @@ def _delete_job(job_state):
     Args:
         job_state (JobState): State object for the job to remove.
     """
-    job_id = job_state['job_id']
-    job_state_file = os.path.join(_job_state_dir, str(job_id))
+    job_cancel_states = ['Scheduled', 'Queued', 'Running']
+    if job_state['state'] in job_cancel_states:
+        inifile = os.path.join(pce_root, 'onramp_pce_config.ini')
+        specfile = os.path.join(pce_root, 'src/onramp_config.inispec')
+        ini = ConfigObj(inifile, configspec=specfile)
+        ini.validate(Validator())
+        scheduler = Scheduler(ini['cluster']['batch_scheduler'])
+        result = scheduler.cancel_job(job_state['scheduler_job_num'])
+        _logger.debug('Cancel job output: %s' % result[1])
+    job_state_file = os.path.join(_job_state_dir, str(job_state['job_id']))
     os.remove(job_state_file)
     args = (job_state['username'], job_state['mod_name'], job_state['mod_id'],
             job_state['run_name'])

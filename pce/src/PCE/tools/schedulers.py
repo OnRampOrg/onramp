@@ -151,11 +151,12 @@ class SLURMScheduler(_BatchScheduler):
                 job to cancel.
         """
         try:
-            result = check_output(['scancel', str(scheduler_job_num)])
+            result = check_output(['scancel', str(scheduler_job_num)], stderr=STDOUT)
         except CalledProcessError as e:
             msg = 'Job cancel call failed'
             self.logger.error(msg)
             return (-1, msg)
+        return (0, result)
 
 def Scheduler(type):
     """Instantiate the appropriate scheduler class for given type.
