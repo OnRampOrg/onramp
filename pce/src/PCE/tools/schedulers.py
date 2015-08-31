@@ -16,6 +16,7 @@ class _BatchScheduler(object):
             the given batch scheduler.
         schedule: Schedule a job with the given batch scheduler.
         check_status: Get status of a job from the given batch scheduler.
+        cancel_job: Cancel the given job.
         is_scheduler_for (classmethod): Returns boolean indicating whether the
             class provides an interface to the batch scheduler given.
     """
@@ -141,6 +142,20 @@ class SLURMScheduler(_BatchScheduler):
             msg = 'Unexpected job state from scheduler'
             self.logger.error(msg)
             return (-2, msg)
+
+    def cancel_job(self, scheduler_job_num):
+        """Cancel the given job.
+    
+        Args:
+            scheduler_job_num (int): Job number, as given by the scheduler, of the
+                job to cancel.
+        """
+        try:
+            result = check_output(['scancel', str(scheduler_job_num)])
+        except CalledProcessError as e:
+            msg = 'Job cancel call failed'
+            self.logger.error(msg)
+            return (-1, msg)
 
 def Scheduler(type):
     """Instantiate the appropriate scheduler class for given type.
