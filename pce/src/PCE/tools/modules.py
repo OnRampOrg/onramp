@@ -234,6 +234,7 @@ def deploy_module(mod_id, verbose=False):
                               'bin/onramp_deploy.py'], stderr=STDOUT)
         _logger.debug('Back from bin/onramp_deploy.py')
     except CalledProcessError as e:
+        _logger.debug('CalledProcessError from bin/onramp_deploy.py')
         code = e.returncode
         if code > 127:
             code -= 256
@@ -242,7 +243,7 @@ def deploy_module(mod_id, verbose=False):
             with ModState(mod_id) as mod_state:
                 msg = ('Deploy exited with return status %d and output: %s'
                          % (code, output))
-                _logger.debug(error)
+                _logger.debug(msg)
                 mod_state['state'] = 'Deploy failed'
                 mod_state['error'] = msg
                 if mod_state['_marked_for_del']:
@@ -260,6 +261,7 @@ def deploy_module(mod_id, verbose=False):
             return (1, msg)
     except OSError as e1:
         output = str(e1)
+        _logger.debug('OSError from bin/onramp_deploy.py')
         _logger.debug(e1)
         with ModState(mod_id) as mod_state:
             mod_state['state'] = 'Deploy failed'
