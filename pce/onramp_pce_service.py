@@ -29,6 +29,9 @@ Commands:
     joblaunch
         Launches an Onramp job.
 
+    jobdelete
+        Remove OnRamp job run from environment.
+
     shell
         Initializes an interactive python shell in the OnRamp PCE environment.
 """
@@ -46,9 +49,9 @@ from validate import Validator
 from os.path import abspath, expanduser
 
 from PCE import tools
-from PCE.tools.jobs import launch_job
-from PCE.tools.modules import init_module_delete, deploy_module, \
-                              get_source_types, install_module
+from PCE.tools.jobs import init_job_delete, launch_job
+from PCE.tools.modules import deploy_module, get_source_types, \
+                              init_module_delete, install_module
 
 _pidfile = 'src/.onrampRESTservice.pid'
 _script_name = 'src/RESTservice.py'
@@ -523,6 +526,35 @@ def _job_launch():
 
     sys.exit(result)
 
+def _job_delete():
+    """Remove OnRamp job run from environment.
+    
+    Usage: onramp_pce_service.py jobdelete [-h] [-v] job_id
+
+    positional arguments:
+      job_id         Id of the job
+
+    optional arguments:
+      -h, --help     show this help message and exit
+      -v, --verbose  increase output verbosity
+    """
+    descrip = 'Remove an OnRamp job.'
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py jobdelete',
+                                     description=descrip)
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='increase output verbosity')
+    parser.add_argument('job_id', help='Id of the job', type=int)
+    args = parser.parse_args(args=sys.argv[2:])
+
+    result, msg = init_job_delete(args.job_id)
+
+    if result != 0:
+        sys.stderr.write(msg + '\n')
+    else:
+        print msg
+
+    sys.exit(result)
+
 def _shell():
     """Initialize an interactive python shell in the OnRamp PCE environment.
 
@@ -549,6 +581,7 @@ switch = {
     'moddeploy': _mod_deploy,
     'moddelete': _mod_delete,
     'joblaunch': _job_launch,
+    'jobdelete': _job_delete,
     'shell': _shell
 }
 

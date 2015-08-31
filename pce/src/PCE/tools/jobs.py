@@ -137,6 +137,7 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
         job_state['output'] = None
         job_state['visible_files'] = None
         job_state['mod_name'] = None
+        job_state['_marked_for_del'] = False
         _logger.debug('Waiting on ModState at: %s' % time.time())
         with ModState(mod_id) as mod_state:
             _logger.debug('Done waiting on ModState at: %s' % time.time())
@@ -447,3 +448,54 @@ def get_jobs(job_id=None):
     return [_build_job(job_id) for job_id in
             filter(lambda x: not x.startswith('.'),
                    os.listdir(_job_state_dir))]
+
+def init_job_delete(job_id):
+    """Initiate the deletion of a job.
+
+    If job is in a state where deletion is an acceptable action, job will
+    be deleted immediately. If not, job will be marked for deletion.
+    Transistions from unacceptable delete states to acceptable delete states
+    should check the job to see if deletion has been requested.
+
+    Args:
+        job_id (int): Id of the job to delete.
+    """
+    job_cancel_states = ['Scheduled', 'Queued', 'Running']
+    accepted_states = ['Launch failed', 'Schedule failed', 'Preprocess failed',
+                       'Run failed', 'Postprocess failed', 'Done']
+    accepted_states += job_cancel_states
+
+    with JobState(job_id) as job_state:
+        if 'state' not in job_state.keys():
+            return (-1, 'Job %d does not exist' % job_id)
+        state = job_state['state']
+        if state in job_cancel_states:
+            inifile = os.path.join(pce_root, 'onramp_pce_config.ini')
+            specfile = os.path.join(pce_root, 'src/onramp_config.inispec')
+            ini = ConfigObj(inifile, configspec=specfile)
+            ini.validate(Validator())
+            scheduler = Scheduler(ini['cluster']['batch_scheduler'])
+            scheduler.cancel_job(job_state['scheduler_job_num'])
+        if state in accepted_states:
+            _delete_job(job_state)
+            return (0, 'Job %d deleted' % job_id)
+
+        job_state['_marked_for_del'] = True
+        return (0, 'Job %d marked for deletion' % job_id)
+        
+def _delete_job(job_state):
+    """Delete given job.
+
+    Both state for and contents of job will be removed.
+
+    Args:
+        job_state (JobState): State object for the job to remove.
+    """
+    job_id = job_state['job_id']
+    job_state_file = os.path.join(_job_state_dir, str(job_id))
+    os.remove(job_state_file)
+    args = (job_state['username'], job_state['mod_name'], job_state['mod_id'],
+            job_state['run_name'])
+    run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % args)
+    shutil.rmtree(run_dir)
+    job_state.clear()
