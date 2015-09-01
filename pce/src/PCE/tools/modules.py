@@ -60,6 +60,7 @@ class ModState(dict):
             id (int): Id of the module to get/create state for.
         """
         mod_state_file = os.path.join(_mod_state_dir, str(id))
+        self.mod_id = id
 
         try:
             # Raises OSError if file cannot be opened in create mode. If no
@@ -103,6 +104,14 @@ class ModState(dict):
         if 'state' in self.keys() and self['state'] != 'Does not exist':
             self._state_file.write(json.dumps(self))
             self._state_file.truncate()
+        else:
+            mod_state_file = os.path.join(_mod_state_dir, str(self.mod_id))
+            try:
+                os.remove(mod_state_file)
+            except OSError as e:
+                if e.errno != 2:
+                    # 2 => No such file or directory (which is no prob).
+                    raise e
         self._state_file.close()
 
 
