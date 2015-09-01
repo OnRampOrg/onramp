@@ -540,5 +540,5 @@ def _delete_job(job_state):
     args = (job_state['username'], job_state['mod_name'], job_state['mod_id'],
             job_state['run_name'])
     run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % args)
-    shutil.rmtree(run_dir)
+    shutil.rmtree(run_dir, ignore_errors=True)
     job_state.clear()
