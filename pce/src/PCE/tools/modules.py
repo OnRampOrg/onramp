@@ -290,6 +290,12 @@ def deploy_module(mod_id, verbose=False):
 
     return (0, 'Module %d ready' % mod_id)
 
+def _clean_mod(mod):
+    for key in mod.keys():
+        if key.startswith('_'):
+            mod.pop(key, None)
+    return mod
+
 def get_modules(mod_id=None):
     """Return list of tracked modules or single module.
 
@@ -309,7 +315,7 @@ def get_modules(mod_id=None):
                         mod['uioptions'] = ui.dict()
                     else:
                         mod['uioptions'] = None
-                return mod
+                return _clean_mod(mod)
         _logger.debug('Mod does not exist at: %s' % time.time())
         return {
             'mod_id': mod_id,
@@ -328,7 +334,7 @@ def get_modules(mod_id=None):
         next_mod = {}
         with ModState(id) as mod_state:
             next_mod = copy.deepcopy(mod_state)
-        results.append(next_mod)
+        results.append(_clean_mod(next_mod))
     return results
 
 def get_available_modules():

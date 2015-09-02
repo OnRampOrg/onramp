@@ -478,6 +478,12 @@ def _build_job(job_id):
 
     return job
 
+def _clean_job(job):
+    for key in job.keys():
+        if key.startswith('_'):
+            job.pop(key, None)
+    return job
+
 def get_jobs(job_id=None):
     """Return list of tracked jobs or single job.
 
@@ -486,9 +492,9 @@ def get_jobs(job_id=None):
             If None, return list of all tracked job resources.
     """
     if job_id:
-        return _build_job(job_id)
+        return _clean_job(_build_job(job_id))
 
-    return [_build_job(job_id) for job_id in
+    return [_clean_job(_build_job(job_id)) for job_id in
             filter(lambda x: not x.startswith('.'),
                    os.listdir(_job_state_dir))]
 
