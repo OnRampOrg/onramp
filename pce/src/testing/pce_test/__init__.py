@@ -640,6 +640,7 @@ class JobsTest(PCEBase):
     def check_job(self, job, username='testuser', job_id=1, error=None,
                   state='Done', run_name='testrun1', mod_id=1):
         keys = job.keys()
+        self.assertListEqual(filter(lambda x: x.startswith('_'), keys), [])
         self.assertIn('username', keys)
         self.assertIn('job_id', keys)
         self.assertIn('error', keys)
@@ -972,6 +973,7 @@ class ModuleJobFlowTest(PCEBase):
                   state='Does not exist', mod_name=None, error=None, mod_id=1):
 
         keys = mod.keys()
+        self.assertListEqual(filter(lambda x: x.startswith('_'), keys), [])
         self.assertIn('source_location', keys)
         self.assertIn('installed_path', keys)
         self.assertIn('state', keys)
