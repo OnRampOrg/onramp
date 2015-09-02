@@ -1354,7 +1354,6 @@ class ModuleJobFlowTest(PCEBase):
 
         def delete(immediate=True):
             r = pce_delete('modules/1/')
-            print r.text
             self.assertEqual(r.status_code, 200)
             if immediate:
                 self.assertFalse(os.path.exists(state_file))
@@ -1370,6 +1369,14 @@ class ModuleJobFlowTest(PCEBase):
             self.assertIn('module', d.keys())
             self.assertIn('state', d['module'].keys())
             self.assertEqual(d['module']['state'], 'Deploy in progress')
+
+        # Test delete of non-existat module.
+        r = pce_delete('modules/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Module 1 not currently installed')
 
         # Check delete during install.
         checkout(sleep_time=0)
