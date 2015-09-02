@@ -291,6 +291,15 @@ def deploy_module(mod_id, verbose=False):
     return (0, 'Module %d ready' % mod_id)
 
 def _clean_mod(mod):
+    """Remove and key/value pairs from module where the key is prefixed by an
+    underscore.
+
+    Args:
+        mod (ModState): The job to clean.
+
+    Returns:
+        ModState with all underscore-prefixed keys removed.
+    """
     for key in mod.keys():
         if key.startswith('_'):
             mod.pop(key, None)

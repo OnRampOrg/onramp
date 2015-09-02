@@ -479,6 +479,15 @@ def _build_job(job_id):
     return job
 
 def _clean_job(job):
+    """Remove and key/value pairs from job where the key is prefixed by an
+    underscore.
+
+    Args:
+        job (JobState): The job to clean.
+
+    Returns:
+        JobState with all underscore-prefixed keys removed.
+    """
     for key in job.keys():
         if key.startswith('_'):
             job.pop(key, None)
