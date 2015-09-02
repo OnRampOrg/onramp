@@ -9,9 +9,9 @@ Exports:
     get_source_types: Return list of acceptable module source types (local, git,
         etc.).
     deploy_module: Deploy an installed OnRamp educational module.
-    delete_module: Delete given module.
     get_modules: Return list of tracked modules or single module.
     get_available_modules: Return list of modules shipped with OnRamp.
+    init_module_delete: Initiate the deletion of a module.
 """
 import argparse
 import copy

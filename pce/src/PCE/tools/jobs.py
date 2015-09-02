@@ -8,6 +8,7 @@ Exports:
     launch_job: Schedules job launch using system batch scheduler as configured
         in onramp_pce_config.ini.
     get_jobs: Returns list of tracked jobs or single job.
+    init_job_delete: Initiate the deletion of a job.
 """
 import argparse
 import copy
