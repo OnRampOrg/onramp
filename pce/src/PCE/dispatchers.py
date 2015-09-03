@@ -17,9 +17,10 @@ from validate import Validator
 
 from PCE import pce_root
 from PCE.tools import get_visible_file
-from PCE.tools.jobs import get_jobs, launch_job
+from PCE.tools.jobs import get_jobs, init_job_delete, launch_job
 from PCE.tools.modules import deploy_module, get_modules, \
-                              get_available_modules, install_module
+                              get_available_modules, init_module_delete, \
+                              install_module
 
 class Files:
     """Provide access to visible files in job runs.
@@ -265,8 +266,18 @@ class Modules(_OnRampDispatcher):
         """
         self.log_call('DELETE')
 
+        # Verify id and initiate deployment.
+        try:
+            mod_id = int(id)
+        except:
+            cherrypy.response.status = 400
+            msg = 'Invalid module id in url: %s' % id
+            self.logger.warn(msg)
+            return self.get_response(status_code=-8, status_msg=msg)
+
         # Delete the resource.
-        return self.get_response()
+        result = init_module_delete(mod_id)
+        return self.get_response(status_msg=result[1])
 
 
 class Jobs(_OnRampDispatcher):
@@ -349,8 +360,18 @@ class Jobs(_OnRampDispatcher):
         """
         self.log_call('DELETE')
 
+        # Verify id and initiate deployment.
+        try:
+            job_id = int(id)
+        except:
+            cherrypy.response.status = 400
+            msg = 'Invalid job id in url: %s' % id
+            self.logger.warn(msg)
+            return self.get_response(status_code=-8, status_msg=msg)
+
         # Delete the resource.
-        return self.get_response()
+        result = init_job_delete(job_id)
+        return self.get_response(status_msg=result[1])
 
 
 class Cluster(_OnRampDispatcher):

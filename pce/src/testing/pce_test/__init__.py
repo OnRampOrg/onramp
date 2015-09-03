@@ -556,11 +556,6 @@ class ModulesTest(PCEBase):
         r = pce_delete('modules/')
         self.assertEqual(r.status_code, 404)
 
-        r = pce_delete('modules/1/')
-        self.assertEqual(r.status_code, 200)
-        d = r.json()
-        self.check_json(d, good=True)
-
         r = pce_delete('modules/1/1/')
         self.assertEqual(r.status_code, 404)
 
@@ -645,6 +640,7 @@ class JobsTest(PCEBase):
     def check_job(self, job, username='testuser', job_id=1, error=None,
                   state='Done', run_name='testrun1', mod_id=1):
         keys = job.keys()
+        self.assertListEqual(filter(lambda x: x.startswith('_'), keys), [])
         self.assertIn('username', keys)
         self.assertIn('job_id', keys)
         self.assertIn('error', keys)
@@ -903,11 +899,6 @@ class JobsTest(PCEBase):
         r = pce_delete('jobs/')
         self.assertEqual(r.status_code, 404)
 
-        r = pce_delete('jobs/1/')
-        self.assertEqual(r.status_code, 200)
-        d = r.json()
-        self.check_json(d, good=True)
-
         r = pce_delete('jobs/1/1/')
         self.assertEqual(r.status_code, 404)
 
@@ -982,6 +973,7 @@ class ModuleJobFlowTest(PCEBase):
                   state='Does not exist', mod_name=None, error=None, mod_id=1):
 
         keys = mod.keys()
+        self.assertListEqual(filter(lambda x: x.startswith('_'), keys), [])
         self.assertIn('source_location', keys)
         self.assertIn('installed_path', keys)
         self.assertIn('state', keys)
@@ -1333,3 +1325,331 @@ class ModuleJobFlowTest(PCEBase):
         r = pce_get('files/testuser/testmodule_1/')
         self.assertEqual(r.status_code, 400)
         self.assertEqual(r.text, 'Bad request')
+
+    def test_mod_delete(self):
+        location = {
+            'type': 'local',
+            'path': self.testmodule_path
+        }
+
+        state_file = os.path.join(pce_root, 'src/state/modules/1')
+        installed_path = os.path.join(pce_root, 'modules/testmodule_1')
+
+        def checkout(sleep_time=5):
+            pce_post('modules/', mod_id=1, mod_name='testmodule',
+                   source_location=location)
+            time.sleep(sleep_time)
+            r = pce_get('modules/1/')
+            self.assertEqual(r.status_code, 200)
+            d = r.json()
+            self.check_json(d, good=True)
+            self.assertIn('module', d.keys())
+            self.assertIn('state', d['module'].keys())
+            if sleep_time == 0:
+                self.assertEqual(d['module']['state'], 'Checkout in progress')
+            else:
+                self.assertEqual(d['module']['state'], 'Installed')
+                self.assertIn('installed_path', d['module'].keys())
+                self.assertEqual(d['module']['installed_path'], installed_path)
+                self.assertTrue(os.path.exists(installed_path))
+            self.assertTrue(os.path.exists(state_file))
+
+        def delete(immediate=True):
+            r = pce_delete('modules/1/')
+            self.assertEqual(r.status_code, 200)
+            if immediate:
+                self.assertFalse(os.path.exists(state_file))
+                self.assertFalse(os.path.exists(installed_path))
+
+        def deploy():
+            r = pce_post('modules/1/')
+            self.assertEqual(r.status_code, 200)
+            r = pce_get('modules/1/')
+            self.assertEqual(r.status_code, 200)
+            d = r.json()
+            self.check_json(d, good=True)
+            self.assertIn('module', d.keys())
+            self.assertIn('state', d['module'].keys())
+            self.assertEqual(d['module']['state'], 'Deploy in progress')
+
+        # Test delete of non-existat module.
+        r = pce_delete('modules/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Module 1 not currently installed')
+
+        # Check delete during install.
+        checkout(sleep_time=0)
+        delete(immediate=False)
+        self.assertTrue(os.path.exists(state_file))
+        self.assertTrue(os.path.exists(installed_path))
+        time.sleep(3)
+        self.assertFalse(os.path.exists(state_file))
+        self.assertFalse(os.path.exists(installed_path))
+
+        # Check delete after install.
+        checkout()
+        delete()
+
+        # Check delete while deploy in progress.
+        checkout()
+        deploy()
+        delete(immediate=False)
+        time.sleep(5)
+        self.assertTrue(os.path.exists(state_file))
+        self.assertTrue(os.path.exists(installed_path))
+        time.sleep(6)
+        self.assertFalse(os.path.exists(state_file))
+        self.assertFalse(os.path.exists(installed_path))
+
+        # Check delete while deploy in progress with deploy failure.
+        source = os.path.join(installed_path, 'bin/onramp_deploy_bad.py')
+        dest = os.path.join(installed_path, 'bin/onramp_deploy.py')
+        checkout()
+        shutil.copyfile(source, dest)
+        deploy()
+        delete(immediate=False)
+        time.sleep(5)
+        self.assertTrue(os.path.exists(state_file))
+        self.assertTrue(os.path.exists(installed_path))
+        time.sleep(6)
+        self.assertFalse(os.path.exists(state_file))
+        self.assertFalse(os.path.exists(installed_path))
+
+        # Check delete while deploy in progress with admin required.
+        source = os.path.join(installed_path, 'bin/onramp_deploy_admin.py')
+        dest = os.path.join(installed_path, 'bin/onramp_deploy.py')
+        checkout()
+        shutil.copyfile(source, dest)
+        deploy()
+        delete(immediate=False)
+        time.sleep(5)
+        self.assertTrue(os.path.exists(state_file))
+        self.assertTrue(os.path.exists(installed_path))
+        time.sleep(6)
+        self.assertFalse(os.path.exists(state_file))
+        self.assertFalse(os.path.exists(installed_path))
+
+        # Check delete while module ready.
+        checkout()
+        deploy()
+        time.sleep(11)
+        delete()
+
+    def test_job_delete(self):
+        location = {
+            'type': 'local',
+            'path': self.testmodule_path
+        }
+
+        mod_state_file = os.path.join(pce_root, 'src/state/modules/1')
+        mod_installed_path = os.path.join(pce_root, 'modules/testmodule_1')
+        job_state_file = os.path.join(pce_root, 'src/state/jobs/1')
+        run_dir = os.path.join(pce_root, 'users/testuser/testmodule_1/testrun')
+        mod_dir = os.path.join(pce_root, 'modules/testmodule_1')
+
+        def checkout(sleep_time=5):
+            pce_post('modules/', mod_id=1, mod_name='testmodule',
+                   source_location=location)
+            time.sleep(sleep_time)
+            r = pce_get('modules/1/')
+            self.assertEqual(r.status_code, 200)
+            d = r.json()
+            self.check_json(d, good=True)
+            self.assertIn('module', d.keys())
+            self.assertIn('state', d['module'].keys())
+            if sleep_time == 0:
+                self.assertEqual(d['module']['state'], 'Checkout in progress')
+            else:
+                self.assertEqual(d['module']['state'], 'Installed')
+                self.assertIn('installed_path', d['module'].keys())
+                self.assertEqual(d['module']['installed_path'], mod_installed_path)
+                self.assertTrue(os.path.exists(mod_installed_path))
+            self.assertTrue(os.path.exists(mod_state_file))
+
+        def deploy():
+            r = pce_post('modules/1/')
+            self.assertEqual(r.status_code, 200)
+            r = pce_get('modules/1/')
+            self.assertEqual(r.status_code, 200)
+            d = r.json()
+            self.check_json(d, good=True)
+            self.assertIn('module', d.keys())
+            self.assertIn('state', d['module'].keys())
+            self.assertEqual(d['module']['state'], 'Deploy in progress')
+
+        def launch():
+            pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
+                     run_name='testrun')
+
+        def delete(immediate=True):
+            r = pce_delete('jobs/1/')
+            print r.text
+            self.assertEqual(r.status_code, 200)
+            if immediate:
+                self.assertFalse(os.path.exists(job_state_file))
+                self.assertFalse(os.path.exists(run_dir))
+            else:
+                self.assertTrue(os.path.exists(job_state_file))
+
+        # Setup testmodule.
+        checkout()
+
+        # Non-existant.
+        delete()
+
+        # Setting up launch -> Launch failed (module not ready).
+        launch()
+        delete()
+        
+        # Launch failed.
+        launch()
+        time.sleep(5)
+        delete()
+
+        # Setting up launch -> Scheduled.
+        time.sleep(5)
+        deploy()
+        time.sleep(11)
+        launch()
+        delete(immediate=False)
+        time.sleep(13)
+        self.assertFalse(os.path.exists(job_state_file))
+        self.assertFalse(os.path.exists(run_dir))
+        
+        # Setting up launch -> Preprocess failed.
+        time.sleep(5)
+        source = os.path.join(mod_dir, 'bin/onramp_preprocess_bad.py')
+        dest = os.path.join(mod_dir, 'bin/onramp_preprocess.py')
+        shutil.copyfile(source, dest)
+        launch()
+        delete(immediate=False)
+        time.sleep(14)
+        self.assertFalse(os.path.exists(job_state_file))
+        self.assertFalse(os.path.exists(run_dir))
+
+        # Preprocessing -> Preprocess failed.
+        time.sleep(5)
+        launch()
+        time.sleep(7)
+        delete(immediate=False)
+        time.sleep(8)
+        self.assertFalse(os.path.exists(job_state_file))
+        self.assertFalse(os.path.exists(run_dir))
+
+        # Preprocessing -> Scheduled.
+        time.sleep(5)
+        source = os.path.join(mod_dir, 'bin/onramp_preprocess_good.py')
+        dest = os.path.join(mod_dir, 'bin/onramp_preprocess.py')
+        shutil.copyfile(source, dest)
+        launch()
+        time.sleep(7)
+        delete(immediate=False)
+        time.sleep(7)
+        self.assertFalse(os.path.exists(job_state_file))
+        self.assertFalse(os.path.exists(run_dir))
+
+        # Preprocess failed.
+        time.sleep(5)
+        source = os.path.join(mod_dir, 'bin/onramp_preprocess_bad.py')
+        dest = os.path.join(mod_dir, 'bin/onramp_preprocess.py')
+        shutil.copyfile(source, dest)
+        launch()
+        time.sleep(15)
+        delete()
+
+        # Scheduled/Queued/Running.
+        time.sleep(5)
+        source = os.path.join(mod_dir, 'bin/onramp_preprocess_good.py')
+        dest = os.path.join(mod_dir, 'bin/onramp_preprocess.py')
+        shutil.copyfile(source, dest)
+        launch()
+        time.sleep(15)
+        delete()
+
+        # Running.
+        time.sleep(20)
+        launch()
+        time.sleep(20)
+        r = pce_get('jobs/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.assertIn('state', d['job'].keys())
+        self.assertEqual(d['job']['state'], 'Running')
+        delete()
+
+        # Postprocessing -> Done.
+        time.sleep(20)
+        launch()
+        time.sleep(30)
+        r = pce_get('jobs/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.assertIn('state', d['job'].keys())
+        self.assertEqual(d['job']['state'], 'Postprocessing')
+        delete(immediate=False)
+        time.sleep(12)
+        self.assertFalse(os.path.exists(job_state_file))
+        self.assertFalse(os.path.exists(run_dir))
+
+        # Postprocessing -> Postprocess failed.
+        source = os.path.join(mod_dir, 'bin/onramp_postprocess_bad.py')
+        dest = os.path.join(mod_dir, 'bin/onramp_postprocess.py')
+        shutil.copyfile(source, dest)
+        time.sleep(20)
+        launch()
+        time.sleep(30)
+        r = pce_get('jobs/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.assertIn('state', d['job'].keys())
+        self.assertEqual(d['job']['state'], 'Postprocessing')
+        delete(immediate=False)
+        time.sleep(12)
+        self.assertFalse(os.path.exists(job_state_file))
+        self.assertFalse(os.path.exists(run_dir))
+
+        # Postprocess failed.
+        time.sleep(20)
+        launch()
+        time.sleep(30)
+        r = pce_get('jobs/1/')
+        time.sleep(15)
+        r = pce_get('jobs/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.assertIn('state', d['job'].keys())
+        self.assertEqual(d['job']['state'], 'Postprocess failed')
+        delete()
+
+        # Done
+        time.sleep(20)
+        source = os.path.join(mod_dir, 'bin/onramp_postprocess_good.py')
+        dest = os.path.join(mod_dir, 'bin/onramp_postprocess.py')
+        shutil.copyfile(source, dest)
+        launch()
+        time.sleep(30)
+        r = pce_get('jobs/1/')
+        time.sleep(15)
+        r = pce_get('jobs/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.assertIn('state', d['job'].keys())
+        self.assertEqual(d['job']['state'], 'Done')
+        delete()
+
+        # TODO: 
+        # Setting up launch -> Launch failed (runparams validation failed).
+        # Setting up launch -> Launch failed (project location does not exist).
