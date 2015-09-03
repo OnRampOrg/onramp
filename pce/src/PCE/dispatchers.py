@@ -161,6 +161,12 @@ class _OnRampDispatcher:
         return None
 
 
+class APIMap(_OnRampDispatcher):
+    def GET(self):
+        map = ConfigObj(os.path.join(pce_root, 'src/api-map.ini'))
+        return map
+
+
 class Modules(_OnRampDispatcher):
     """Provide API for OnRamp educational modules resource.
 
