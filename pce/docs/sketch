@@ -14,12 +14,14 @@ Brainstorming:
 	- each class
 - Service launching
 
-Current section plan (in no particular order):
+Current section plan (in no particular order, * means drafted):
 - onramp_pce_setup.py
 - onramp_pce_service.py
-- PCE HTTP/JSON Interface
-- PCE Configuration
-- PCE.tools Module
+* PCE HTTP/JSON Interface
+* PCE Configuration
+* PCE.tools Module
+* PCE.jobs Module
+- PCE.schedulers Module
 - Working with Job and Module State
 - Notes on the Execution of bin/onramp_*.py Scripts (logging, etc.)
 - Requirements
@@ -103,3 +105,46 @@ functions:
 *get_jobs
 *init_job_delete
 *_delete_job
+
+
+Working with Job and Module State
+
+
+PCE.schedulers Module
+
+This module provides a base class for scheduler classes to be derived from, scheduler classes for supported batch schedulers, and a generic constructor which returns and instance of the proper scheduler class given the type.
+
+Adding a new scheduler:
+To add a new scheduler, derive from the _BatchScheduler base class, and define the following methods:
+
+is_scheduler_for(cls, type): This must be a class method, and should return True if the class supports the scheduler given by type, which is a string, and False if not. The type string should be the string given to the onramp/pce/onramp_pce_config.ini scheduler paramater.
+
+get_batch_script(self, run_name, numtasks=, email=): This returns a batch script formatted for the scheduler the class is supporting.
+
+schedule(self, proj_loc): This method performs that action of scheduling the job given by os.path.join(proj_loc, 'script.sh'). It should return the following dictionary:
+{
+    'status_code': Non-zero int to indicate the failure,
+    'status_msg': Message giving details about result,
+    'job_num': Job number given by scheduler. Field is only present on success
+}
+
+check_status(self, scheduler_job_num): Return indication of status for job given by scheduler_job_num. Return value is the following tuple:
+(
+    0 for success|-1 for status check failure or job failure|-2 for unexpected result from scheduler,
+    Running|Queued|Done|error-message as appropriate
+)
+
+cancel_job(self, scheduler_job_num): Commands the scheduler to cancel the job given by scheduler_job_num. Returns the following tupld:
+(
+    0 for success|-1 for failure,
+    Message giving details about result
+)
+
+Instantiating a scheduler:
+The constructor Scheduler(type) should be used to instantiate a scheduler of the given type, where type is the string checked by the is_scheduler_for classmethod for the desired scheduler class.
+
+classes:
+*_BatchScheduler
+
+functions:
+*Scheduler()
