@@ -15,14 +15,14 @@ Brainstorming:
 - Service launching
 
 Current section plan (in no particular order, * means drafted):
-- onramp_pce_setup.py
-- onramp_pce_service.py
+* onramp_pce_setup.py
+* onramp_pce_service.py
 * PCE HTTP/JSON Interface
 * PCE Configuration
 * PCE.tools Module
 * PCE.jobs Module
 * PCE.schedulers Module
-- Working with Job and Module State
+* Working with Job and Module State
 - Notes on the Execution of bin/onramp_*.py Scripts (logging, etc.)
 - Requirements
 - Something about launching potentially long-running processes in forked processes.
@@ -30,6 +30,20 @@ Current section plan (in no particular order, * means drafted):
 COPY ---------------------------------------------------------------------------
 
 **Note: To avoid confusion, the convention is taken in this documentation that 'module' is a reference to an OnRamp educational module, while a Python module will be referred to by the phrase, 'Python module'.
+
+
+onramp/pce/onramp_pce_setup.py
+
+This script performs the initial setup of the local PCE environment. This includes construction of required folder structure, initialization of a Python virtual environment using virtualenv, installation of Python dependencies to the virtual environment, and attachment of the PCE package to the virtual environment. The script can also be used to reset an already installed environment to the initial post-setup state. If run after installation has already been accomplished, the user will be prompted with a choice between exiting and reinstalling.
+
+
+onramp/pce/onramp_pce_service.py
+
+The onramp_pce_setup.py script is used to control the PCE service and to provide a means of administering PCE resources via command-line. Additional commands give the ability to test an OnRamp educational module independent of the running PCE service and the ability to launch a Python interpreter with the exact environment used by the PCE service.
+
+To add additional commands:
+The file contains a dictionary titled 'switch'. This dict maps commands to handlers. To add a new command, simply define the handler and add the command/handler-name pair to the switch dictionary. If the handler needs to make use of command-line arguments, sys.argv[2:] will yield the list of given args.
+
 
 PCE Configuration
 
@@ -167,3 +181,8 @@ classes:
 
 functions:
 *Scheduler()
+
+
+Notes on the Execution of bin/onramp_*.py Scripts (logging, etc.)
+
+An OnRamp educational module provides several scripts to control the setup/execution of the module and to prepare input to the job and output to the user. These scripts may be long-running, thus, should be launched in separate threads or processes to allow the launching thread of execution to complete and return results back to a user.
