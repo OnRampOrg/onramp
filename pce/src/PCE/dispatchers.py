@@ -408,20 +408,22 @@ class ClusterInfo():
                 requested file relative to the PCE document root folder.
         """
         self.logger.debug('args: %s' % str(args))
-#        prefix = os.path.abspath(os.path.join(pce_root, 'docs'))
-#        index_file = os.path.join(pce_root, 'docs', *args)
-#        index_file = os.path.normpath(os.path.abspath(index_file))
-#
-#        if (not index_file.startswith(prefix)
-#            or not os.path.isfile(index_file)):
-#            cherrypy.response.status = 404
-#            return 'File %s not found' % os.path.join(*args)
-#
-#        return serve_file(index_file, content_type='text/html')
 
-        index_file = os.path.join(pce_root, 'docs', 'README.md')
-        return serve_file(index_file, content_type='text/html')
-        
+        if not args:
+            args = ('index.html',)
+
+        prefix = os.path.abspath(os.path.join(pce_root, 'docs', 'build',
+                                              'html'))
+        index_file = os.path.join(pce_root, 'docs', 'build', 'html', *args)
+        index_file = os.path.normpath(os.path.abspath(index_file))
+
+        if (not index_file.startswith(prefix)
+            or not os.path.isfile(index_file)):
+            cherrypy.response.status = 404
+            return 'File %s not found' % os.path.join(*args)
+
+        return serve_file(index_file)
+
 
 class ClusterPing(_OnRampDispatcher):
     """Provide a simple means of connectivity checking.
