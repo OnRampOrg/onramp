@@ -376,7 +376,7 @@ def init_module_delete(mod_id):
         mod_id (int): Id of the module to delete.
     """
     accepted_states = ['Checkout failed', 'Installed', 'Deploy failed',
-                       'Module ready']
+                       'Module ready', 'Admin required']
     with ModState(mod_id) as mod_state:
         if 'state' not in mod_state.keys():
             return (-1, 'Module %d not currently installed' % mod_id)

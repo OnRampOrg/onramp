@@ -21,3 +21,4 @@ pce/src/env
 pce/src/.*.pid
 pce/src/testing/deploy
 pce/src/state
+pce/docs/build

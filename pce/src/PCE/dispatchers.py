@@ -12,6 +12,7 @@ import os
 from multiprocessing import Process
 
 import cherrypy
+from cherrypy.lib.static import serve_file
 from configobj import ConfigObj
 from validate import Validator
 
@@ -378,6 +379,62 @@ class Jobs(_OnRampDispatcher):
         # Delete the resource.
         result = init_job_delete(job_id)
         return self.get_response(status_msg=result[1])
+
+
+class ClusterInfo():
+    """Provide acces to information about the given cluster.
+    
+    Methods:
+        GET: Return the requested documentation file.
+    """
+    exposed = True
+
+    def __init__(self, conf, log_name):
+        """Initialize a PCE cluster info dispatcher.
+
+        Args:
+            conf (ConfigObj): Application/server configuration object.
+            log_name (str): Name of an initialized logger to use.
+        """
+        self.conf = conf
+        self.logger = logging.getLogger(log_name)
+        self.logger.debug('Initialized %s' % self.__class__.__name__)
+
+    def GET(self, *args):
+        """Return the requested documentation file.
+
+        Args:
+            *args (tuple of str): Will be concatenated to form the path of the
+                requested file relative to the PCE document root folder.
+        """
+        self.logger.debug('args: %s' % str(args))
+
+        if not args:
+            args = ('index.html',)
+
+        prefix = os.path.abspath(os.path.join(pce_root, 'docs', 'build',
+                                              'html'))
+        index_file = os.path.join(pce_root, 'docs', 'build', 'html', *args)
+        index_file = os.path.normpath(os.path.abspath(index_file))
+
+        if (not index_file.startswith(prefix)
+            or not os.path.isfile(index_file)):
+            cherrypy.response.status = 404
+            return 'File %s not found' % os.path.join(*args)
+
+        return serve_file(index_file)
+
+
+class ClusterPing(_OnRampDispatcher):
+    """Provide a simple means of connectivity checking.
+    
+    Methods:
+        GET: Respond to a request to verify connectivity.
+    """
+
+    def GET(self):
+        """Respond to a request to verify connectivity."""
+        return {}
 
 
 class Cluster(_OnRampDispatcher):

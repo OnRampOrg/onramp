@@ -906,33 +906,51 @@ class JobsTest(PCEBase):
 class ClusterTest(PCEBase):
     #__test__ = False
     def test_GET(self):
-        r = pce_get('cluster/')
+        r = pce_get('cluster/ping/')
         self.assertEqual(r.status_code, 200)
-        d = r.json()
-        self.check_json(d, good=True)
 
-        r = pce_get('cluster/1/')
+        r = pce_get('cluster/info/')
+        self.assertEqual(r.status_code, 200)
+        text = r.text
+
+        r = pce_get('cluster/info/index.html')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.text, text)
+
+        r = pce_get('cluster/info/noexist')
+        self.assertEqual(r.status_code, 404)
+
+        r = pce_get('cluster/')
         self.assertEqual(r.status_code, 404)
 
     def test_POST(self):
         r = pce_post('cluster/')
+        self.assertEqual(r.status_code, 404)
+
+        r = pce_post('cluster/info/')
         self.assertEqual(r.status_code, 405)
 
-        r = pce_post('cluster/1/')
+        r = pce_post('cluster/ping/')
         self.assertEqual(r.status_code, 405)
 
     def test_PUT(self):
-        r = pce_put('cluster/1/')
+        r = pce_put('cluster/')
+        self.assertEqual(r.status_code, 404)
+
+        r = pce_put('cluster/info/')
         self.assertEqual(r.status_code, 405)
 
-        r = pce_put('cluster/1/')
+        r = pce_put('cluster/ping/')
         self.assertEqual(r.status_code, 405)
 
     def test_DELETE(self):
-        r = pce_delete('cluster/1/')
+        r = pce_delete('cluster/')
+        self.assertEqual(r.status_code, 404)
+
+        r = pce_delete('cluster/info/')
         self.assertEqual(r.status_code, 405)
 
-        r = pce_delete('cluster/1/')
+        r = pce_delete('cluster/ping/')
         self.assertEqual(r.status_code, 405)
 
 
