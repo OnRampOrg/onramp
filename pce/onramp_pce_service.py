@@ -23,6 +23,9 @@ Commands:
     modinstall
         Installs OnRamp educational module into environment.
 
+    modready
+        Updates module status from 'Admin required' to 'Module ready'.
+
     moddelete
         Remove OnRamp educational module from environment.
 
@@ -51,7 +54,7 @@ from os.path import abspath, expanduser
 from PCE import tools
 from PCE.tools.jobs import init_job_delete, launch_job
 from PCE.tools.modules import deploy_module, get_source_types, \
-                              init_module_delete, install_module
+                              init_module_delete, install_module, ModState
 
 _pidfile = 'src/.onrampRESTservice.pid'
 _script_name = 'src/RESTservice.py'
@@ -458,6 +461,38 @@ def _mod_deploy():
 
     sys.exit(result)
 
+def _mod_ready():
+    """Updates module status from 'Admin required' to 'Module ready'.
+
+    Usage: ./onramp_pce_service.py modready [-h] [-v] mod_id
+
+    positional arguments:
+      mod_id         Id of the module
+
+      optional arguments:
+        -h, --help     show this help message and exit
+        -v, --verbose  increase output verbosity
+
+    """
+    descrip = "Updates module status from 'Admin required' to 'Module ready'"
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py moddelete',
+                                     description=descrip)
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='increase output verbosity')
+    parser.add_argument('mod_id', help='Id of the module', type=int)
+    args = parser.parse_args(args=sys.argv[2:])
+
+    with ModState(args.mod_id) as mod_state:
+        state = mod_state['state']
+        if state == 'Admin required':
+            mod_state['state'] = 'Module ready'
+            print 'Module %d ready' % args.mod_id
+            sys.exit(0)
+
+    sys.stderr.write("Module must be in 'Admin required' state, but currently",
+                     "is in '%s' state." % state)
+    sys.exit(-1)
+
 def _mod_delete():
     """Remove OnRamp educational module from environment.
 
@@ -580,6 +615,7 @@ switch = {
     'modinstall': _mod_install,
     'moddeploy': _mod_deploy,
     'moddelete': _mod_delete,
+    'modready': _mod_ready,
     'joblaunch': _job_launch,
     'jobdelete': _job_delete,
     'shell': _shell
