@@ -3,6 +3,6 @@ socket_host = string()
 socket_port = integer(0, 65535)
 
 [cluster]
-batch_scheduler = option('SLURM', 'SGE')
+batch_scheduler = option('SLURM', 'SGE', 'PBS')
 log_level = option('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
 log_file = string()
