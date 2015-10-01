@@ -73,7 +73,7 @@ class _BatchScheduler(object):
         Args:
             type (str): Batch scheduler type.
         """
-        pass
+        self.logger = logging.getLogger('onramp')
 
 class SLURMScheduler(_BatchScheduler):
     @classmethod
@@ -287,9 +287,12 @@ class PBSScheduler(_BatchScheduler):
                 given by the scheduler, not as given by OnRamp.
         """
         try:
-            job_info = check_output(['qstat', '-i', str(scheduler_job_num)])
+            job_info = check_output(['qstat', '-i', str(scheduler_job_num)],
+                                    stderr=STDOUT)
         except CalledProcessError as e:
-            msg = 'Job info call failed'
+            if e.output.startswith('qstat: Unknown Job Id %d' % scheduler_job_num):
+                return (0, 'No info')
+            msg = 'Job info call failed: %s' % e.output
             self.logger.error(msg)
             return (-1, msg)
 
