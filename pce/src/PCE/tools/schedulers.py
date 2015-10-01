@@ -227,7 +227,6 @@ class PBSScheduler(_BatchScheduler):
             email (str): Email to send results to upon completion. If None, no
                 email sent.
         """
-        local_python = os.path.join(pce_root, 'src', 'env', 'bin', 'python')
         script = '#!/bin/bash\n'
         script += '\n'
         script += '################################################\n'
@@ -239,7 +238,7 @@ class PBSScheduler(_BatchScheduler):
         script += '################################################\n'
         script += '\n'
         script += 'cd ${PBS_O_WORKDIR}\n'
-        script += '%s bin/onramp_run.py\n' % local_python
+        script += '%s bin/onramp_run.py\n' % self.local_python
         return script
 
     def schedule(self, proj_loc):
