@@ -8,11 +8,15 @@ import logging
 import os
 from subprocess import CalledProcessError, check_output, STDOUT
 
+from PCE import pce_root
+
 class _BatchScheduler(object):
     """Superclass for batch scheduler classes.
 
     Subclasses must override the non-magic methods defined here.
     """
+    local_python = os.path.join(pce_root, 'src', 'env', 'bin', 'python')
+
     @classmethod
     def is_scheduler_for(cls, type):
         """Return boolean indicating whether the class provides an interface to
@@ -105,7 +109,7 @@ class SLURMScheduler(_BatchScheduler):
             contents += '#SBATCH --mail-user=' + email + '\n'
         contents += '###################################\n'
         contents += '\n'
-        contents += 'python bin/onramp_run.py\n'
+        contents += '%s bin/onramp_run.py\n' % self.local_python
         return contents
         
     def schedule(self, proj_loc):
