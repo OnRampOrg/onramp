@@ -228,15 +228,19 @@ class PBSScheduler(_BatchScheduler):
                 email sent.
         """
         local_python = os.path.join(pce_root, 'src', 'env', 'bin', 'python')
-        return ('#!/bin/bash\n',
-                '\n',
-                '################################################\n',
-                '#PBS -l select=%d:mpiprocs=%d\n' % (num_nodes, numtasks),
-                '#PBS -N %s\n' % run_name,
-                '#PBS -V\n',
-                '################################################\n',
-                '\n',
-                '%s bin/onramp_run.py\n' % local_python)
+        script = '#!/bin/bash\n'
+        script += '\n'
+        script += '################################################\n'
+        script += '#PBS -l select=%d:mpiprocs=%d\n' % (num_nodes, numtasks)
+        script += '#PBS -N %s\n' % run_name
+        script += '#PBS -V\n'
+        script += '#PBS -j oe\n'
+        script += '#PBS -o output.txt\n'
+        script += '################################################\n'
+        script += '\n'
+        script += 'cd ${PBS_O_WORKDIR}\n'
+        script += '%s bin/onramp_run.py\n' % local_python
+        return script
 
     def schedule(self, proj_loc):
         """Schedule a job using the PBS batch scheduler.
