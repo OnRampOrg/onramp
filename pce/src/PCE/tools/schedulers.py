@@ -296,10 +296,7 @@ class PBSScheduler(_BatchScheduler):
             self.logger.error(msg)
             return (-1, msg)
 
-        if job_info.startswith('qstat: Unknown Job Id %d' % scheduler_job_num):
-            return (0, 'Done')
-
-        last_line = job_info.strip().split('\n')[-1:]
+        last_line = job_info.strip().split('\n')[-1:][0]
         job_state = last_line.split()[9]
         if (job_state == 'R'
             or job_state == 'r'
