@@ -11,22 +11,64 @@ from subprocess import CalledProcessError, check_output, STDOUT
 class _BatchScheduler(object):
     """Superclass for batch scheduler classes.
 
-    All subclasses must implement the following:
-        get_batch_script: Return a batch script formatted for
-            the given batch scheduler.
-        schedule: Schedule a job with the given batch scheduler.
-        check_status: Get status of a job from the given batch scheduler.
-        is_scheduler_for (classmethod): Returns boolean indicating whether the
-            class provides an interface to the batch scheduler given.
+    Subclasses must override the non-magic methods defined here.
     """
+    @classmethod
+    def is_scheduler_for(cls, type):
+        """Return boolean indicating whether the class provides an interface to
+        the batch scheduler type given.
+
+        Args:
+            type (str): Batch scheduler type.
+        """
+        pass
+
+    def get_batch_script(self, run_name, numtasks=4, email=None):
+        """Return the batch script that runs a job as per args formatted for the
+        given batch scheduler.
+
+        Args:
+            run_name (str): Human-readable label for job run.
+            num_tasks (int): Number of tasks to schedule.
+            email (str): Email to send results to upon completion. If None, no
+                email sent.
+        """
+        pass
+
+    def schedule(self, proj_loc):
+        """Schedule a job using the given batch scheduler.
+
+        Args:
+            proj_loc (str): Folder containing the batch script 'script.sh' for
+                the job to schedule.
+        """
+        pass
+
+    def check_status(self, scheduler_job_num):
+        """Return job status from scheduler.
+
+        Args:
+            scheduler_job_num (int): Job number of the job to check state on as
+                given by the scheduler, not as given by OnRamp.
+        """
+        pass
+
+    def cancel_job(self, scheduler_job_num):
+        """Cancel the given job.
+    
+        Args:
+            scheduler_job_num (int): Job number, as given by the scheduler, of the
+                job to cancel.
+        """
+        pass
+        
     def __init__(self, type):
         """Set batch scheduler type and return the instance.
 
         Args:
             type (str): Batch scheduler type.
         """
-        self.type = type
-        self.logger = logging.getLogger('onramp')
+        pass
 
 class SLURMScheduler(_BatchScheduler):
     @classmethod
@@ -141,6 +183,21 @@ class SLURMScheduler(_BatchScheduler):
             msg = 'Unexpected job state from scheduler'
             self.logger.error(msg)
             return (-2, msg)
+
+    def cancel_job(self, scheduler_job_num):
+        """Cancel the given job.
+    
+        Args:
+            scheduler_job_num (int): Job number, as given by the scheduler, of the
+                job to cancel.
+        """
+        try:
+            result = check_output(['scancel', str(scheduler_job_num)], stderr=STDOUT)
+        except CalledProcessError as e:
+            msg = 'Job cancel call failed'
+            self.logger.error(msg)
+            return (-1, msg)
+        return (0, result)
 
 def Scheduler(type):
     """Instantiate the appropriate scheduler class for given type.

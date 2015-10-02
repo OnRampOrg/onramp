@@ -43,9 +43,6 @@ The following paths in the modules's root directory will be written to by the On
  * ```.onramp/``` :
  Used by the PCE service to maintain state between HTTP requests.
 
- * ```log/onramp*``` :
- PCE-gernerated log files will be named as such. NOTE: The ```log/``` folder is available (and recommended) for any log files desired by the module-writer, but the names of those files cannot start with 'onramp'.
-
 ---------------------
 ## Required Supporting Scripts
 

@@ -6,17 +6,13 @@
 # - Run before job submission. So -not- in an allocation.
 # - onramp_run_params.ini file is available in current working directory
 #
-import sys
 import time
 
-print 'This is an output log test.'
-sys.stderr.write('Output to stderr')
-
-# No postprocessing required
+#
+# Validate the configobj file we received from the server
+# Note: The OnRamp server already does this for you, so you can trust
+#       the validity of the file.
+#
+# This will always be the name of the file, so fine to hardcode here
 time.sleep(10)
-
-
-# Exit 0 if all is ok
-sys.exit(0)
-# Exit with a negative value if there was a problem
-#sys.exit(-1)
+sys.exit(-1)

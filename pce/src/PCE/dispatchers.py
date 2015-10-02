@@ -1,6 +1,7 @@
 """Dispatchers implementing the OnRamp PCE API.
 
 Exports:
+    Files: Access visible files from job runs.
     Modules: View, add, update, and remove PCE educational modules.
     Jobs: Launch, update, remove, and get status of PCE jobs.
     Cluster: View cluster status.
@@ -11,13 +12,58 @@ import os
 from multiprocessing import Process
 
 import cherrypy
+from cherrypy.lib.static import serve_file
 from configobj import ConfigObj
 from validate import Validator
 
 from PCE import pce_root
-from PCE.tools.jobs import get_jobs, launch_job
+from PCE.tools import get_visible_file
+from PCE.tools.jobs import get_jobs, init_job_delete, launch_job
 from PCE.tools.modules import deploy_module, get_modules, \
-                              get_available_modules, install_module
+                              get_available_modules, init_module_delete, \
+                              install_module
+
+class Files:
+    """Provide access to visible files in job runs.
+
+    Methods:
+        GET: Return requested file.
+    """
+    exposed = True
+    def __init__(self, conf, log_name):
+        """Initialize Files dispatcher.
+
+        Args:
+            conf (ConfigObj): Application/server configuration object.
+            log_name (str): Name of an initialized logger to use.
+        """
+        self.conf = conf
+        self.logger = logging.getLogger(log_name)
+
+    def GET(self, *args, **kwargs):
+        """Return requested file, or indication of error.
+
+        *args (list): Ordered list of folders between base dir and specific
+            file requested.
+        **kwargs: Unused
+        """
+        result = get_visible_file(args)
+        if result[0] == 0:
+            # Good.
+            cherrypy.response.headers['Content-Type'] = 'text/plain'
+        if result[0] == -1:
+            # Not visible
+            cherrypy.response.status = 403
+        if result[0] == -2:
+            # Not found
+            cherrypy.response.status = 404
+        if result[0] == -3:
+            cherrypy.response.status = 500
+        if result[0] == -4:
+            cherrypy.response.status = 400
+
+        return result[1]
+
 
 class _OnRampDispatcher:
     """Base class for OnRamp PCE dispatchers."""
@@ -114,6 +160,12 @@ class _OnRampDispatcher:
             return self.get_response(status_code=-8, status_msg=msg)
     
         return None
+
+
+class APIMap(_OnRampDispatcher):
+    def GET(self):
+        map = ConfigObj(os.path.join(pce_root, 'src/api-map.ini'))
+        return map
 
 
 class Modules(_OnRampDispatcher):
@@ -221,8 +273,18 @@ class Modules(_OnRampDispatcher):
         """
         self.log_call('DELETE')
 
+        # Verify id and initiate deployment.
+        try:
+            mod_id = int(id)
+        except:
+            cherrypy.response.status = 400
+            msg = 'Invalid module id in url: %s' % id
+            self.logger.warn(msg)
+            return self.get_response(status_code=-8, status_msg=msg)
+
         # Delete the resource.
-        return self.get_response()
+        result = init_module_delete(mod_id)
+        return self.get_response(status_msg=result[1])
 
 
 class Jobs(_OnRampDispatcher):
@@ -270,6 +332,12 @@ class Jobs(_OnRampDispatcher):
             data['username'],
             data['run_name']
         )
+
+        if 'ini_params' in data.keys():
+            args += (data['ini_params'],)
+        else:
+            args += (None,)
+
         p = Process(target=launch_job, args=args)
         p.start()
         return self.get_response(status_msg='Job launched')
@@ -299,8 +367,74 @@ class Jobs(_OnRampDispatcher):
         """
         self.log_call('DELETE')
 
+        # Verify id and initiate deployment.
+        try:
+            job_id = int(id)
+        except:
+            cherrypy.response.status = 400
+            msg = 'Invalid job id in url: %s' % id
+            self.logger.warn(msg)
+            return self.get_response(status_code=-8, status_msg=msg)
+
         # Delete the resource.
-        return self.get_response()
+        result = init_job_delete(job_id)
+        return self.get_response(status_msg=result[1])
+
+
+class ClusterInfo():
+    """Provide acces to information about the given cluster.
+    
+    Methods:
+        GET: Return the requested documentation file.
+    """
+    exposed = True
+
+    def __init__(self, conf, log_name):
+        """Initialize a PCE cluster info dispatcher.
+
+        Args:
+            conf (ConfigObj): Application/server configuration object.
+            log_name (str): Name of an initialized logger to use.
+        """
+        self.conf = conf
+        self.logger = logging.getLogger(log_name)
+        self.logger.debug('Initialized %s' % self.__class__.__name__)
+
+    def GET(self, *args):
+        """Return the requested documentation file.
+
+        Args:
+            *args (tuple of str): Will be concatenated to form the path of the
+                requested file relative to the PCE document root folder.
+        """
+        self.logger.debug('args: %s' % str(args))
+
+        if not args:
+            args = ('index.html',)
+
+        prefix = os.path.abspath(os.path.join(pce_root, 'docs', 'build',
+                                              'html'))
+        index_file = os.path.join(pce_root, 'docs', 'build', 'html', *args)
+        index_file = os.path.normpath(os.path.abspath(index_file))
+
+        if (not index_file.startswith(prefix)
+            or not os.path.isfile(index_file)):
+            cherrypy.response.status = 404
+            return 'File %s not found' % os.path.join(*args)
+
+        return serve_file(index_file)
+
+
+class ClusterPing(_OnRampDispatcher):
+    """Provide a simple means of connectivity checking.
+    
+    Methods:
+        GET: Respond to a request to verify connectivity.
+    """
+
+    def GET(self):
+        """Respond to a request to verify connectivity."""
+        return {}
 
 
 class Cluster(_OnRampDispatcher):

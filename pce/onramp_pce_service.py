@@ -23,8 +23,17 @@ Commands:
     modinstall
         Installs OnRamp educational module into environment.
 
+    modready
+        Updates module status from 'Admin required' to 'Module ready'.
+
+    moddelete
+        Remove OnRamp educational module from environment.
+
     joblaunch
         Launches an Onramp job.
+
+    jobdelete
+        Remove OnRamp job run from environment.
 
     shell
         Initializes an interactive python shell in the OnRamp PCE environment.
@@ -43,8 +52,9 @@ from validate import Validator
 from os.path import abspath, expanduser
 
 from PCE import tools
-from PCE.tools.jobs import launch_job
-from PCE.tools.modules import deploy_module, get_source_types, install_module
+from PCE.tools.jobs import init_job_delete, launch_job
+from PCE.tools.modules import deploy_module, get_source_types, \
+                              init_module_delete, install_module, ModState
 
 _pidfile = 'src/.onrampRESTservice.pid'
 _script_name = 'src/RESTservice.py'
@@ -379,7 +389,7 @@ def _mod_test():
 def _mod_install():
     """Install an OnRamp educational module from the given location.
 
-    Usage: install_module.py [-h] [-v]
+    Usage: ./onramp_pce_service.py modinstall [-h] [-v]
                              {local} source_path install_parent_folder mod_id
                              mod_name
     
@@ -397,7 +407,7 @@ def _mod_install():
     
     """
     descrip = 'Install an OnRamp educational module from the given location.'
-    parser = argparse.ArgumentParser(prog='install_module.py',
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py modinstall',
                                      description=descrip)
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='increase output verbosity')
@@ -424,7 +434,7 @@ def _mod_install():
 def _mod_deploy():
     """Deploy an installed OnRamp educational module.
 
-    Usage: install_module.py [-h] [-v] mod_id
+    Usage: ./onramp_pce_service.py moddeploy [-h] [-v] mod_id
 
     positional arguments:
       mod_id         Id of the module
@@ -435,7 +445,7 @@ def _mod_deploy():
 
     """
     descrip = 'Deploy an installed OnRamp educational module.'
-    parser = argparse.ArgumentParser(prog='install_module.py',
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py moddeploy',
                                      description=descrip)
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='increase output verbosity')
@@ -443,6 +453,68 @@ def _mod_deploy():
     args = parser.parse_args(args=sys.argv[2:])
 
     result, msg = deploy_module(args.mod_id, verbose=args.verbose)
+
+    if result != 0:
+        sys.stderr.write(msg + '\n')
+    else:
+        print msg
+
+    sys.exit(result)
+
+def _mod_ready():
+    """Updates module status from 'Admin required' to 'Module ready'.
+
+    Usage: ./onramp_pce_service.py modready [-h] [-v] mod_id
+
+    positional arguments:
+      mod_id         Id of the module
+
+      optional arguments:
+        -h, --help     show this help message and exit
+        -v, --verbose  increase output verbosity
+
+    """
+    descrip = "Updates module status from 'Admin required' to 'Module ready'"
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py moddelete',
+                                     description=descrip)
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='increase output verbosity')
+    parser.add_argument('mod_id', help='Id of the module', type=int)
+    args = parser.parse_args(args=sys.argv[2:])
+
+    with ModState(args.mod_id) as mod_state:
+        state = mod_state['state']
+        if state == 'Admin required':
+            mod_state['state'] = 'Module ready'
+            print 'Module %d ready' % args.mod_id
+            sys.exit(0)
+
+    sys.stderr.write("Module must be in 'Admin required' state, but currently",
+                     "is in '%s' state." % state)
+    sys.exit(-1)
+
+def _mod_delete():
+    """Remove OnRamp educational module from environment.
+
+    Usage: ./onramp_pce_service.py moddelete [-h] [-v] mod_id
+
+    positional arguments:
+      mod_id         Id of the module
+
+      optional arguments:
+        -h, --help     show this help message and exit
+        -v, --verbose  increase output verbosity
+
+    """
+    descrip = 'Remove OnRamp educational module from environment'
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py moddelete',
+                                     description=descrip)
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='increase output verbosity')
+    parser.add_argument('mod_id', help='Id of the module', type=int)
+    args = parser.parse_args(args=sys.argv[2:])
+
+    result, msg = init_module_delete(args.mod_id)
 
     if result != 0:
         sys.stderr.write(msg + '\n')
@@ -474,10 +546,42 @@ def _job_launch():
     parser.add_argument('mod_id', help='Id of the module', type=int)
     parser.add_argument('username', help='Username of user launching job')
     parser.add_argument('run_name', help='Name for this job run')
+    parser.add_argument('run_params',
+                        help='Ini file containing params for this run')
     args = parser.parse_args(args=sys.argv[2:])
 
+    params = ConfigObj(args.run_params)
     result, msg = launch_job(args.job_id, args.mod_id, args.username,
-                             args.run_name)
+                             args.run_name, params)
+
+    if result != 0:
+        sys.stderr.write(msg + '\n')
+    else:
+        print msg
+
+    sys.exit(result)
+
+def _job_delete():
+    """Remove OnRamp job run from environment.
+    
+    Usage: onramp_pce_service.py jobdelete [-h] [-v] job_id
+
+    positional arguments:
+      job_id         Id of the job
+
+    optional arguments:
+      -h, --help     show this help message and exit
+      -v, --verbose  increase output verbosity
+    """
+    descrip = 'Remove an OnRamp job.'
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py jobdelete',
+                                     description=descrip)
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='increase output verbosity')
+    parser.add_argument('job_id', help='Id of the job', type=int)
+    args = parser.parse_args(args=sys.argv[2:])
+
+    result, msg = init_job_delete(args.job_id)
 
     if result != 0:
         sys.stderr.write(msg + '\n')
@@ -510,7 +614,10 @@ switch = {
     'modtest': _mod_test,
     'modinstall': _mod_install,
     'moddeploy': _mod_deploy,
+    'moddelete': _mod_delete,
+    'modready': _mod_ready,
     'joblaunch': _job_launch,
+    'jobdelete': _job_delete,
     'shell': _shell
 }
 

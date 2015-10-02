@@ -26,7 +26,7 @@ time.sleep(10)
 #
 # Exit 0 if the module is ready to use
 #
-sys.exit(0)
+sys.exit(1)
 #
 # Exit 1 if the module requires manual setup
 #   before returning 1, display the instructions between <admin> tags - see below

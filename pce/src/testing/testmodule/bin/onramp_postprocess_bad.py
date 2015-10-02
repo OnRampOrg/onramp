@@ -17,6 +17,6 @@ time.sleep(10)
 
 
 # Exit 0 if all is ok
-sys.exit(0)
+sys.exit(-1)
 # Exit with a negative value if there was a problem
 #sys.exit(-1)

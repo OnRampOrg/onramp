@@ -11,6 +11,7 @@ Exports:
     deploy_module: Deploy an installed OnRamp educational module.
     get_modules: Return list of tracked modules or single module.
     get_available_modules: Return list of modules shipped with OnRamp.
+    init_module_delete: Initiate the deletion of a module.
 """
 import argparse
 import copy
@@ -22,9 +23,12 @@ import os
 import shutil
 import sys
 import time
-from subprocess import CalledProcessError, check_output
+from subprocess import CalledProcessError, check_output, STDOUT
+
+from configobj import ConfigObj
 
 from PCE import pce_root
+from PCE.tools import module_log
 
 _mod_state_dir = os.path.join(pce_root, 'src/state/modules')
 _shipped_mod_dir = os.path.join(pce_root, '../modules')
@@ -56,6 +60,7 @@ class ModState(dict):
             id (int): Id of the module to get/create state for.
         """
         mod_state_file = os.path.join(_mod_state_dir, str(id))
+        self.mod_id = id
 
         try:
             # Raises OSError if file cannot be opened in create mode. If no
@@ -99,6 +104,14 @@ class ModState(dict):
         if 'state' in self.keys() and self['state'] != 'Does not exist':
             self._state_file.write(json.dumps(self))
             self._state_file.truncate()
+        else:
+            mod_state_file = os.path.join(_mod_state_dir, str(self.mod_id))
+            try:
+                os.remove(mod_state_file)
+            except OSError as e:
+                if e.errno != 2:
+                    # 2 => No such file or directory (which is no prob).
+                    raise e
         self._state_file.close()
 
 
@@ -160,10 +173,12 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
         mod_state['installed_path'] = None
         mod_state['state'] = 'Checkout in progress'
         mod_state['error'] = None
+        mod_state['uioptions'] = None
         mod_state['source_location'] = {
             'type': source_type,
             'path': source_abs_path
         }
+        mod_state['_marked_for_del'] = False
 
     # Checkout module.
     result = source_handlers[source_type](source_abs_path, mod_dir)
@@ -172,12 +187,25 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
         with ModState(mod_id) as mod_state:
             mod_state['state'] = 'Checkout failed'
             mod_state['error'] = result
+            if mod_state['_marked_for_del']:
+                _delete_module(mod_state)
+                return (-3, 'Module %d deleted' % mod_id)
         return (-2, result)
+
+    # Setup log dir.
+    try:
+        os.mkdir(os.path.join(mod_dir, 'log'))
+    except OSError:
+        # Dir already exists. All good.
+        pass
 
     with ModState(mod_id) as mod_state:
         mod_state['state'] = 'Installed'
         mod_state['error'] = None
         mod_state['installed_path'] = mod_dir
+        if mod_state['_marked_for_del']:
+            _delete_module(mod_state)
+            return (-3, 'Module %d deleted' % mod_id)
 
     return (0, 'Module %d installed' % mod_id)
 
@@ -211,42 +239,71 @@ def deploy_module(mod_id, verbose=False):
     try:
         _logger.debug('Calling bin/onramp_deploy.py')
         _logger.debug('CWD: %s' % os.getcwd())
-        check_output([os.path.join(pce_root, 'src/env/bin/python'),
-                      'bin/onramp_deploy.py'])
+        output = check_output([os.path.join(pce_root, 'src/env/bin/python'),
+                              'bin/onramp_deploy.py'], stderr=STDOUT)
         _logger.debug('Back from bin/onramp_deploy.py')
     except CalledProcessError as e:
-        if e.returncode != 1:
+        _logger.debug('CalledProcessError from bin/onramp_deploy.py')
+        code = e.returncode
+        if code > 127:
+            code -= 256
+        output = e.output
+        if code != 1:
             with ModState(mod_id) as mod_state:
-                error = ('bin/onramp_deploy.py returned invalid status %d'
-                         % e.returncode)
-                _logger.debug(error)
+                msg = ('Deploy exited with return status %d and output: %s'
+                         % (code, output))
+                _logger.debug(msg)
                 mod_state['state'] = 'Deploy failed'
-                mod_state['error'] = error
-            return (-1, error)
-
+                mod_state['error'] = msg
+                if mod_state['_marked_for_del']:
+                    _delete_module(mod_state)
+                    return (-3, 'Module %d deleted' % mod_id)
+            return (-1, msg)
         with ModState(mod_id) as mod_state:
             msg = 'Admin required'
             _logger.debug(msg)
             mod_state['state'] = msg
-            mod_state['error'] = e.output
+            mod_state['error'] = output
+            if mod_state['_marked_for_del']:
+                _delete_module(mod_state)
+                return (-3, 'Module %d deleted' % mod_id)
             return (1, msg)
     except OSError as e1:
+        output = str(e1)
+        _logger.debug('OSError from bin/onramp_deploy.py')
         _logger.debug(e1)
         with ModState(mod_id) as mod_state:
             mod_state['state'] = 'Deploy failed'
             mod_state['error'] = str(e1)
         return (-1, str(e1))
     finally:
-        _logger.debug('finally')
         os.chdir(ret_dir)
-        _logger.debug('Back to ret_dir')
+        module_log(mod_dir, 'deploy', output)
 
     _logger.debug("Updating state to 'Module ready'")
     with ModState(mod_id) as mod_state:
         mod_state['state'] = 'Module ready'
         mod_state['error'] = None
+        if mod_state['_marked_for_del']:
+            _delete_module(mod_state)
+            return (-3, 'Module %d deleted' % mod_id)
 
     return (0, 'Module %d ready' % mod_id)
+
+def _clean_mod(mod):
+    """Remove and key/value pairs from module where the key is prefixed by an
+    underscore.
+
+    Args:
+        mod (ModState): The job to clean.
+
+    Returns:
+        ModState with all underscore-prefixed keys removed.
+    """
+    for key in mod.keys():
+        if key.startswith('_'):
+            mod.pop(key, None)
+    return mod
 
 def get_modules(mod_id=None):
     """Return list of tracked modules or single module.
@@ -258,7 +315,16 @@ def get_modules(mod_id=None):
     if mod_id:
         with ModState(mod_id) as mod_state:
             if 'state' in mod_state.keys():
-                return copy.deepcopy(mod_state)
+                mod = copy.deepcopy(mod_state)
+                if mod_state['state'] == 'Module ready':
+                    uifile = os.path.join(mod_state['installed_path'],
+                                          'config/onramp_uioptions.spec')
+                    if os.path.isfile(uifile):
+                        ui = ConfigObj(uifile)
+                        mod['uioptions'] = ui.dict()
+                    else:
+                        mod['uioptions'] = None
+                return _clean_mod(mod)
         _logger.debug('Mod does not exist at: %s' % time.time())
         return {
             'mod_id': mod_id,
@@ -277,7 +343,7 @@ def get_modules(mod_id=None):
         next_mod = {}
         with ModState(id) as mod_state:
             next_mod = copy.deepcopy(mod_state)
-        results.append(next_mod)
+        results.append(_clean_mod(next_mod))
     return results
 
 def get_available_modules():
@@ -297,3 +363,45 @@ def get_available_modules():
         }
     } for name in filter(verify_module_path,
                          os.listdir(_shipped_mod_dir))]
+
+def init_module_delete(mod_id):
+    """Initiate the deletion of a module.
+
+    If module is in a state where deletion is an acceptable action, module will
+    be deleted immediately. If not, module will be marked for deletion.
+    Transistions from unacceptable delete states to acceptable delete states
+    should check the module to see if deletion has been requested.
+
+    Args:
+        mod_id (int): Id of the module to delete.
+    """
+    accepted_states = ['Checkout failed', 'Installed', 'Deploy failed',
+                       'Module ready', 'Admin required']
+    with ModState(mod_id) as mod_state:
+        if 'state' not in mod_state.keys():
+            return (-1, 'Module %d not currently installed' % mod_id)
+        state = mod_state['state']
+        if state in ['Does not exist', 'Available']:
+            return (-1, 'Module %d not currently installed' % mod_id)
+        if state in accepted_states:
+            _delete_module(mod_state)
+            return (0, 'Module %d deleted' % mod_id)
+
+        mod_state['_marked_for_del'] = True
+        return (0, 'Module %d marked for deletion' % mod_id)
+        
+def _delete_module(mod_state):
+    """Delete given module.
+
+    Both state for and contents of module will be removed.
+
+    Args:
+        mod_state (ModState): State object for the module to remove.
+    """
+    mod_id = mod_state['mod_id']
+    mod_state_file = os.path.join(_mod_state_dir, str(mod_id))
+    os.remove(mod_state_file)
+    if 'installed_path' in mod_state.keys():
+        path = mod_state['installed_path']
+        shutil.rmtree(path)
+    mod_state.clear()

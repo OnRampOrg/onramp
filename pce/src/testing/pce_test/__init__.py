@@ -103,7 +103,6 @@ class PCEBase(unittest.TestCase):
         def not_hidden(x):
             return not x.startswith('.')
 
-        time.sleep(2)
         for name in os.listdir(self.install_dir):
             shutil.rmtree('%s/%s' % (self.install_dir, name))
         for name in filter(not_hidden, os.listdir(self.mod_state_dir)):
@@ -112,6 +111,7 @@ class PCEBase(unittest.TestCase):
             os.remove('%s/%s' % (self.job_state_dir, name))
         for name in os.listdir(self.users_dir):
             shutil.rmtree('%s/%s' % (self.users_dir, name))
+        time.sleep(5)
 
     def tearDown(self):
         os.chdir(self.ret_dir)
@@ -257,6 +257,46 @@ class ModulesTest(PCEBase):
             self.assertEqual(mod['installed_path'], install_path)
             self.assertIsNone(mod['error'])
             self.assertEqual(mod, rxd_mods[k])
+
+        # Install and deploy module to allow testing of uioptions
+        testmodule_path = os.path.normpath(os.path.join(pce_root,
+                                                    'src/testing/testmodule2'))
+        location = {
+            'type': 'local',
+            'path': testmodule_path
+        }
+        install_path = os.path.join(install_dir, '%s_%d' % ('testmodule2_ui',
+                                                            10))
+        conf = ConfigObj(os.path.join(location['path'],
+                                      'config/onramp_uioptions.spec'))
+        expected_conf = conf.dict()
+        self.assertIsNotNone(expected_conf)
+        r = pce_post('modules/', mod_id=10, mod_name='testmodule2_ui',
+                     source_location=location)
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Checkout initiated')
+        time.sleep(3)
+        r = pce_post('modules/10/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        time.sleep(4)
+        r = pce_get('modules/10/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+        self.assertIn('module', d.keys())
+        mod = d['module']
+        self.assertEqual(mod['mod_id'], 10)
+        self.assertEqual(mod['mod_name'], 'testmodule2_ui')
+        self.assertEqual(mod['source_location'], location)
+        self.assertEqual(mod['state'], 'Module ready')
+        self.assertEqual(mod['installed_path'], install_path)
+        self.assertEqual(mod['uioptions'], expected_conf)
+        self.assertIsNone(mod['error'])
 
         # Bad URL
         r = pce_get('modules/45/99/')
@@ -516,11 +556,6 @@ class ModulesTest(PCEBase):
         r = pce_delete('modules/')
         self.assertEqual(r.status_code, 404)
 
-        r = pce_delete('modules/1/')
-        self.assertEqual(r.status_code, 200)
-        d = r.json()
-        self.check_json(d, good=True)
-
         r = pce_delete('modules/1/1/')
         self.assertEqual(r.status_code, 404)
 
@@ -573,7 +608,7 @@ class JobsTest(PCEBase):
         time.sleep(3)
 
     def verify_launch(self, job_id, mod_id, username, run_name,
-                      script_should_exist=True):
+                      script_should_exist=True, runparams_should_exist=False):
         with JobState(job_id) as job_state:
             self.assertEqual(job_state['job_id'], job_id)
             self.assertEqual(job_state['mod_id'], mod_id)
@@ -594,10 +629,18 @@ class JobsTest(PCEBase):
             self.assertTrue(script_exists)
         else:
             self.assertFalse(script_exists)
+        runparams_file = os.path.join(run_dir, 'onramp_runparams.ini')
+        print runparams_file
+        runparams_exists = os.path.isfile(runparams_file)
+        if runparams_should_exist:
+            self.assertTrue(runparams_exists)
+        else:
+            self.assertFalse(runparams_exists)
 
     def check_job(self, job, username='testuser', job_id=1, error=None,
                   state='Done', run_name='testrun1', mod_id=1):
         keys = job.keys()
+        self.assertListEqual(filter(lambda x: x.startswith('_'), keys), [])
         self.assertIn('username', keys)
         self.assertIn('job_id', keys)
         self.assertIn('error', keys)
@@ -823,6 +866,23 @@ class JobsTest(PCEBase):
         self.check_job(d['job'], job_id=4, state='Postprocess failed',
                        run_name='testrunbadpostprocess', mod_id=3, error=err)
 
+        # Check handling of ini_params
+        params = {'np': '4', 'nodes': '4', 'onramp':{}, 'hello':{'name': 'testname'}}
+        r = pce_post('jobs/', mod_id=1, job_id=5, username='testuser',
+                     run_name='testruniniparams', ini_params=params)
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Job launched')
+        # Verify stored state for launched ini_param job
+        time.sleep(5)
+        self.verify_launch(5, 1, 'testuser', 'testruniniparams', runparams_should_exist=True)
+        folders = ('testuser', 'testmodule2_1', 'testruniniparams')
+        run_dir = os.path.join(pce_root, 'users/%s/%s/%s' % folders)
+        conf = ConfigObj(os.path.join(run_dir, 'onramp_runparams.ini'))
+        self.assertEqual(conf, params)
+
     def test_PUT(self):
         r = pce_put('jobs/')
         self.assertEqual(r.status_code, 404)
@@ -839,11 +899,6 @@ class JobsTest(PCEBase):
         r = pce_delete('jobs/')
         self.assertEqual(r.status_code, 404)
 
-        r = pce_delete('jobs/1/')
-        self.assertEqual(r.status_code, 200)
-        d = r.json()
-        self.check_json(d, good=True)
-
         r = pce_delete('jobs/1/1/')
         self.assertEqual(r.status_code, 404)
 
@@ -851,33 +906,51 @@ class JobsTest(PCEBase):
 class ClusterTest(PCEBase):
     #__test__ = False
     def test_GET(self):
-        r = pce_get('cluster/')
+        r = pce_get('cluster/ping/')
         self.assertEqual(r.status_code, 200)
-        d = r.json()
-        self.check_json(d, good=True)
 
-        r = pce_get('cluster/1/')
+        r = pce_get('cluster/info/')
+        self.assertEqual(r.status_code, 200)
+        text = r.text
+
+        r = pce_get('cluster/info/index.html')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.text, text)
+
+        r = pce_get('cluster/info/noexist')
+        self.assertEqual(r.status_code, 404)
+
+        r = pce_get('cluster/')
         self.assertEqual(r.status_code, 404)
 
     def test_POST(self):
         r = pce_post('cluster/')
+        self.assertEqual(r.status_code, 404)
+
+        r = pce_post('cluster/info/')
         self.assertEqual(r.status_code, 405)
 
-        r = pce_post('cluster/1/')
+        r = pce_post('cluster/ping/')
         self.assertEqual(r.status_code, 405)
 
     def test_PUT(self):
-        r = pce_put('cluster/1/')
+        r = pce_put('cluster/')
+        self.assertEqual(r.status_code, 404)
+
+        r = pce_put('cluster/info/')
         self.assertEqual(r.status_code, 405)
 
-        r = pce_put('cluster/1/')
+        r = pce_put('cluster/ping/')
         self.assertEqual(r.status_code, 405)
 
     def test_DELETE(self):
-        r = pce_delete('cluster/1/')
+        r = pce_delete('cluster/')
+        self.assertEqual(r.status_code, 404)
+
+        r = pce_delete('cluster/info/')
         self.assertEqual(r.status_code, 405)
 
-        r = pce_delete('cluster/1/')
+        r = pce_delete('cluster/ping/')
         self.assertEqual(r.status_code, 405)
 
 
@@ -918,6 +991,7 @@ class ModuleJobFlowTest(PCEBase):
                   state='Does not exist', mod_name=None, error=None, mod_id=1):
 
         keys = mod.keys()
+        self.assertListEqual(filter(lambda x: x.startswith('_'), keys), [])
         self.assertIn('source_location', keys)
         self.assertIn('installed_path', keys)
         self.assertIn('state', keys)
@@ -1014,6 +1088,39 @@ class ModuleJobFlowTest(PCEBase):
         # Let postprocessing finish.
         time.sleep(10)
         job_done_response = pce_get('jobs/1/')
+
+        # Verify contents of module log files
+        run_dir = os.path.join(pce_root, 'users/testuser/testmodule_1/testrun1')
+        deploy_contents_start = 'The following output was logged '
+        deploy_contents_end = ('\n\nOutput to stderrmpicc -o hello -Wall -g -O0'
+                               ' hello.c\nThis is an output log test.\n')
+        pre_contents_start = 'The following output was logged '
+        pre_contents_end = '\n\nOutput to stderrThis is an output log test.\n'
+        post_contents_start = 'The following output was logged '
+        post_contents_end = '\n\nOutput to stderrThis is an output log test.\n'
+        status_contents_start = 'The following output was logged '
+        status_contents_end = ('\n\nOutput to stderrOutput from '
+                               'bin/onramp_status.py\n')
+        with open(os.path.join(run_dir, 'log/onramp_deploy.log'), 'r') as f:
+            contents = f.read()
+            print contents
+            self.assertTrue(contents.startswith(deploy_contents_start))
+            self.assertTrue(contents.endswith(deploy_contents_end))
+        with open(os.path.join(run_dir, 'log/onramp_preprocess.log'), 'r') as f:
+            contents = f.read()
+            print contents
+            self.assertTrue(contents.startswith(pre_contents_start))
+            self.assertTrue(contents.endswith(pre_contents_end))
+        with open(os.path.join(run_dir, 'log/onramp_postprocess.log'), 'r') as f:
+            contents = f.read()
+            print contents
+            self.assertTrue(contents.startswith(post_contents_start))
+            self.assertTrue(contents.endswith(post_contents_end))
+        with open(os.path.join(run_dir, 'log/onramp_status.log'), 'r') as f:
+            contents = f.read()
+            print contents
+            self.assertTrue(contents.startswith(status_contents_start))
+            self.assertTrue(contents.endswith(status_contents_end))
 
         print '---------------------------------'
         print 'mod_not_installed_response.text:'
@@ -1140,7 +1247,7 @@ class ModuleJobFlowTest(PCEBase):
         d = job_running_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        output = 'Output from bin/onramp_status.py\n'
+        output = 'Output to stderrOutput from bin/onramp_status.py\n'
         self.check_job(d['job'], state='Running', check_scheduler_job_num=True,
                        error=None, mod_status_output=output)
 
@@ -1151,7 +1258,7 @@ class ModuleJobFlowTest(PCEBase):
         d = job_still_running_response.json()
         self.check_json(d, good=True)
         self.assertIn('job', d.keys())
-        output = 'Output from bin/onramp_status.py\n'
+        output = 'Output to stderrOutput from bin/onramp_status.py\n'
         self.check_job(d['job'], state='Running', check_scheduler_job_num=True,
                        error=None, mod_status_output=output)
 
@@ -1188,3 +1295,379 @@ class ModuleJobFlowTest(PCEBase):
                   'deterministic output!')
         self.check_job(d['job'], state='Done',
                        check_scheduler_job_num=True, error=None, output=output)
+        self.assertIn('visible_files', d['job'].keys())
+        visible_files = d['job']['visible_files']
+        self.assertEqual(len(visible_files), 3)
+        names = []
+        for f in visible_files:
+            keys = f.keys()
+            self.assertIn('name', keys)
+            self.assertIn('size', keys)
+            self.assertIn('url', keys)
+            self.assertTrue(f['url'].endswith(f['name']))
+            names.append(f['name'])
+        self.assertIn('output.txt', names)
+        self.assertIn('script.sh', names)
+        self.assertIn('bin/onramp_status.py', names)
+        
+        r = pce_get('files/testuser/testmodule_1/testrun1/output.txt')
+        self.assertEqual(r.status_code, 200)
+        fname = os.path.join(pce_root,
+                             'users/testuser/testmodule_1/testrun1/output.txt')
+        with open(fname) as f:
+            self.assertEqual(r.text, f.read())
+
+        r = pce_get('files/testuser/testmodule_1/testrun1/onramp_runparams.ini')
+        self.assertEqual(r.status_code, 403)
+        self.assertEqual(r.text, 'Requested file not configured to be visible')
+
+        r = pce_get('files/testuser/testmodule_1/testrun1/script.sh')
+        self.assertEqual(r.status_code, 200)
+        fname = os.path.join(pce_root,
+                             'users/testuser/testmodule_1/testrun1/script.sh')
+        with open(fname) as f:
+            self.assertEqual(r.text, f.read())
+
+        r = pce_get('files/testuser/testmodule_1/testrun1/bin/onramp_status.py')
+        self.assertEqual(r.status_code, 200)
+        fname = os.path.join(pce_root,
+                             ('users/testuser/testmodule_1/'
+                              'testrun1/bin/onramp_status.py'))
+        with open(fname) as f:
+            self.assertEqual(r.text, f.read())
+
+        r = pce_get('files/testuser/testmodule_1/testrun1/')
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.text, 'Bad request')
+
+        r = pce_get('files/testuser/testmodule_1/')
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.text, 'Bad request')
+
+    def test_mod_delete(self):
+        location = {
+            'type': 'local',
+            'path': self.testmodule_path
+        }
+
+        state_file = os.path.join(pce_root, 'src/state/modules/1')
+        installed_path = os.path.join(pce_root, 'modules/testmodule_1')
+
+        def checkout(sleep_time=5):
+            pce_post('modules/', mod_id=1, mod_name='testmodule',
+                   source_location=location)
+            time.sleep(sleep_time)
+            r = pce_get('modules/1/')
+            self.assertEqual(r.status_code, 200)
+            d = r.json()
+            self.check_json(d, good=True)
+            self.assertIn('module', d.keys())
+            self.assertIn('state', d['module'].keys())
+            if sleep_time == 0:
+                self.assertEqual(d['module']['state'], 'Checkout in progress')
+            else:
+                self.assertEqual(d['module']['state'], 'Installed')
+                self.assertIn('installed_path', d['module'].keys())
+                self.assertEqual(d['module']['installed_path'], installed_path)
+                self.assertTrue(os.path.exists(installed_path))
+            self.assertTrue(os.path.exists(state_file))
+
+        def delete(immediate=True):
+            r = pce_delete('modules/1/')
+            self.assertEqual(r.status_code, 200)
+            if immediate:
+                self.assertFalse(os.path.exists(state_file))
+                self.assertFalse(os.path.exists(installed_path))
+
+        def deploy():
+            r = pce_post('modules/1/')
+            self.assertEqual(r.status_code, 200)
+            r = pce_get('modules/1/')
+            self.assertEqual(r.status_code, 200)
+            d = r.json()
+            self.check_json(d, good=True)
+            self.assertIn('module', d.keys())
+            self.assertIn('state', d['module'].keys())
+            self.assertEqual(d['module']['state'], 'Deploy in progress')
+
+        # Test delete of non-existat module.
+        r = pce_delete('modules/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d)
+        self.assertEqual(d['status_code'], 0)
+        self.assertEqual(d['status_msg'], 'Module 1 not currently installed')
+
+        # Check delete during install.
+        checkout(sleep_time=0)
+        delete(immediate=False)
+        self.assertTrue(os.path.exists(state_file))
+        self.assertTrue(os.path.exists(installed_path))
+        time.sleep(3)
+        self.assertFalse(os.path.exists(state_file))
+        self.assertFalse(os.path.exists(installed_path))
+
+        # Check delete after install.
+        checkout()
+        delete()
+
+        # Check delete while deploy in progress.
+        checkout()
+        deploy()
+        delete(immediate=False)
+        time.sleep(5)
+        self.assertTrue(os.path.exists(state_file))
+        self.assertTrue(os.path.exists(installed_path))
+        time.sleep(6)
+        self.assertFalse(os.path.exists(state_file))
+        self.assertFalse(os.path.exists(installed_path))
+
+        # Check delete while deploy in progress with deploy failure.
+        source = os.path.join(installed_path, 'bin/onramp_deploy_bad.py')
+        dest = os.path.join(installed_path, 'bin/onramp_deploy.py')
+        checkout()
+        shutil.copyfile(source, dest)
+        deploy()
+        delete(immediate=False)
+        time.sleep(5)
+        self.assertTrue(os.path.exists(state_file))
+        self.assertTrue(os.path.exists(installed_path))
+        time.sleep(6)
+        self.assertFalse(os.path.exists(state_file))
+        self.assertFalse(os.path.exists(installed_path))
+
+        # Check delete while deploy in progress with admin required.
+        source = os.path.join(installed_path, 'bin/onramp_deploy_admin.py')
+        dest = os.path.join(installed_path, 'bin/onramp_deploy.py')
+        checkout()
+        shutil.copyfile(source, dest)
+        deploy()
+        delete(immediate=False)
+        time.sleep(5)
+        self.assertTrue(os.path.exists(state_file))
+        self.assertTrue(os.path.exists(installed_path))
+        time.sleep(6)
+        self.assertFalse(os.path.exists(state_file))
+        self.assertFalse(os.path.exists(installed_path))
+
+        # Check delete while module ready.
+        checkout()
+        deploy()
+        time.sleep(11)
+        delete()
+
+    def test_job_delete(self):
+        location = {
+            'type': 'local',
+            'path': self.testmodule_path
+        }
+
+        mod_state_file = os.path.join(pce_root, 'src/state/modules/1')
+        mod_installed_path = os.path.join(pce_root, 'modules/testmodule_1')
+        job_state_file = os.path.join(pce_root, 'src/state/jobs/1')
+        run_dir = os.path.join(pce_root, 'users/testuser/testmodule_1/testrun')
+        mod_dir = os.path.join(pce_root, 'modules/testmodule_1')
+
+        def checkout(sleep_time=5):
+            pce_post('modules/', mod_id=1, mod_name='testmodule',
+                   source_location=location)
+            time.sleep(sleep_time)
+            r = pce_get('modules/1/')
+            self.assertEqual(r.status_code, 200)
+            d = r.json()
+            self.check_json(d, good=True)
+            self.assertIn('module', d.keys())
+            self.assertIn('state', d['module'].keys())
+            if sleep_time == 0:
+                self.assertEqual(d['module']['state'], 'Checkout in progress')
+            else:
+                self.assertEqual(d['module']['state'], 'Installed')
+                self.assertIn('installed_path', d['module'].keys())
+                self.assertEqual(d['module']['installed_path'], mod_installed_path)
+                self.assertTrue(os.path.exists(mod_installed_path))
+            self.assertTrue(os.path.exists(mod_state_file))
+
+        def deploy():
+            r = pce_post('modules/1/')
+            self.assertEqual(r.status_code, 200)
+            r = pce_get('modules/1/')
+            self.assertEqual(r.status_code, 200)
+            d = r.json()
+            self.check_json(d, good=True)
+            self.assertIn('module', d.keys())
+            self.assertIn('state', d['module'].keys())
+            self.assertEqual(d['module']['state'], 'Deploy in progress')
+
+        def launch():
+            pce_post('jobs/', mod_id=1, job_id=1, username='testuser',
+                     run_name='testrun')
+
+        def delete(immediate=True):
+            r = pce_delete('jobs/1/')
+            print r.text
+            self.assertEqual(r.status_code, 200)
+            if immediate:
+                self.assertFalse(os.path.exists(job_state_file))
+                self.assertFalse(os.path.exists(run_dir))
+            else:
+                self.assertTrue(os.path.exists(job_state_file))
+
+        # Setup testmodule.
+        checkout()
+
+        # Non-existant.
+        delete()
+
+        # Setting up launch -> Launch failed (module not ready).
+        launch()
+        delete()
+        
+        # Launch failed.
+        launch()
+        time.sleep(5)
+        delete()
+
+        # Setting up launch -> Scheduled.
+        time.sleep(5)
+        deploy()
+        time.sleep(11)
+        launch()
+        delete(immediate=False)
+        time.sleep(13)
+        self.assertFalse(os.path.exists(job_state_file))
+        self.assertFalse(os.path.exists(run_dir))
+        
+        # Setting up launch -> Preprocess failed.
+        time.sleep(5)
+        source = os.path.join(mod_dir, 'bin/onramp_preprocess_bad.py')
+        dest = os.path.join(mod_dir, 'bin/onramp_preprocess.py')
+        shutil.copyfile(source, dest)
+        launch()
+        delete(immediate=False)
+        time.sleep(14)
+        self.assertFalse(os.path.exists(job_state_file))
+        self.assertFalse(os.path.exists(run_dir))
+
+        # Preprocessing -> Preprocess failed.
+        time.sleep(5)
+        launch()
+        time.sleep(7)
+        delete(immediate=False)
+        time.sleep(8)
+        self.assertFalse(os.path.exists(job_state_file))
+        self.assertFalse(os.path.exists(run_dir))
+
+        # Preprocessing -> Scheduled.
+        time.sleep(5)
+        source = os.path.join(mod_dir, 'bin/onramp_preprocess_good.py')
+        dest = os.path.join(mod_dir, 'bin/onramp_preprocess.py')
+        shutil.copyfile(source, dest)
+        launch()
+        time.sleep(7)
+        delete(immediate=False)
+        time.sleep(7)
+        self.assertFalse(os.path.exists(job_state_file))
+        self.assertFalse(os.path.exists(run_dir))
+
+        # Preprocess failed.
+        time.sleep(5)
+        source = os.path.join(mod_dir, 'bin/onramp_preprocess_bad.py')
+        dest = os.path.join(mod_dir, 'bin/onramp_preprocess.py')
+        shutil.copyfile(source, dest)
+        launch()
+        time.sleep(15)
+        delete()
+
+        # Scheduled/Queued/Running.
+        time.sleep(5)
+        source = os.path.join(mod_dir, 'bin/onramp_preprocess_good.py')
+        dest = os.path.join(mod_dir, 'bin/onramp_preprocess.py')
+        shutil.copyfile(source, dest)
+        launch()
+        time.sleep(15)
+        delete()
+
+        # Running.
+        time.sleep(20)
+        launch()
+        time.sleep(20)
+        r = pce_get('jobs/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.assertIn('state', d['job'].keys())
+        self.assertEqual(d['job']['state'], 'Running')
+        delete()
+
+        # Postprocessing -> Done.
+        time.sleep(20)
+        launch()
+        time.sleep(30)
+        r = pce_get('jobs/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.assertIn('state', d['job'].keys())
+        self.assertEqual(d['job']['state'], 'Postprocessing')
+        delete(immediate=False)
+        time.sleep(12)
+        self.assertFalse(os.path.exists(job_state_file))
+        self.assertFalse(os.path.exists(run_dir))
+
+        # Postprocessing -> Postprocess failed.
+        source = os.path.join(mod_dir, 'bin/onramp_postprocess_bad.py')
+        dest = os.path.join(mod_dir, 'bin/onramp_postprocess.py')
+        shutil.copyfile(source, dest)
+        time.sleep(20)
+        launch()
+        time.sleep(30)
+        r = pce_get('jobs/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.assertIn('state', d['job'].keys())
+        self.assertEqual(d['job']['state'], 'Postprocessing')
+        delete(immediate=False)
+        time.sleep(12)
+        self.assertFalse(os.path.exists(job_state_file))
+        self.assertFalse(os.path.exists(run_dir))
+
+        # Postprocess failed.
+        time.sleep(20)
+        launch()
+        time.sleep(30)
+        r = pce_get('jobs/1/')
+        time.sleep(15)
+        r = pce_get('jobs/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.assertIn('state', d['job'].keys())
+        self.assertEqual(d['job']['state'], 'Postprocess failed')
+        delete()
+
+        # Done
+        time.sleep(20)
+        source = os.path.join(mod_dir, 'bin/onramp_postprocess_good.py')
+        dest = os.path.join(mod_dir, 'bin/onramp_postprocess.py')
+        shutil.copyfile(source, dest)
+        launch()
+        time.sleep(30)
+        r = pce_get('jobs/1/')
+        time.sleep(15)
+        r = pce_get('jobs/1/')
+        self.assertEqual(r.status_code, 200)
+        d = r.json()
+        self.check_json(d, good=True)
+        self.assertIn('job', d.keys())
+        self.assertIn('state', d['job'].keys())
+        self.assertEqual(d['job']['state'], 'Done')
+        delete()
+
+        # TODO: 
+        # Setting up launch -> Launch failed (runparams validation failed).
+        # Setting up launch -> Launch failed (project location does not exist).
