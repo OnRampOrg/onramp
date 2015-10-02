@@ -7,4 +7,3 @@ Exports:
     tools: Support functionality for REST server.
     pce_root: Path to root folder of OnRamp PCE installation.
 """
-pce_root = '/home/jjhursey/work/onramp/my_onramp/pce'
