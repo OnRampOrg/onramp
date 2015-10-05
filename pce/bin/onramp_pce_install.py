@@ -25,11 +25,18 @@ if __name__ == '__main__':
     prebuilt_dir = '../modules'
     module_state_dir = 'src/state/modules'
     job_state_dir = 'src/state/jobs'
+
+    tmpl_conf  = "bin/onramp_pce_config.ini.tmpl"
+    final_conf = "bin/onramp_pce_config.ini"
     
+    # If the PCE service is already deployed/installed
     if os.path.exists(env_dir):
-        print 'Server appears to be already installed.'
+        print "=" * 70
+        print 'Warning: PCE Service appears to be already installed.'
+        print "=" * 70
+
         response = raw_input('(R)emove and re-install or (A)bort? ')
-        if response != 'R':
+        if response != 'R' and response != 'r':
             sys.exit('Aborted')
         shutil.rmtree(env_dir, True)
         shutil.rmtree(users_dir, True)
@@ -38,6 +45,7 @@ if __name__ == '__main__':
         shutil.rmtree(module_state_dir, True)
         shutil.rmtree(job_state_dir, True)
     
+    # Create the log directory
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
     
@@ -48,7 +56,35 @@ if __name__ == '__main__':
         os.makedirs(module_state_dir)
     if not os.path.exists(job_state_dir):
         os.makedirs(job_state_dir)
+
     
+    #
+    # Setup the configuration file(s)
+    #
+    if os.path.exists(final_conf) is True:
+        print "=" * 70
+        print 'Warning: PCE Service configuration file present.'
+        print "=" * 70
+
+        response = raw_input('(R)eplace or (K)eep? ')
+        if response == 'R' or response == 'r':
+            call(['rm', final_conf])
+            call(['cp', tmpl_conf, final_conf])
+    else:
+        call(['cp', tmpl_conf, final_conf])
+    call(['chmod', 'og+rX', final_conf])
+
+    print "==>"
+    print "==> NOTICE: Please edit the file: " + final_conf
+    print "==>"
+
+
+    ###################################################
+    print "=" * 70
+    print "Status: Setup the virtual environment"
+    print "        This may take a while..."
+    print "=" * 70
+
     # Setup virtual environment
     call(['virtualenv', '-p', 'python2.7', env_dir])
     call([env_dir + '/bin/pip', 'install', '-r', source_dir + '/requirements.txt'])
@@ -79,3 +115,9 @@ if __name__ == '__main__':
     
     # Use virtual environment to complete server setup
     call([env_dir + '/bin/python', source_dir + '/stage_two.py'])
+
+
+    ###################################################
+    print "=" * 70
+    print "Status: Setup Complete"
+    print "=" * 70
