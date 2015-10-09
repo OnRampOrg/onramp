@@ -699,8 +699,8 @@ class JobsTest(PCEBase):
         missing_msg_prefix = ('An invalid value or no value was received for the '
                               'following required parameter(s): ')
 
-        mod_state_files = filter(lambda x: not x.startswith('.'),
-                                 os.listdir(self.mod_state_dir))
+        mod_state_files = sorted(filter(lambda x: not x.startswith('.'),
+                                        os.listdir(self.mod_state_dir)))
         self.assertEqual(mod_state_files, ['1', '2', '3'])
         job_state_files = filter(lambda x: not x.startswith('.'),
                                  os.listdir(self.job_state_dir))
@@ -1023,7 +1023,6 @@ class ModuleJobFlowTest(PCEBase):
         # Checkout.
         pce_post('modules/', mod_id=1, mod_name='testmodule',
                source_location=location)
-        time.sleep(1)
         mod_installing_response = pce_get('modules/1/')
 
         # Launch against module currently being installed.
@@ -1401,8 +1400,6 @@ class ModuleJobFlowTest(PCEBase):
         # Check delete during install.
         checkout(sleep_time=0)
         delete(immediate=False)
-        self.assertTrue(os.path.exists(state_file))
-        self.assertTrue(os.path.exists(installed_path))
         time.sleep(3)
         self.assertFalse(os.path.exists(state_file))
         self.assertFalse(os.path.exists(installed_path))
