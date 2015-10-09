@@ -81,7 +81,7 @@ $$ git checkout https://github.com/ssfoley/onramp.git onramp
 
   ```
 $$ cd onramp/server
-$$ ./bin/onramp_server_setup.py 
+$$ ./bin/onramp_server_install.py 
   ```
  1. Configure the OnRamp Server service.
 
