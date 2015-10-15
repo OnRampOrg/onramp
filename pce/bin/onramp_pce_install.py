@@ -61,6 +61,7 @@ if __name__ == '__main__':
     #
     # Setup the configuration file(s)
     #
+    show_edit_msg = False
     if os.path.exists(final_conf) is True:
         print "=" * 70
         print 'Warning: PCE Service configuration file present.'
@@ -70,13 +71,12 @@ if __name__ == '__main__':
         if response == 'R' or response == 'r':
             call(['rm', final_conf])
             call(['cp', tmpl_conf, final_conf])
+            show_edit_msg = True
     else:
         call(['cp', tmpl_conf, final_conf])
+        show_edit_msg = True
     call(['chmod', 'og+rX', final_conf])
 
-    print "==>"
-    print "==> NOTICE: Please edit the file: " + final_conf
-    print "==>"
 
 
     ###################################################
@@ -121,3 +121,8 @@ if __name__ == '__main__':
     print "=" * 70
     print "Status: Setup Complete"
     print "=" * 70
+
+    if show_edit_msg:
+        print "==>"
+        print "==> NOTICE: Please edit the file: " + final_conf
+        print "==>"
