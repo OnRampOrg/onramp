@@ -332,7 +332,7 @@ def get_modules(mod_id=None):
                 mod = copy.deepcopy(mod_state)
                 if mod_state['state'] == 'Module ready':
                     uifile = os.path.join(mod_state['installed_path'],
-                                          'config/onramp_uioptions.spec')
+                                          'config/onramp_uioptions.cfgspec')
                     if os.path.isfile(uifile):
                         ui = ConfigObj(uifile)
                         mod['uioptions'] = ui.dict()

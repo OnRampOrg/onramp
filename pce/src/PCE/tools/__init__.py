@@ -46,11 +46,11 @@ def get_visible_file(dirs):
                            '/'.join(dirs[:num_parent_dirs]))
     filename = os.path.join(run_dir, '/'.join(dirs[num_parent_dirs:]))
 
-    ini_file = os.path.join(run_dir, 'config/onramp_metadata.ini')
+    cfg_file = os.path.join(run_dir, 'config/onramp_metadata.cfg')
     try:
-        conf = ConfigObj(ini_file, file_error=True)
+        conf = ConfigObj(cfg_file, file_error=True)
     except (IOError, SyntaxError):
-        return (-3, 'Badly formed or non-existant config/onramp_metadata.ini') 
+        return (-3, 'Badly formed or non-existant config/onramp_metadata.cfg') 
 
     if 'onramp' in conf.keys() and 'visible' in conf['onramp'].keys():
         globs = conf['onramp']['visible']

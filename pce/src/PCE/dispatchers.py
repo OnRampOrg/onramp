@@ -372,8 +372,8 @@ class Jobs(_OnRampDispatcher):
             data['run_name']
         )
 
-        if 'ini_params' in data.keys():
-            args += (data['ini_params'],)
+        if 'cfg_params' in data.keys():
+            args += (data['cfg_params'],)
         else:
             args += (None,)
 
