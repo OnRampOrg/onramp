@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Configure the environment for the onramp REST server.
 
-Usage: ./onramp_setup.py
+Usage: bin/onramp_pce_install.py
 
 This script sets up a virtual environment for the REST server, installs
 dependencies need by the REST server, imports default educational modules into

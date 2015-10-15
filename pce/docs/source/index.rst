@@ -13,7 +13,7 @@ Contents:
 
    requirements
    pce_config
-   onramp_pce_setup
+   onramp_pce_install
    onramp_pce_service
    pce_http_json
    pce_tools

@@ -290,4 +290,4 @@ texinfo_documents = [
 #texinfo_no_detailmenu = False
 
 # Custom additions
-sys.path.insert(0, os.path.join(pce_root))
+sys.path.insert(0, os.path.join(pce_root, 'bin'))

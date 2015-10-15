@@ -1,10 +1,10 @@
 #!src/env/bin/python
 """Control the onramp REST server.
 
-Usage: ./onramp_service.py COMMAND [COMMAND_ARGS]
+Usage: bin/onramp_pce_service.py COMMAND [COMMAND_ARGS]
 
 For detailed usage/arguments/instructions for a specific command:
-    ./onramp_service.py COMMAND -h
+    bin/onramp_pce_service.py COMMAND -h
 
 Commands:
 
