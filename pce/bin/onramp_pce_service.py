@@ -51,12 +51,12 @@ from configobj import ConfigObj
 from validate import Validator
 from os.path import abspath, expanduser
 
-from PCE import tools
+from PCE import pce_root, tools
 from PCE.tools.jobs import init_job_delete, launch_job
 from PCE.tools.modules import deploy_module, get_source_types, \
                               init_module_delete, install_module, ModState
 
-_pidfile = 'src/.onrampRESTservice.pid'
+_pidfile = os.path.join(pce_root, 'src', '.onrampRESTservice.pid')
 _script_name = 'src/RESTservice.py'
 
 def _getPID():
@@ -198,18 +198,19 @@ def _mod_test():
                         help="module's modtest configuration file")
     args = parser.parse_args(args=sys.argv[2:])
 
-    ret_dir = os.getcwd()
-    env_py = os.path.abspath('src/env/bin/python')
+    env_py = os.path.join(pce_root, 'src', 'env', 'bin', 'python')
 
     conf = ConfigObj(args.mod_ini_file,
-                     configspec='src/configspecs/modtest.inispec')
+                     configspec=os.path.join(pce_root, 'src', 'configspecs',
+                                             'modtest.inispec'))
     conf.validate(Validator())
 
     deploy_path = abspath(expanduser(conf['deploy_path']))
     module_path = abspath(expanduser(conf['module_path']))
 
     if os.path.exists(deploy_path):
-        print ('The deploy path exists. Would you like to remove the old path and continue?')
+        print ('The deploy path exists. Would you like to remove the old path '
+               'and continue?')
         response = raw_input('(Y)es or (N)o? ')
         if response == 'Y' or response == 'y':
             shutil.rmtree(deploy_path)
@@ -636,10 +637,11 @@ if __name__ == '__main__':
         'ERROR': logging.ERROR,
         'CRITICAL': logging.CRITICAL
     }
-    log_file = 'log/onramp.log',
+    log_file = os.path.join(pce_root, 'log', 'onramp.log')
     log_level = 'INFO'
-    ini = ConfigObj('onramp_pce_config.ini',
-                    configspec='src/onramp_config.inispec')
+    ini = ConfigObj(os.path.join(pce_root, 'onramp_pce_config.ini'),
+                    configspec=os.path.join(pce_root, 'src',
+                                            'onramp_config.inispec'))
     ini.validate(Validator())
     if 'cluster' in ini.keys():
         if 'log_level' in ini['cluster'].keys():
