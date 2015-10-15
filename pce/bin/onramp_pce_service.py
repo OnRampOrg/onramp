@@ -203,7 +203,7 @@ def _mod_test():
 
     conf = ConfigObj(args.mod_ini_file,
                      configspec=os.path.join(pce_root, 'src', 'configspecs',
-                                             'modtest.inispec'))
+                                             'modtest.cfgspec'))
     conf.validate(Validator())
 
     deploy_path = abspath(expanduser(conf['deploy_path']))
@@ -640,9 +640,9 @@ if __name__ == '__main__':
     }
     log_file = os.path.join(pce_root, 'log', 'onramp.log')
     log_level = 'INFO'
-    ini = ConfigObj(os.path.join(pce_root, 'onramp_pce_config.ini'),
-                    configspec=os.path.join(pce_root, 'src',
-                                            'onramp_config.inispec'))
+    ini = ConfigObj(os.path.join(pce_root, 'bin', 'onramp_pce_config.cfg'),
+                    configspec=os.path.join(pce_root, 'src', 'configspecs',
+                                            'onramp_pce_config.cfgspec'))
     ini.validate(Validator())
     if 'cluster' in ini.keys():
         if 'log_level' in ini['cluster'].keys():

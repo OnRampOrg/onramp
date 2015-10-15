@@ -6,7 +6,7 @@ setting/storing/updating job state data.
 Exports:
     JobState: Encapsulation of job state that avoids race conditions.
     launch_job: Schedules job launch using system batch scheduler as configured
-        in onramp_pce_config.ini.
+        in onramp_pce_config.cfg.
     get_jobs: Returns list of tracked jobs or single job.
     init_job_delete: Initiate the deletion of a job.
 """
@@ -117,7 +117,7 @@ class JobState(dict):
 
 def launch_job(job_id, mod_id, username, run_name, run_params):
     """Schedule job launch using system batch scheduler as configured in
-    onramp_pce_config.ini.
+    onramp_pce_config.cfg.
 
     Args:
         job_id (int): Unique identifier for job.
@@ -242,9 +242,9 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
         module_log(run_dir, 'preprocess', result)
 
     # Determine batch scheduler to user from config.
-    ini = ConfigObj(os.path.join(pce_root, 'onramp_pce_config.ini'),
-                    configspec=os.path.join(pce_root,
-                                            'src/onramp_config.inispec'))
+    ini = ConfigObj(os.path.join(pce_root, 'bin', 'onramp_pce_config.cfg'),
+                    configspec=os.path.join(pce_root, 'src', 'configspecs',
+                                            'onramp_pce_config.cfgspec'))
     ini.validate(Validator())
     scheduler = Scheduler(ini['cluster']['batch_scheduler'])
 
@@ -395,9 +395,11 @@ def _build_job(job_id):
             return {}
 
         if job_state['state'] in status_check_states:
-            ini = ConfigObj(os.path.join(pce_root, 'onramp_pce_config.ini'),
-                            configspec=os.path.join(pce_root,
-                                                'src/onramp_config.inispec'))
+            specfile = os.path.join(pce_root, 'src', 'configspecs',
+                                    'onramp_pce_config.cfgspec')
+            ini = ConfigObj(os.path.join(pce_root, 'bin',
+                                         'onramp_pce_config.cfg'),
+                            configspec=specfile)
             ini.validate(Validator())
             scheduler = Scheduler(ini['cluster']['batch_scheduler'])
             sched_job_num = job_state['scheduler_job_num']
@@ -566,8 +568,9 @@ def _delete_job(job_state):
     """
     job_cancel_states = ['Scheduled', 'Queued', 'Running']
     if job_state['state'] in job_cancel_states:
-        inifile = os.path.join(pce_root, 'onramp_pce_config.ini')
-        specfile = os.path.join(pce_root, 'src/onramp_config.inispec')
+        inifile = os.path.join(pce_root, 'bin', 'onramp_pce_config.cfg')
+        specfile = os.path.join(pce_root, 'src', 'configspecs',
+                                'onramp_pce_config.cfgspec')
         ini = ConfigObj(inifile, configspec=specfile)
         ini.validate(Validator())
         scheduler = Scheduler(ini['cluster']['batch_scheduler'])

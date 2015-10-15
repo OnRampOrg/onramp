@@ -44,14 +44,14 @@ def _restart_handler(signal, frame):
     logger = logging.getLogger('onramp')
     logger.info('Restarting server')
     # FIXME: This needs to reload the config, including attrs in
-    # onramp_config.ini.
+    # onramp_pce_config.cfg.
     cherrypy.engine.restart()
     logger.debug('Blocking cherrypy engine')
     cherrypy.engine.block()
 
 if __name__ == '__main__':
     # Default conf. Some of these can/will be overrided by attrs in
-    # onramp_config.ini.
+    # onramp_pce_config.cfg.
     conf = {
         'global': {
             'server.socket_host': socket.gethostbyname(socket.gethostname()),
@@ -76,10 +76,11 @@ if __name__ == '__main__':
         }
     }
 
-    # Load onramp_config.ini and integrate appropriate attrs into cherrpy conf.
-    ini = ConfigObj(os.path.join(pce_root, 'bin', 'onramp_pce_config.ini'),
-                    configspec=os.path.join(pce_root, 'src',
-                                            'onramp_config.inispec'))
+    # Load onramp_pce_config.cfg and integrate appropriate attrs into cherrpy
+    # conf.
+    ini = ConfigObj(os.path.join(pce_root, 'bin', 'onramp_pce_config.cfg'),
+                    configspec=os.path.join(pce_root, 'src', 'configspecs',
+                                            'onramp_pce_config.cfgspec'))
     ini.validate(Validator())
     if 'server' in ini.keys():
         for k in ini['server']:
@@ -90,7 +91,7 @@ if __name__ == '__main__':
         if 'log_file' in ini['cluster'].keys():
             log_file = ini['cluster']['log_file']
             if not log_file.startswith('/'):
-                # Path is relative to onramp_config.ini location
+                # Path is relative to onramp_pce_config.cfg location
                 log_file = ini['cluster']['log_file']
             conf['internal']['onramp_log_file'] = log_file
 

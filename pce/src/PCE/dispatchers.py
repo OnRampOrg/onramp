@@ -144,7 +144,7 @@ class _OnRampDispatcher:
                           % (self.__class__.__name__, func_name))
     
         path = os.path.dirname(os.path.abspath(__file__)) + '/../..'
-        configspec = (path + '/src/configspecs/%s_%s.inputspec'
+        configspec = (path + '/src/configspecs/%s_%s.cfgspec'
                       % (self.__class__.__name__, func_name))
     
         try:
@@ -185,7 +185,7 @@ class APIMap(_OnRampDispatcher):
         Returns:
             Dict containing PCE API endpoints.
         """
-        map = ConfigObj(os.path.join(pce_root, 'src/api-map.ini'))
+        map = ConfigObj(os.path.join(pce_root, 'src/api-map.cfg'))
         return map
 
 

@@ -14,7 +14,7 @@ class TestModtest(unittest.TestCase):
         self.ret_dir = os.getcwd()
         os.chdir('../../')
         self.conf = ConfigObj('src/testing/testmodule/testing/modtest.ini',
-                              configspec='src/configspecs/modtest.inispec')
+                              configspec='src/configspecs/modtest.cfgspec')
         dummy_filepath = 'src/testing/testmodule/testing/dummy_runparams.ini'
         self.dummy_ini = ConfigObj(dummy_filepath)
 

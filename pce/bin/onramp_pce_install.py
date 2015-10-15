@@ -27,8 +27,8 @@ if __name__ == '__main__':
     module_state_dir = 'src/state/modules'
     job_state_dir = 'src/state/jobs'
 
-    tmpl_conf  = "bin/onramp_pce_config.ini.tmpl"
-    final_conf = "bin/onramp_pce_config.ini"
+    tmpl_conf  = "bin/onramp_pce_config.cfg.tmpl"
+    final_conf = "bin/onramp_pce_config.cfg"
     
     # If the PCE service is already deployed/installed
     if os.path.exists(env_dir):

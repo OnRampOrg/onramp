@@ -28,8 +28,9 @@ def setup():
     global onramp_ini
     global test_ini
 
-    onramp_ini = ConfigObj('../../onramp_pce_config.ini',
-                           configspec='../onramp_config.inispec')
+    specfile ='../configspecs/onramp_pce_config.cfgspec'
+    onramp_ini = ConfigObj('../../bin/onramp_pce_config.cfg',
+                           configspec=specfile)
     onramp_ini.validate(Validator())
     test_ini = ConfigObj('test_pce_config.ini',
                          configspec='test_pce_config.inispec')
