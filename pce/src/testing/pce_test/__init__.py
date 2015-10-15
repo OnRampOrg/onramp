@@ -19,9 +19,9 @@ import unittest
 from configobj import ConfigObj
 from validate import Validator
 
-from PCE import pce_root
 from PCE.tools.jobs import JobState
 from PCE.tools.modules import ModState
+from PCEHelper import pce_root
 
 def setup():
     """Setup the testing environment."""

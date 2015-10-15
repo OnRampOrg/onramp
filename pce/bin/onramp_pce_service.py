@@ -51,10 +51,11 @@ from configobj import ConfigObj
 from validate import Validator
 from os.path import abspath, expanduser
 
-from PCE import pce_root, tools
+from PCE import tools
 from PCE.tools.jobs import init_job_delete, launch_job
 from PCE.tools.modules import deploy_module, get_source_types, \
                               init_module_delete, install_module, ModState
+from PCEHelper import pce_root
 
 _pidfile = os.path.join(pce_root, 'src', '.onrampRESTservice.pid')
 _script_name = 'src/RESTservice.py'

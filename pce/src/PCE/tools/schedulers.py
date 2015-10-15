@@ -8,7 +8,7 @@ import logging
 import os
 from subprocess import CalledProcessError, check_output, STDOUT
 
-from PCE import pce_root
+from PCEHelper import pce_root
 
 class _BatchScheduler(object):
     """Superclass for batch scheduler classes.

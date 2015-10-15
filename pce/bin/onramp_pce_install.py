@@ -12,6 +12,7 @@ import json
 import os
 import shutil
 import sys
+import time
 from subprocess import call
 from tempfile import mkstemp
 
@@ -89,33 +90,21 @@ if __name__ == '__main__':
     call(['virtualenv', '-p', 'python2.7', env_dir])
     call([env_dir + '/bin/pip', 'install', '-r', source_dir + '/requirements.txt'])
     
-    # Set pce_root in PCE packagage
-    cwd = os.getcwd()
-    pce_file = os.path.join(os.path.join(cwd, source_dir),
-                            os.path.join(package_name, '__init__.py'))
-    fh, abs_path = mkstemp()
-    pce_root_found = False
-    with open(abs_path, 'w') as temp_file:
-        with open(pce_file, 'r') as f:
-            for line in f:
-                if line.startswith('pce_root ='):
-                    pce_root_found = True
-                    temp_file.write("pce_root = '%s'\n" % cwd)
-                else:
-                    temp_file.write(line)
-        if not pce_root_found:
-            temp_file.write("pce_root = '%s'\n" % cwd)
-    os.close(fh)
-    os.remove(pce_file)
-    shutil.move(abs_path, pce_file)
-                
     # Link PCE to virtual environment
+    cwd = os.getcwd()
     call(['cp', '-rs', cwd + '/' + source_dir + '/' + package_name,
           env_dir + '/lib/python2.7/site-packages/' + package_name])
-    
+
+    # Create PCEHelper module in virtual environment
+    mod_dir = os.path.join(env_dir, 'lib', 'python2.7', 'site-packages',
+                            'PCEHelper')
+    mod_file = os.path.join(mod_dir, '__init__.py')
+    os.mkdir(mod_dir)
+    with open(mod_file, 'w') as f:
+        print>>f, "pce_root = '%s'\n" % cwd
+
     # Use virtual environment to complete server setup
     call([env_dir + '/bin/python', source_dir + '/stage_two.py'])
-
 
     ###################################################
     print "=" * 70

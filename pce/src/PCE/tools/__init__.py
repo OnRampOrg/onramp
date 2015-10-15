@@ -25,7 +25,7 @@ from configobj import ConfigObj
 from Crypto import Random
 from Crypto.Cipher import AES
 
-from PCE import pce_root
+from PCEHelper import pce_root
 
 def get_visible_file(dirs):
     """Verify access allowed to requested file and return it.

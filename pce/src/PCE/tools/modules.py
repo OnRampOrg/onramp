@@ -27,8 +27,8 @@ from subprocess import CalledProcessError, check_output, STDOUT
 
 from configobj import ConfigObj
 
-from PCE import pce_root
 from PCE.tools import module_log
+from PCEHelper import pce_root
 
 _mod_state_dir = os.path.join(pce_root, 'src/state/modules')
 _shipped_mod_dir = os.path.join(pce_root, '../modules')

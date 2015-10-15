@@ -8,8 +8,8 @@ import os
 import shutil
 from subprocess import call
 
-from PCE import pce_root
 from PCE.tools import create_admin
+from PCEHelper import pce_root
 
 users_dir = 'users'
 make_new_users = True

@@ -17,7 +17,7 @@ import os
 import shlex
 
 # Custom additions:
-from PCE import pce_root
+from PCEHelper import pce_root
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

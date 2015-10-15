@@ -16,12 +16,12 @@ from cherrypy.lib.static import serve_file
 from configobj import ConfigObj
 from validate import Validator
 
-from PCE import pce_root
 from PCE.tools import get_visible_file
 from PCE.tools.jobs import get_jobs, init_job_delete, launch_job
 from PCE.tools.modules import deploy_module, get_modules, \
                               get_available_modules, init_module_delete, \
                               install_module
+from PCEHelper import pce_root
 
 class Files:
     """Provide access to visible files in job runs.

@@ -28,10 +28,10 @@ from subprocess import CalledProcessError, call, check_output, STDOUT
 from configobj import ConfigObj
 from validate import Validator
 
-from PCE import pce_root
 from PCE.tools import module_log
 from PCE.tools.modules import ModState
 from PCE.tools.schedulers import Scheduler
+from PCEHelper import pce_root
 
 _job_state_dir = os.path.join(pce_root, 'src/state/jobs')
 _mod_install_dir = os.path.join(pce_root, 'modules')
