@@ -15,6 +15,7 @@ from validate import Validator
 
 from PCE.dispatchers import APIMap, ClusterInfo, ClusterPing, Files, Jobs, \
                             Modules
+from PCEHelper import pce_root
 
 
 def _CORS():
@@ -76,8 +77,9 @@ if __name__ == '__main__':
     }
 
     # Load onramp_config.ini and integrate appropriate attrs into cherrpy conf.
-    ini = ConfigObj('onramp_pce_config.ini',
-                    configspec='src/onramp_config.inispec')
+    ini = ConfigObj(os.path.join(pce_root, 'bin', 'onramp_pce_config.ini'),
+                    configspec=os.path.join(pce_root, 'src',
+                                            'onramp_config.inispec'))
     ini.validate(Validator())
     if 'server' in ini.keys():
         for k in ini['server']:
