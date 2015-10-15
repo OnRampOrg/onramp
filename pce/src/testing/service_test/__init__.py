@@ -13,10 +13,10 @@ class TestModtest(unittest.TestCase):
     def setUp(self):
         self.ret_dir = os.getcwd()
         os.chdir('../../')
-        self.conf = ConfigObj('src/testing/testmodule/testing/modtest.ini',
+        self.conf = ConfigObj('src/testing/testmodule/testing/modtest.cfg',
                               configspec='src/configspecs/modtest.cfgspec')
-        dummy_filepath = 'src/testing/testmodule/testing/dummy_runparams.ini'
-        self.dummy_ini = ConfigObj(dummy_filepath)
+        dummy_filepath = 'src/testing/testmodule/testing/dummy_runparams.cfg'
+        self.dummy_cfg = ConfigObj(dummy_filepath)
 
         self.deploy_path = os.path.abspath(self.conf['deploy_path'])
         if os.path.isdir(self.deploy_path):
@@ -32,7 +32,7 @@ class TestModtest(unittest.TestCase):
                                             'Running post_deploy_test\n'
                                             'deploy_check.py running...\n%s\n'
                                             'deploy_check.py passes.\n'
-                                            'Simulating generation of onramp_runparams.ini\n'
+                                            'Simulating generation of onramp_runparams.cfg\n'
                                             'Running bin/onramp_preprocess.py\n'
                                             'Launching job\n'
                                             'Waiting/polling job state for completion\n'
@@ -50,7 +50,7 @@ class TestModtest(unittest.TestCase):
                                           'Running post_deploy_test\n'
                                           'deploy_check.py running...\n%s\n'
                                           'deploy_check.py passes.\n'
-                                          'Simulating generation of onramp_runparams.ini\n'
+                                          'Simulating generation of onramp_runparams.cfg\n'
                                           'Running bin/onramp_preprocess.py\n'
                                           'Launching job\n'
                                           'Waiting/polling job state for completion\n'
@@ -66,13 +66,13 @@ class TestModtest(unittest.TestCase):
 
     def modtest_test_noclean_noverbose_noerror(self):
         output = check_output(['./onramp_pce_service.py', 'modtest',
-                               'src/testing/testmodule/testing/modtest.ini'])
+                               'src/testing/testmodule/testing/modtest.cfg'])
         self.assertEqual(output, self.out_noclean_noverbose_noerror)
 
-        # Verify onramp_runparams matches self.dummy_ini
-        runparams_ini = ConfigObj(os.path.join(self.deploy_path,
-                                               'onramp_runparams.ini'))
-        self.assertEqual(runparams_ini, self.dummy_ini)
+        # Verify onramp_runparams matches self.dummy_cfg
+        runparams_cfg = ConfigObj(os.path.join(self.deploy_path,
+                                               'onramp_runparams.cfg'))
+        self.assertEqual(runparams_cfg, self.dummy_cfg)
 
         # Verify deploy tree
         mod_path = 'src/testing/testmodule'
@@ -88,15 +88,15 @@ class TestModtest(unittest.TestCase):
 
     def modtest_test_noclean_verbose_noerror(self):
         output = check_output(['./onramp_pce_service.py', 'modtest', '-v',
-                               'src/testing/testmodule/testing/modtest.ini'])
+                               'src/testing/testmodule/testing/modtest.cfg'])
 
         for line in self.out_noclean_verbose_noerror.split('\n'):
             self.assertIn(line, output)
 
-        # Verify onramp_runparams matches self.dummy_ini
-        runparams_ini = ConfigObj(os.path.join(self.deploy_path,
-                                               'onramp_runparams.ini'))
-        self.assertEqual(runparams_ini, self.dummy_ini)
+        # Verify onramp_runparams matches self.dummy_cfg
+        runparams_cfg = ConfigObj(os.path.join(self.deploy_path,
+                                               'onramp_runparams.cfg'))
+        self.assertEqual(runparams_cfg, self.dummy_cfg)
 
         # Verify deploy tree
         mod_path = 'src/testing/testmodule'
@@ -112,7 +112,7 @@ class TestModtest(unittest.TestCase):
 
     def modtest_test_clean_verbose_noerror(self):
         output = check_output(['./onramp_pce_service.py', 'modtest', '-v',
-                               'src/testing/testmodule/testing/modtest-clean.ini'])
+                               'src/testing/testmodule/testing/modtest-clean.cfg'])
 
         for line in self.out_clean_verbose_noerror.split('\n'):
             self.assertIn(line, output)

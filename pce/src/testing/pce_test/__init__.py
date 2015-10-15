@@ -32,8 +32,8 @@ def setup():
     onramp_ini = ConfigObj('../../bin/onramp_pce_config.cfg',
                            configspec=specfile)
     onramp_ini.validate(Validator())
-    test_ini = ConfigObj('test_pce_config.ini',
-                         configspec='test_pce_config.inispec')
+    test_ini = ConfigObj('test_pce_config.cfg',
+                         configspec='test_pce_config.cfgspec')
     test_ini.validate(Validator())
 
 def pce_url(endpoint):
