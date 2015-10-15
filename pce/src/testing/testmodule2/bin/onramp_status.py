@@ -4,7 +4,7 @@
 # Curriculum Module Status Script
 # - Run while the job is running
 # - Run -outside- of the allocation
-# - onramp_run_params.ini file is available in current working directory
+# - onramp_run_params.cfg file is available in current working directory
 #
 import sys
 

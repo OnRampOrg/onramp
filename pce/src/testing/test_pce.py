@@ -8,7 +8,7 @@ has side-effects that could corrupt module and user data if run in a production
 setting.
 
 Prior to running this script, ensure that onramp/pce/onramp_pce_setup.py has
-been called and that the server is running. Also Ensure ./test_pce_config.ini
+been called and that the server is running. Also Ensure ./test_pce_config.cfg
 contains the proper settings.
 """
 import nose
