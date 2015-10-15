@@ -402,7 +402,7 @@ def _build_job(job_id):
                 return copy.deepcopy(job_state)
 
             # Good.
-            if job_status[1] == 'Done':
+            if job_status[1] in ['Done', 'No info']:
                 job_state['state'] = 'Postprocessing'
                 if job_state['_marked_for_del']:
                     _delete_job(job_state)

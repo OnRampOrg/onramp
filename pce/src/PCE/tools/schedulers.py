@@ -8,11 +8,15 @@ import logging
 import os
 from subprocess import CalledProcessError, check_output, STDOUT
 
+from PCE import pce_root
+
 class _BatchScheduler(object):
     """Superclass for batch scheduler classes.
 
     Subclasses must override the non-magic methods defined here.
     """
+    local_python = os.path.join(pce_root, 'src', 'env', 'bin', 'python')
+
     @classmethod
     def is_scheduler_for(cls, type):
         """Return boolean indicating whether the class provides an interface to
@@ -23,13 +27,14 @@ class _BatchScheduler(object):
         """
         pass
 
-    def get_batch_script(self, run_name, numtasks=4, email=None):
+    def get_batch_script(self, run_name, numtasks=4, num_nodes=1, email=None):
         """Return the batch script that runs a job as per args formatted for the
         given batch scheduler.
 
         Args:
             run_name (str): Human-readable label for job run.
-            num_tasks (int): Number of tasks to schedule.
+            numtasks (int): Number of tasks to schedule.
+            num_nodes (int): Number of nodes to allocate for job.
             email (str): Email to send results to upon completion. If None, no
                 email sent.
         """
@@ -68,7 +73,7 @@ class _BatchScheduler(object):
         Args:
             type (str): Batch scheduler type.
         """
-        pass
+        self.logger = logging.getLogger('onramp')
 
 class SLURMScheduler(_BatchScheduler):
     @classmethod
@@ -81,13 +86,14 @@ class SLURMScheduler(_BatchScheduler):
         """
         return type == 'SLURM'
 
-    def get_batch_script(self, run_name, numtasks=4, email=None):
+    def get_batch_script(self, run_name, numtasks=4, num_nodes=1, email=None):
         """Return the batch script that runs a job as per args formatted for the
         SLURM batch scheduler.
 
         Args:
             run_name (str): Human-readable label for job run.
-            num_tasks (int): Number of tasks to schedule.
+            numtasks (int): Number of tasks to schedule.
+            num_nodes (int): Number of nodes to allocate for job.
             email (str): Email to send results to upon completion. If None, no
                 email sent.
         """
@@ -105,7 +111,7 @@ class SLURMScheduler(_BatchScheduler):
             contents += '#SBATCH --mail-user=' + email + '\n'
         contents += '###################################\n'
         contents += '\n'
-        contents += 'python bin/onramp_run.py\n'
+        contents += '%s bin/onramp_run.py\n' % self.local_python
         return contents
         
     def schedule(self, proj_loc):
@@ -193,6 +199,136 @@ class SLURMScheduler(_BatchScheduler):
         """
         try:
             result = check_output(['scancel', str(scheduler_job_num)], stderr=STDOUT)
+        except CalledProcessError as e:
+            msg = 'Job cancel call failed'
+            self.logger.error(msg)
+            return (-1, msg)
+        return (0, result)
+
+class PBSScheduler(_BatchScheduler):
+    @classmethod
+    def is_scheduler_for(cls, type):
+        """Return boolean indicating whether the class provides an interface to
+        the batch scheduler type given.
+
+        Args:
+            type (str): Batch scheduler type.
+        """
+        return type == 'PBS'
+
+    def get_batch_script(self, run_name, numtasks=4, num_nodes=1, email=None):
+        """Return the batch script that runs a job as per args formatted for the
+        PBS batch scheduler.
+
+        Args:
+            run_name (str): Human-readable label for job run.
+            numtasks (int): Number of tasks to schedule.
+            num_nodes (int): Number of nodes to allocate for job.
+            email (str): Email to send results to upon completion. If None, no
+                email sent.
+        """
+        script = '#!/bin/bash\n'
+        script += '\n'
+        script += '################################################\n'
+        script += '#PBS -l select=%d:mpiprocs=%d\n' % (num_nodes, numtasks)
+        script += '#PBS -N %s\n' % run_name
+        script += '#PBS -V\n'
+        script += '#PBS -j oe\n'
+        script += '#PBS -o output.txt\n'
+        script += '################################################\n'
+        script += '\n'
+        script += 'cd ${PBS_O_WORKDIR}\n'
+        script += '%s bin/onramp_run.py\n' % self.local_python
+        return script
+
+    def schedule(self, proj_loc):
+        """Schedule a job using the PBS batch scheduler.
+
+        Args:
+            proj_loc (str): Folder containing the batch script 'script.sh' for
+                the job to schedule.
+        """
+        ret_dir = os.getcwd()
+        os.chdir(proj_loc)
+        try:
+            batch_output = check_output(['qsub', 'script.sh'], stderr=STDOUT)
+        except CalledProcessError as e:
+            msg = 'Job scheduling call failed'
+            os.chdir(ret_dir)
+            return {
+                'returncode': e.returncode,
+                'msg': '%s: %s' % (msg, e.output)
+            }
+        os.chdir(ret_dir)
+        output_fields = batch_output.strip().split('.')
+
+        try:
+            job_num = int(output_fields[0])
+        except ValueError, IndexError:
+            msg = 'Unexpeted output from sbatch'
+            self.logger.error(msg)
+            return {
+                'status_code': -7,
+                'status_msg': msg
+            }
+
+        return {
+            'status_code': 0,
+            'status_msg': 'Job %d scheduled' % job_num,
+            'job_num': job_num
+        }
+
+    def check_status(self, scheduler_job_num):
+        """Return job status from scheduler.
+
+        Args:
+            scheduler_job_num (int): Job number of the job to check state on as
+                given by the scheduler, not as given by OnRamp.
+        """
+        try:
+            job_info = check_output(['qstat', '-i', str(scheduler_job_num)],
+                                    stderr=STDOUT)
+        except CalledProcessError as e:
+            if e.output.startswith('qstat: Unknown Job Id %d' % scheduler_job_num):
+                return (0, 'No info')
+            msg = 'Job info call failed: %s' % e.output
+            self.logger.error(msg)
+            return (-1, msg)
+
+        last_line = job_info.strip().split('\n')[-1:][0]
+        job_state = last_line.split()[9]
+        if (job_state == 'R'
+            or job_state == 'r'
+            or job_state == 's'
+            or job_state == 'S'
+            or job_state == 't'
+            or job_state == 'T'):
+            return (0, 'Running')
+        elif job_state == 'W' or job_state == 'H':
+            return (0, 'Queued')
+        elif job_state == 'E':
+            msg = 'Job failed'
+            # TODO: Can maybe add error info here by qstat -j job_list option.
+            self.logger.error(msg)
+            return (-1, msg)
+        elif job_state == 'd':
+            msg = 'Job scheduled for deletion'
+            self.logger.error(msg)
+            return (-1, msg)
+        else:
+            msg = 'Unexpected job state from scheduler'
+            self.logger.error(msg)
+            return (-2, msg)
+
+    def cancel_job(self, scheduler_job_num):
+        """Cancel the given job.
+    
+        Args:
+            scheduler_job_num (int): Job number, as given by the scheduler, of the
+                job to cancel.
+        """
+        try:
+            result = check_output(['qdel', str(scheduler_job_num)], stderr=STDOUT)
         except CalledProcessError as e:
             msg = 'Job cancel call failed'
             self.logger.error(msg)

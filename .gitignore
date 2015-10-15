@@ -23,3 +23,12 @@ pce/src/testing/deploy
 pce/src/state
 pce/docs/build
 pce/bin/onramp_pce_config.ini
+
+server/tmp
+server/tmp/users
+server/tmp/pce
+server/log
+server/src/env
+server/src/.*.pid
+server/bin/onramp_server_config.ini
+server/.htaccess
