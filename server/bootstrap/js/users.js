@@ -31,7 +31,15 @@ function DummyLoginViewModel() {
       sessionStorage["apikey"] = rt.auth.apikey;
       sessionStorage["auth_data"] = JSON.stringify(rt.auth);
       // check if admin
-      window.location.href = "user_dashboard.html";
+      //FIXME!!!!!
+      if(rt.auth.username == "admin"){
+          window.location.href = "admin_dashboard.html";
+      }
+      else {
+          window.location.href = "user_dashboard.html";
+      }
+
+
     }
     else if(data.status == 401){
       alert("Incorrect login info.  Please try again, or contact the admin to create or reset your account.");
@@ -80,6 +88,22 @@ function DummyLoginViewModel() {
 
     console.log("after ajax...");
   };
+
+  self.logout = function (){
+      // send post to server
+      $.ajax({
+        type: 'POST',
+        url: 'http://flux.cs.uwlax.edu/onramp/api/logout',
+        data: self.auth_data,
+        complete: function () {
+            window.location.href = "start.html";
+        },
+        dataType: 'application/json',
+        contentType: 'application/json'
+      } );
+
+  }
+
 
 }
 

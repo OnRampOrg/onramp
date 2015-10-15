@@ -30,6 +30,7 @@
         <li><a href="myprofile.html">Profile</a></li>
         <li><a href="contact.html">Contact</a></li>
         <li><a href="#help">Help</a></li>
+        <li data-bind="click: logout">Logout</li>
       </ul>
     </div>
   </div>
@@ -164,20 +165,22 @@
         <th>Name</th>
         <th>Status</th>
         <th>Description</th>
-        <th>Nodes</th>
-        <th>Cores per node</th>
-        <th>Mem per node</th>
+        <!--<th>Nodes</th>-->
+        <!--<th>Cores per node</th>-->
+        <!--<th>Mem per node</th>-->
+        <th>Location</th>
         <!-- <td>View/Edit</td> -->
       </thead>
       <tbody data-bind="foreach: PCEslist()">
         <tr>
-          <td data-bind="text: ID"></td>
+          <td data-bind="text: id"></td>
           <td data-bind="text: name"></td>
           <td data-bind="text: status"></td>
           <td data-bind="text: description"></td>
-          <td data-bind="text: nodes"></td>
-          <td data-bind="text: corespernode"></td>
-          <td data-bind="text: mempernode"></td>
+          <!--<td data-bind="text: nodes"></td>-->
+          <!--<td data-bind="text: corespernode"></td>-->
+          <!--<td data-bind="text: mempernode"></td>-->
+          <td data-bind="text: location"></td>
           <!-- <td><a data-bind="click: viewPCE">View</a></td> -->
         </tr>
       </tbody>
@@ -206,7 +209,7 @@
       </thead>
       <tbody data-bind="foreach: Moduleslist()">
         <tr>
-          <td data-bind="text: mID"></td>
+          <td data-bind="text: id"></td>
           <td data-bind="text: name"></td>
           <td data-bind="text: desc"></td>
           <!-- <td><a data-bind="click: viewModule">View</a></td> -->

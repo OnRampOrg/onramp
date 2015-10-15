@@ -1,47 +1,21 @@
 function Job(data){
 	var self = this;
-	self.jID = data['JobID'];
-	self.user = data['User'];
-	self.ws = data['Workspace'];
-	self.pce = data['PCE'];
-	self.mod = data['Module'];
-	self.name = data['RunName'];
-	self.status = data['Status'];
-	self.time = data['Runtime'];
-
-	self.viewJob = function () {
-		// go to manage Jobs page and show this job
-		window.location.href = "admin_jobs.html";
-	}
-}
-
-function PCE (data) {
-	var self = this;
-
-	self.ID = data['ID'];
-	self.name = data['name'];
-	self.status = data['status'];
-	self.nodes = data['nodes'];
-	self.corespernode = data['corespernode'];
-	self.mempernode = data['mempernode'];
-	self.description = data['description'];
-
-	self.viewPCE = function () {
-		// go to manage Workspaces page and show this job
-		window.location.href = "admin_PCEs.html";
-	}
+	self.jID = data['job_id'];
+	self.user = data['user_id'];
+	self.ws = data['workspace_id'];
+	self.pce = data['pce_id'];
+	self.mod = data['module_id'];
+	self.name = data['job_name'];
+	self.status = data['state'];
+	self.time = "0:00";  // not implemented yet
 }
 
 function Workspace(data){
 	var self = this;
-	self.wID = data['WorkspaceID'];
-	self.name = data['WorkspaceName'];
-	self.desc = data['Description'];
+	self.wID = data['workspace_id'];
+	self.name = data['workspace_name'];
+	self.desc = data['description'];
 
-	self.viewWorkspace = function () {
-		// go to manage Workspaces page and show this job
-		window.location.href = "admin_workspaces.html";
-	}
 
 	this.captureWSID = function () {
 		sessionStorage.setItem("WorkspaceID", this.wID);
@@ -51,28 +25,48 @@ function Workspace(data){
 
 }
 
+function PCE (data) {
+	var self = this;
+
+	self.id = data['pce_id'];
+	self.name = data['pce_name'];
+	self.status = data['state'];
+	//self.nodes = data['nodes'];
+	//self.corespernode = data['corespernode'];
+	//self.mempernode = data['mempernode'];
+	self.description = data['description'];
+	self.location = data['location'];
+	self.modules = ko.observableArray();
+
+
+}
+
+
+
 function Module(data){
 	var self = this;
-	self.mID = data['ID'];
-	self.name = data['name'];
-	self.desc = data['details'];
+	self.id = data['module_id'];
+	self.name = data['module_name'];
+	self.desc = data['description'];
 	self.formFields = ko.observableArray();
-	for(k in data['formFields']){
-		self.formFields.push([k, data['formFields'][k]]);
-	}
+	self.PCEs = ko.observableArray();
 
-	self.viewUser = function () {
-		// go to manage users page and start with this user
-		window.location.href = "admin_modules.html";
-	};
+	self.addDefaultFormFields = function () {
+		this.formFields.push({"field": "name", "value": "test"});
+		this.formFields.push({"field": "nodes", "value": 1});
+		this.formFields.push({"field": "processes", "value": 4});
+	}
 }
 
 function UserProfile(data) {
 	var self = this;
-	self.id = data['id'];
+	self.id = data['user_id'];
 	self.username = data['username'];
-	self.fullName = data['fullName'];
-	self.isAdmin = data['isAdmin'];
+	self.fullName = data['full_name'];
+	self.email = data['email'];
+	self.isAdmin = data['is_admin'];
+	self.isEnabled = data['is_enabled'];
+
 
 	self.viewUser = function () {
 		// go to manage users page and start with this user
@@ -83,8 +77,9 @@ function UserProfile(data) {
 
 function AdminDashboardViewModel() {
 	var self = this;
-	self.username = sessionStorage['UserID'];
+	self.username = ko.observable();
 	self.userID = sessionStorage['UserID'];
+	self.auth_data = sessionStorage['auth_data'];
 
 	self.Userslist = ko.observableArray();
 	self.Workspacelist = ko.observableArray();
@@ -97,7 +92,7 @@ function AdminDashboardViewModel() {
 	//this.Workspacelist.add(new Workspace({'WorkspaceID': 1, 'WorkspaceName': 'default', 'Description':'My personal workspace'}));
 	//this.Workspacelist.add(new Workspace({'WorkspaceID': 2, 'WorkspaceName': 'test', 'Description':'testing workspace'}));
 
-	self.welcome =   "Admin Panel: " + self.username;
+	self.welcome =   "Admin Panel: " + self.username();
 
 	self.manageUsers = function () {
 		window.location.href = "admin_users.html";
@@ -124,55 +119,152 @@ function AdminDashboardViewModel() {
 		self.Userslist([]);
 		self.Workspacelist([]);
 		self.Jobslist([]);
+		self.PCEslist([]);
+		self.Moduleslist([]);
+
+
 
 		// get data from server
-		// some hard coded data for now...
-		self.Userslist.push(new UserProfile({'id':1, 'username':'Matilda', 'fullName':'Matilda Mae', 'isAdmin':false}));
-		self.Userslist.push(new UserProfile({'id':2, 'username':'Batilda', 'fullName':'Batilda Bee', 'isAdmin':true}));
-		self.Userslist.push(new UserProfile({'id':3, 'username':'Gatilda', 'fullName':'Gatilda Goo', 'isAdmin':false}));
-		self.Userslist.push(new UserProfile({'id':4, 'username':'Katilda', 'fullName':'Katilda Kitty', 'isAdmin':false}));
+		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/users/" + self.userID + "?apikey=" + JSON.parse(self.auth_data).apikey,
+					function (data){
+					// {"status": 0,
+					//  "status_message": "Success",
+					//  "users": {
+					//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+					//    "data": [2, "alice", "", "", 0, 1]}}
+					console.log(data);
+					self.username(data.users.data[1]);
+					sessionStorage['UserName'] = self.username();
+				}
+		);
 
-		self.Jobslist.push(new Job({'JobID':1, 'User': 4, 'Workspace':1, 'PCE': 2, 'Module':1, 'RunName':'test1', 'Status':'Running', 'Runtime':'0:32'}));
-		self.Jobslist.push(new Job({'JobID':2, 'User': 4, 'Workspace':1, 'PCE': 1, 'Module':1, 'RunName':'test2', 'Status':'Running', 'Runtime':'0:02'}));
-		self.Jobslist.push(new Job({'JobID':3, 'User': 4, 'Workspace':1, 'PCE': 2, 'Module':2, 'RunName':'does it work?', 'Status':'Queued', 'Runtime':'--'}));
+		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/users?apikey=" + JSON.parse(self.auth_data).apikey,
+								//self.auth_data,
+								function (data){
+									// {"status": 0,
+									//  "status_message": "Success",
+									//  "users": {
+									//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+									//    "data": [2, "alice", "", "", 0, 1]}}
+									console.log(JSON.stringify(data));
+									for (var x = 0; x < data.users.data.length; x++){
+										var raw = data.users.data[x];
+										console.log(raw);
+										var conv_data = {};
+										for(var i = 0; i < data.users.fields.length; i++){
+											console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
+											conv_data[data.users.fields[i]] = raw[i];
+										}
+										self.Userslist.push(new UserProfile(conv_data));
+									}
+								}
+							);
 
-		self.Workspacelist.push(new Workspace({'WorkspaceID': 1, 'WorkspaceName': 'default', 'Description':'My personal workspace'}));
-		self.Workspacelist.push(new Workspace({'WorkspaceID': 2, 'WorkspaceName': 'test', 'Description':'testing workspace'}));
 
-		// get PCE list
-		self.PCEslist.push(new PCE({'ID': 1,
-		'name': 'flux',
-		'description':'cluster',
-		'status':'up',
-		'nodes':4,
-		'corespernode':16,
-		'mempernode':'8GB'}));
+		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+								//self.auth_data,
+								function (data){
+									// {"status": 0,
+									//  "status_message": "Success",
+									//  "users": {
+									//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+									//    "data": [2, "alice", "", "", 0, 1]}}
+									console.log(JSON.stringify(data));
+									for (var x = 0; x < data.jobs.data.length; x++){
+										var raw = data.jobs.data[x];
+										console.log(raw);
+										var conv_data = {};
+										for(var i = 0; i < data.jobs.fields.length; i++){
+											console.log("adding: " + data.jobs.fields[i] + " = " + raw[i]);
+											conv_data[data.jobs.fields[i]] = raw[i];
+										}
+										self.Jobslist.push(new Job(conv_data));
+									}
+								}
+							);
 
-		self.PCEslist.push(new PCE({'ID': 1,
-		'name': 'brie',
-		'description':'LittleFe',
-		'status':'up',
-		'nodes':6,
-		'corespernode':2,
-		'mempernode':'1GB'}));
+		// get workspaces for this user
+		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
+								//self.auth_data,
+								function (data){
+									// {"status": 0,
+									//  "status_message": "Success",
+									//  "users": {
+									//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+									//    "data": [2, "alice", "", "", 0, 1]}}
+									console.log(JSON.stringify(data));
+									for (var x = 0; x < data.workspaces.data.length; x++){
+										var raw = data.workspaces.data[x];
+										console.log(raw);
+										var conv_data = {};
+										for(var i = 0; i < data.workspaces.fields.length; i++){
+											console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
+											conv_data[data.workspaces.fields[i]] = raw[i];
+										}
+										self.Workspacelist.push(new Workspace(conv_data));
+									}
+								}
+							);
 
-		self.PCEslist.push(new PCE({'ID': 3,
-		'name': 'gouda',
-		'description':'LittleFe',
-		'status':'up',
-		'nodes':6,
-		'corespernode':2,
-		'mempernode':'0.5GB'}));
+		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/pces?apikey=" + JSON.parse(self.auth_data).apikey,
+								//self.auth_data,
+								function (data){
+									// {"status": 0,
+									//  "status_message": "Success",
+									//  "users": {
+									//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+									//    "data": [2, "alice", "", "", 0, 1]}}
+									console.log(JSON.stringify(data));
+									for (var x = 0; x < data.pces.data.length; x++){
+										var raw = data.pces.data[x];
+										console.log(raw);
+										var conv_data = {};
+										for(var i = 0; i < data.pces.fields.length; i++){
+											console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
+											conv_data[data.pces.fields[i]] = raw[i];
+										}
+										self.PCEslist.push(new PCE(conv_data));
+									}
+								}
+							);
 
-		// get module list
-		self.Moduleslist.push(new Module({'ID':1,
-		'name':'Hello MPI',
-		'details':'a first parallel program',
-		'formFields':{
-			'runname':'',
-			'nodes':1,
-			'tasks':4}}));
+		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/modules?apikey=" + JSON.parse(self.auth_data).apikey,
+								//self.auth_data,
+								function (data){
+									// {"status": 0,
+									//  "status_message": "Success",
+									//  "users": {
+									//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+									//    "data": [2, "alice", "", "", 0, 1]}}
+									console.log(JSON.stringify(data));
+									for (var x = 0; x < data.modules.data.length; x++){
+										var raw = data.modules.data[x];
+										console.log(raw);
+										var conv_data = {};
+										for(var i = 0; i < data.modules.fields.length; i++){
+											console.log("adding: " + data.modules.fields[i] + " = " + raw[i]);
+											conv_data[data.modules.fields[i]] = raw[i];
+										}
+										self.Moduleslist.push(new Module(conv_data));
+									}
+								}
+							);
 		});
+
+		self.logout = function (){
+			// send post to server
+			$.ajax({
+			  type: 'POST',
+			  url: 'http://flux.cs.uwlax.edu/onramp/api/logout',
+			  data: self.auth_data,
+			  complete: function () {
+				  window.location.href = "start.html";
+			  },
+			  dataType: 'application/json',
+			  contentType: 'application/json'
+			} );
+
+		}
 
 	}
 
