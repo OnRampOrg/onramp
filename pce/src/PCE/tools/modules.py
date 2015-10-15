@@ -121,6 +121,9 @@ def _local_checkout(source_path, install_path):
     Args:
         source_path (str): Location of root folder of module to be installed.
         install_path (str): Location to install the new module to.
+
+    Returns:
+        String indicating cause of error, else None if no error.
     """
     if not os.path.isdir(source_path):
         return 'Source path %s does not exist' % source_path
@@ -153,6 +156,10 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
 
     Kwargs:
         verbose (bool): Controls level of printed output during installation.
+
+    Returns:
+        Tuple with 0th position being error code and 1st position being string
+        indication of status.
     """
     mod_dir = os.path.join(os.path.join(pce_root, install_parent_folder),
                            '%s_%d' % (mod_name, mod_id))
@@ -217,6 +224,10 @@ def deploy_module(mod_id, verbose=False):
 
     Kwargs:
         verbose (bool): Increases status output if True.
+
+    Returns:
+        Tuple with 0th position being error code and 1st position being string
+        indication of status.
     """
     mod_dir = None
     not_installed_states = ['Available', 'Checkout in Progress',
@@ -311,6 +322,9 @@ def get_modules(mod_id=None):
     Kwargs:
         mod_id (int/None): If int, return module resource with corresponding id.
             If None, return list of all tracked module resources.
+
+    Returns:
+        OnRamp formatted dict containing module attrs for each requested module.
     """
     if mod_id:
         with ModState(mod_id) as mod_state:
@@ -347,7 +361,11 @@ def get_modules(mod_id=None):
     return results
 
 def get_available_modules():
-    """Return list of modules shipped with OnRamp."""
+    """Return list of modules shipped with OnRamp.
+    
+    Returns:
+        List of module shipped with OnRamp
+    """
     def verify_module_path(x):
         return os.path.isdir(os.path.join(_shipped_mod_dir, x))
 
@@ -374,6 +392,10 @@ def init_module_delete(mod_id):
 
     Args:
         mod_id (int): Id of the module to delete.
+
+    Returns:
+        Tuple with 0th position being error code and 1st position being string
+        indication of status.
     """
     accepted_states = ['Checkout failed', 'Installed', 'Deploy failed',
                        'Module ready', 'Admin required']

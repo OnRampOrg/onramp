@@ -24,6 +24,10 @@ class _BatchScheduler(object):
 
         Args:
             type (str): Batch scheduler type.
+
+        Returns:
+            True if class provides interface to given batch scheduler, False if
+            not.
         """
         pass
 
@@ -37,6 +41,9 @@ class _BatchScheduler(object):
             num_nodes (int): Number of nodes to allocate for job.
             email (str): Email to send results to upon completion. If None, no
                 email sent.
+
+        Returns:
+            Batch script implementing given attrs.
         """
         pass
 
@@ -46,6 +53,11 @@ class _BatchScheduler(object):
         Args:
             proj_loc (str): Folder containing the batch script 'script.sh' for
                 the job to schedule.
+
+        Returns:
+            Result dict with the following fields:
+                status_code: Status code
+                status_msg: String giving detailed status info.
         """
         pass
 
@@ -55,6 +67,10 @@ class _BatchScheduler(object):
         Args:
             scheduler_job_num (int): Job number of the job to check state on as
                 given by the scheduler, not as given by OnRamp.
+
+        Returns:
+            2-Tuple with 0th item being error code and 1st item being a string
+            giving detailed status info.
         """
         pass
 
@@ -64,6 +80,10 @@ class _BatchScheduler(object):
         Args:
             scheduler_job_num (int): Job number, as given by the scheduler, of the
                 job to cancel.
+
+        Returns:
+            2-Tuple with 0th item being error code and 1st item being a string
+            giving detailed status info.
         """
         pass
         
@@ -83,6 +103,10 @@ class SLURMScheduler(_BatchScheduler):
 
         Args:
             type (str): Batch scheduler type.
+
+        Returns:
+            True if class provides interface to given batch scheduler, False if
+            not.
         """
         return type == 'SLURM'
 
@@ -96,6 +120,9 @@ class SLURMScheduler(_BatchScheduler):
             num_nodes (int): Number of nodes to allocate for job.
             email (str): Email to send results to upon completion. If None, no
                 email sent.
+
+        Returns:
+            Batch script implementing given attrs.
         """
         contents = '#!/bin/bash\n'
         contents += '\n'
@@ -120,6 +147,11 @@ class SLURMScheduler(_BatchScheduler):
         Args:
             proj_loc (str): Folder containing the batch script 'script.sh' for
                 the job to schedule.
+
+        Returns:
+            Result dict with the following fields:
+                status_code: Status code
+                status_msg: String giving detailed status info.
         """
         ret_dir = os.getcwd()
         os.chdir(proj_loc)
@@ -165,6 +197,10 @@ class SLURMScheduler(_BatchScheduler):
         Args:
             scheduler_job_num (int): Job number of the job to check state on as
                 given by the scheduler, not as given by OnRamp.
+
+        Returns:
+            2-Tuple with 0th item being error code and 1st item being a string
+            giving detailed status info.
         """
         try:
             job_info = check_output(['scontrol', 'show', 'job',
@@ -196,6 +232,10 @@ class SLURMScheduler(_BatchScheduler):
         Args:
             scheduler_job_num (int): Job number, as given by the scheduler, of the
                 job to cancel.
+
+        Returns:
+            2-Tuple with 0th item being error code and 1st item being a string
+            giving detailed status info.
         """
         try:
             result = check_output(['scancel', str(scheduler_job_num)], stderr=STDOUT)
@@ -213,6 +253,10 @@ class PBSScheduler(_BatchScheduler):
 
         Args:
             type (str): Batch scheduler type.
+
+        Returns:
+            True if class provides interface to given batch scheduler, False if
+            not.
         """
         return type == 'PBS'
 
@@ -226,6 +270,9 @@ class PBSScheduler(_BatchScheduler):
             num_nodes (int): Number of nodes to allocate for job.
             email (str): Email to send results to upon completion. If None, no
                 email sent.
+
+        Returns:
+            Batch script implementing given attrs.
         """
         script = '#!/bin/bash\n'
         script += '\n'
@@ -247,6 +294,11 @@ class PBSScheduler(_BatchScheduler):
         Args:
             proj_loc (str): Folder containing the batch script 'script.sh' for
                 the job to schedule.
+
+        Returns:
+            Result dict with the following fields:
+                status_code: Status code
+                status_msg: String giving detailed status info.
         """
         ret_dir = os.getcwd()
         os.chdir(proj_loc)
@@ -284,6 +336,10 @@ class PBSScheduler(_BatchScheduler):
         Args:
             scheduler_job_num (int): Job number of the job to check state on as
                 given by the scheduler, not as given by OnRamp.
+
+        Returns:
+            2-Tuple with 0th item being error code and 1st item being a string
+            giving detailed status info.
         """
         try:
             job_info = check_output(['qstat', '-i', str(scheduler_job_num)],
@@ -326,6 +382,10 @@ class PBSScheduler(_BatchScheduler):
         Args:
             scheduler_job_num (int): Job number, as given by the scheduler, of the
                 job to cancel.
+
+        Returns:
+            2-Tuple with 0th item being error code and 1st item being a string
+            giving detailed status info.
         """
         try:
             result = check_output(['qdel', str(scheduler_job_num)], stderr=STDOUT)
@@ -340,6 +400,9 @@ def Scheduler(type):
 
     Args:
         type (str): Identifier for batch scheduler type.
+
+    Returns:
+        Instance of a _BatchScheduler for given type.
     """
     for cls in _BatchScheduler.__subclasses__():
         if cls.is_scheduler_for(type):

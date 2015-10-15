@@ -33,6 +33,10 @@ def get_visible_file(dirs):
     Args:
         dirs (list of str): Ordered list of folder names between base_dir
             (currently onramp/pce/users) and specific file.
+
+    Returns:
+        Tuple consisting of error code and either the requested file if no error
+        or string indicating cause of error.
     """
     num_parent_dirs = 3
     if len(dirs) <= num_parent_dirs or '..' in dirs:

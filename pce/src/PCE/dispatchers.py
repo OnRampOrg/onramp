@@ -43,9 +43,14 @@ class Files:
     def GET(self, *args, **kwargs):
         """Return requested file, or indication of error.
 
-        *args (list): Ordered list of folders between base dir and specific
+        *args (list):
+            Ordered list of folders between base dir and specific
             file requested.
-        **kwargs: Unused
+        **kwargs:
+            Unused
+
+        Returns:
+            The requested file or a sting indicating error.
         """
         result = get_visible_file(args)
         if result[0] == 0:
@@ -92,6 +97,9 @@ class _OnRampDispatcher:
             status_msg (str): Detailed information about response result.
             **kwargs (dict): Additional key/val pairs to include in the
                 response.
+
+        Returns:
+            OnRamp formatted response dict. 
         """
         response = {
             'status_code': status_code,
@@ -117,6 +125,9 @@ class _OnRampDispatcher:
         Args:
             data (dict): The JSON request body to validate.
             func_name (str): The name of the function requiring validation.
+
+        Returns:
+            None on success, (error_code, string indicating error) on error.
         """
         def _search_dict(d, prefix=''):
             bad_params = []
@@ -163,7 +174,17 @@ class _OnRampDispatcher:
 
 
 class APIMap(_OnRampDispatcher):
+    """Provide an index of PCE API endpoints.
+
+    Methods:
+        GET: Return dictionary object representing PCE API endpoints.
+    """
     def GET(self):
+        """Return dictionary object representing PCE API endpoints:
+
+        Returns:
+            Dict containing PCE API endpoints.
+        """
         map = ConfigObj(os.path.join(pce_root, 'src/api-map.ini'))
         return map
 
@@ -186,6 +207,9 @@ class Modules(_OnRampDispatcher):
             id (str): None signals list get, if not None, return specific
                 module.
             **kwargs (dict): HTTP query-string parameters. Not currently used.
+
+        Returns:
+            OnRamp formatted dict containing requested module data.
         """
         self.log_call('GET')
 
@@ -205,6 +229,9 @@ class Modules(_OnRampDispatcher):
             id (str): None signals clone/copy of new module. If not None, deploy
                 module corresponding to id.
             **kwargs (dict): HTTP query-string parameters. Not currently used.
+
+        Returns:
+            OnRamp formatted dict containing request results.
         """
         self.log_call('POST')
 
@@ -256,6 +283,9 @@ class Modules(_OnRampDispatcher):
 
         Kwargs:
             **kwargs (dict): HTTP query-string parameters. Not currently used.
+
+        Returns:
+            OnRamp formatted dict containing request results.
         """
         self.log_call('PUT')
 
@@ -270,6 +300,9 @@ class Modules(_OnRampDispatcher):
 
         Kwargs:
             **kwargs (dict): HTTP query-string parameters. Not currently used.
+
+        Returns:
+            OnRamp formatted dict containing request results.
         """
         self.log_call('DELETE')
 
@@ -304,6 +337,9 @@ class Jobs(_OnRampDispatcher):
 
         Kwargs:
             **kwargs (dict): HTTP query-string parameters. Not currently used.
+
+        Returns:
+            OnRamp formatted dict containing requested job data.
         """
         self.log_call('GET')
 
@@ -318,6 +354,9 @@ class Jobs(_OnRampDispatcher):
 
         Kwargs:
             **kwargs (dict): HTTP query-string parameters. Not currently used.
+
+        Returns:
+            OnRamp formatted dict containing request results.
         """
         self.log_call('POST')
         data = cherrypy.request.json
@@ -350,6 +389,9 @@ class Jobs(_OnRampDispatcher):
 
         Kwargs:
             **kwargs (dict): HTTP query-string parameters. Not currently used.
+
+        Returns:
+            OnRamp formatted dict containing request results.
         """
         self.log_call('PUT')
 
@@ -364,6 +406,9 @@ class Jobs(_OnRampDispatcher):
 
         Kwargs:
             **kwargs (dict): HTTP query-string parameters. Not currently used.
+
+        Returns:
+            OnRamp formatted dict containing request results.
         """
         self.log_call('DELETE')
 
@@ -406,6 +451,9 @@ class ClusterInfo():
         Args:
             *args (tuple of str): Will be concatenated to form the path of the
                 requested file relative to the PCE document root folder.
+
+        Returns:
+            Requested documentation file if it exists, 404 if not.
         """
         self.logger.debug('args: %s' % str(args))
 
@@ -433,7 +481,11 @@ class ClusterPing(_OnRampDispatcher):
     """
 
     def GET(self):
-        """Respond to a request to verify connectivity."""
+        """Respond to a request to verify connectivity.
+        
+        Returns:
+            200 HTTP response with empty response body
+        """
         return {}
 
 
@@ -448,6 +500,9 @@ class Cluster(_OnRampDispatcher):
 
         Kwargs:
             **kwargs (dict): HTTP query-string parameters. Not currently used.
+
+        Returns:
+            OnRamp formatted response dict.
         """
         self.log_call('GET')
 

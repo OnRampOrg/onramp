@@ -124,6 +124,10 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
         mod_id (int): Id for OnRamp educational module to run in this job.
         username (str): Username of user running the job.
         run_name (str): Human-readable label for this job run.
+
+    Returns:
+        Tuple with 0th position being error code and 1st position being string
+        indication of status.
     """
     accepted_states = ['Schedule failed', 'Launch failed', 'Preprocess failed']
     _logger.debug('PCE.tools.launch_job() called')
@@ -276,6 +280,10 @@ def _job_postprocess(job_id):
 
     Args:
         job_id (int): Id of the job to launch bin/onramp_postprocess.py for.
+
+    Returns:
+        Tuple with 0th position being error code and 1st position being string
+        indication of status.
     """
     _logger.info('PCE.tools.jobs._job_postprocess() called')
 
@@ -332,6 +340,10 @@ def _get_module_status_output(job_id):
 
     Args:
         job_id (int): Id of the job to launch bin/onramp_status.py for.
+
+    Returns:
+        String containint output to stdout and stderr frob job's
+        bin/onramp_status.py script.
     """
     # Get attrs needed.
     with JobState(job_id) as job_state:
@@ -370,6 +382,9 @@ def _build_job(job_id):
 
     Args:
         job_id (int): Id of the job to get state for.
+
+    Returns:
+        OnRamp formatted dictionary containing job attrs.
     """
     status_check_states = ['Scheduled', 'Queued', 'Running']
     with JobState(job_id) as job_state:
@@ -499,6 +514,9 @@ def get_jobs(job_id=None):
     Kwargs:
         job_id (int/None): If int, return jobs resource with corresponding id.
             If None, return list of all tracked job resources.
+
+    Returns:
+        OnRamp formatted dict containing job attrs for each job requested.
     """
     if job_id:
         return _clean_job(_build_job(job_id))
@@ -517,6 +535,10 @@ def init_job_delete(job_id):
 
     Args:
         job_id (int): Id of the job to delete.
+
+    Returns:
+        Tuple with 0th position being error code and 1st position being string
+        indication of status.
     """
     job_cancel_states = ['Scheduled', 'Queued', 'Running']
     accepted_states = ['Launch failed', 'Schedule failed', 'Preprocess failed',
