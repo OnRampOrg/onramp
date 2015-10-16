@@ -8,7 +8,7 @@ from subprocess import CalledProcessError, check_output
 
 from PCEHelper import pce_root
 
-#__test__ = False
+__test__ = False
 
 class TestModtest(unittest.TestCase):
 
