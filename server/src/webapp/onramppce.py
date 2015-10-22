@@ -20,121 +20,72 @@ class PCEAccess():
         pce_info = self._db.pce_get_info(pce_id)
         self._url = "http://%s:%d" % (pce_info['data'][2], pce_info['data'][3])
 
-    def _pce_get_modules_avail():
-        s = requests.Session()
-
-        url = "%s/modules/?state=Available" % (self._url)
-
-        r = s.get(url)
+    def _pce_get(endpoint, **kwargs):
+        s = requests.Sesssion()
+        url = "%s/%s" % (self._url, endpoint)
+        r = s.get(url, params=kwargs)
 
         if r.status_code != 200:
-            self._logger.error(self._name + " Error: " + str(r.status_code) + " from GET " + url + ": " + str(r.reason))
+            self._logger.error(self._name + " Error: " + str(r.status_code)
+                               + " from GET " + url + ": " + str(r.status_msg))
             return None
         else:
             return r.json()
+
+    def _pce_post(endpoint, **kwargs):
+        s = requests.Session()
+        url = "%s/%s" % (self._url, endpoint)
+        data = json.dumps(kwargs)
+        headers = {"content-type": "application/json"}
+        r = s.post(url, data=data, headers=headers)
+
+        if r.status_code != 200:
+            self._logger.error(self._name + " Error: " + str(r.status_code)
+                               + " from GET " + url + ": " + str(r.status_msg))
+            return None
+        else:
+            return r.json()
+
+    def _pce_get_modules_avail():
+        return self._rce_get("modules", state="Available")
 
     def _pce_get_modules(id=None):
         s = requests.Session()
-
-        if id is None:
-            url = "%s/modules" % (self._url)
-        else:
-            url = "%s/modules/%d" % (self._url, id)
-
-        r = s.get(url)
-
-        if r.status_code != 200:
-            self._logger.error(self._name + " Error: " + str(r.status_code) + " from GET " + url + ": " + str(r.reason))
-            return None
-        else:
-            return r.json()
+        url = "modules"
+        if id:
+            url += "/%d" % id
+        return self._pce_get(url)
 
     def _pce_add_module(id, module_name, mod_type, mod_path):
-        s = requests.Session()
-
-        url = "%s/modules" % (self._url)
-
-        headers = {'content-type': 'application/json'}
-
-        payload = {}
-        payload['mod_id'] = id
-        payload['mod_name'] = module_name
-        payload['source_location'] = {}
-        payload['source_location']['type'] = mod_type
-        payload['source_location']['path'] = mod_path
-
-        r = s.post(url, data=json.dumps(payload), headers=headers)
-
-        if r.status_code != 200:
-            self._logger.error(self._name + " Error: " + str(r.status_code) + " from POST " + url + ": " + str(r.reason))
-            return None
-
-        return r.json()
+        payload = {
+            'mod_id': id,
+            'mod_name': module_name,
+            'source_location': {
+                'type': mod_type,
+                'path': mod_path
+            }
+        }
+        return self._pce_post("modules", **payload)
 
     def _pce_deploy_module(id):
-        s = requests.Session()
-
-        url = "%s/modules/%d" % (self._url, id)
-
-        headers = {'content-type': 'application/json'}
-
-        payload = {}
-
-        r = s.post(url, data=json.dumps(payload), headers=headers)
-
-        if r.status_code != 200:
-            self._logger.error(self._name + " Error: " + str(r.status_code) + " from POST " + url + ": " + str(r.reason))
-            return None
-
-        return r.json()
-
-    def _pce_get_cluster():
-        s = requests.Session()
-        url = "%s/cluster" % (self._url)
-        r = s.get(url)
-
-        if r.status_code != 200:
-            self._logger.error(self._name + " Error: " + str(r.status_code) + " from GET " + url + ": " + str(r.reason))
-            return None
-
-        return r.json()
+        endpoint = "modules/%d" % id
+        return self._pce_post(endpoint)
 
     def _pce_get_jobs(id=None):
         s = requests.Session()
-
-        if id is None:
-            url = "%s/jobs" % (self._url)
-        else:
-            url = "%s/jobs/%d" % (self._url, id)
-
-        r = s.get(url)
-
-        if r.status_code != 200:
-            self._logger.error(self._name + " Error: " + str(r.status_code) + " from GET " + url + ": " + str(r.reason))
-            return None
-
-        return r.json()
+        url = "jobs"
+        if id:
+            url += "/%d" % id
+        return self._pce_get(url)
 
     def _pce_launch_job(user, mod_id, job_id, run_name):
-        s = requests.Session()
-
-        url = "%s/jobs" % (self._url)
-
-        headers = {'content-type': 'application/json'}
-
-        payload = {}
-        payload['username'] = user
-        payload['mod_id']   = mod_id
-        payload['job_id']   = job_id
-        payload['run_name'] = run_name
-
-        r = s.post(url, data=json.dumps(payload), headers=headers)
-
-        if r.status_code != 200:
-            self._logger.error(self._name + " Error: " + str(r.status_code) + " from POST " + url + ": " + str(r.reason))
-            return None
-
-        return r.json()
+        payload = {
+            'username': user,
+            'mod_id': = mod_id,
+            'job_id': = job_id,
+            'run_name': run_name
+        }
+        return self._pce_post("jobs", **payload)
 
 
     def check_connection(self, data=None):
