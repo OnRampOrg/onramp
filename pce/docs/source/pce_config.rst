@@ -1,7 +1,7 @@
 PCE Configuration
 =================
 
-User-level configuration of the PCE service exists in the onramp/pce/onramp_pce_config.ini file. The file contains two sections: server and cluster. The following paramaters are used::
+User-level configuration of the PCE service exists in the onramp/pce/onramp_pce_config.cfg file. The file contains two sections: server and cluster. The following paramaters are used::
 
     [server]
     socket_host = IP address
