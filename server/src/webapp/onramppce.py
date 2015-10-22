@@ -1,15 +1,38 @@
 """Functionality to support interacting with an OnRamp PCE
 
+Exports:
+    PCEAccess: Client-side interface to OnRamp PCE server.
 """
-
 import os
 import json
 import requests
 
 class PCEAccess():
+    """Client-side interface to OnRamp PCE server.
+
+    Methods:
+        get_modules_avail: Return the list of modules that are available at the
+            PCE but not currently installed.
+        get_modules: Return the list of modules that are available at the PCE
+            but not currently installed.
+        add_module: Install given module on this PCE.
+        deploy_module: Initiate module deployment actions.
+        get_jobs: Return the requested jobs.
+        launch_job: Initiate job launch.
+        check_connection: Ping the server to see if it is still available.
+        establish_connection: Handshake to establish authorization (JJH TODO).
+    """
     _name = "[PCEAccess] "
 
     def __init__(self, logger, dbaccess, pce_id):
+        """Initialize PCEAccess instance.
+
+        Args:
+            logger (logging.Logger): Logger for instance to use.
+            dbaccess (onrampdb.DBAccess): Interface to server DB.
+            pce_id (int): Id of PCE instance should provide interface to. Must
+                exist in DB provided by dbaccess.
+        """
         self._logger = logger
         self._db     = dbaccess
         self._pce_id = pce_id
@@ -21,6 +44,19 @@ class PCEAccess():
         self._url = "http://%s:%d" % (pce_info['data'][2], pce_info['data'][3])
 
     def _pce_get(endpoint, **kwargs):
+        """Execute GET requests to PCE endpoints.
+
+        Args:
+            endpoint (str): API URL endpoint for request. Must not have leading
+                or trailing slashes.
+
+        Kwargs:
+            Key/val pairs in kwargs will become key/val pairs included as HTTP
+            query paramaters in the request.
+
+        Returns:
+            JSON response object on success, 'None' on error.
+        """
         s = requests.Sesssion()
         url = "%s/%s" % (self._url, endpoint)
         r = s.get(url, params=kwargs)
@@ -33,6 +69,20 @@ class PCEAccess():
             return r.json()
 
     def _pce_post(endpoint, **kwargs):
+        """Execute JSON-formatted POST requests to PCE endpoints.
+
+        Args:
+            endpoint (str): API URL endpoint for request. Must not have leading
+                or trailing slashes.
+
+        Kwargs:
+            Key/val pairs in kwargs will be included as JSON key/val pairs in
+            the request body.
+
+        Returns:
+            'True' if request was successfully processed by RXing PCE, 'False'
+            if not.
+        """
         s = requests.Session()
         url = "%s/%s" % (self._url, endpoint)
         data = json.dumps(kwargs)
@@ -42,21 +92,70 @@ class PCEAccess():
         if r.status_code != 200:
             self._logger.error(self._name + " Error: " + str(r.status_code)
                                + " from GET " + url + ": " + str(r.status_msg))
-            return None
+            return False
         else:
-            return r.json()
+            response = r.json()
+            if ((not response) or ('status_code' not in response.keys())
+                or (0 != response['status_code'])):
+                return False
+            return True
 
-    def _pce_get_modules_avail():
-        return self._rce_get("modules", state="Available")
+    def get_modules_avail():
+        """Return the list of modules that are available at the PCE but not
+        currently installed.
 
-    def _pce_get_modules(id=None):
+        Returns:
+            List of JSON-formatted module objects. Returns 'None' on error.
+        """
+        response = self._rce_get("modules", state="Available")
+        if (not response) or ("modules" not in response.keys()):
+            return None
+        return [mod for mod in response["modules"]]
+
+    def get_modules(id=None):
+        """Return the requested modules.
+
+        Args:
+            id (int): Id of the requested module. 'None' to return all modules.
+
+        Returns:
+            JSON-formatted module object for given id, or if no id given, list
+            of JSON-formatted module objects. Returns 'None' on error.
+        """
         s = requests.Session()
         url = "modules"
         if id:
             url += "/%d" % id
-        return self._pce_get(url)
 
-    def _pce_add_module(id, module_name, mod_type, mod_path):
+        response = self._pce_get(url)
+        if not resposne:
+            return None
+
+        if id:
+            if "module" not in response.keys():
+                return None
+            return response["module"]
+
+        if "modules" not in response.keys():
+            return None
+        return [mod for mod in response["modules"]]
+            
+
+    def add_module(id, module_name, mod_type, mod_path):
+        """Install given module on this PCE.
+
+        Args:
+            id (int): Id to be given to installed module on PCE.
+            module_name (str): Name to be given to installed module on PCE.
+            mod_type (str): Type of module source. Currently supported options:
+                'local'.
+            mod_path (str): Path, formatted as required by given mod_type, of
+                the installation source.
+
+        Returns:
+            'True' if installation request was successfully processed, 'False'
+            if not.
+        """
         payload = {
             'mod_id': id,
             'mod_name': module_name,
@@ -67,18 +166,60 @@ class PCEAccess():
         }
         return self._pce_post("modules", **payload)
 
-    def _pce_deploy_module(id):
+    def deploy_module(id):
+        """Initiate module deployment actions.
+
+        Args:
+            id (int): Id of the installed module to deploy.
+
+        Returns:
+            'True' if deployment request was successfully processed, 'False'
+            if not.
+        """
         endpoint = "modules/%d" % id
         return self._pce_post(endpoint)
 
-    def _pce_get_jobs(id=None):
+    def get_jobs(id=None):
+        """Return the requested jobs.
+
+        Args:
+            id (int): Id of the requested job. 'None' to return all jobs.
+
+        Returns:
+            JSON-formatted job object for given id, or if no id given, list
+            of JSON-formatted job objects. Returns 'None' on error.
+        """
         s = requests.Session()
         url = "jobs"
         if id:
             url += "/%d" % id
-        return self._pce_get(url)
 
-    def _pce_launch_job(user, mod_id, job_id, run_name):
+        response = self._pce_get(url)
+        if not resposne:
+            return None
+
+        if id:
+            if "job" not in response.keys():
+                return None
+            return response["job"]
+
+        if "jobs" not in response.keys():
+            return None
+        return [job for job in response["jobs"]]
+
+
+    def launch_job(user, mod_id, job_id, run_name):
+        """Initiate job launch.
+
+        Args:
+            user (str): Username of user launching job.
+            mod_id (int): Id of the module to run.
+            job_id (int): Id to be given to launched job on PCE.
+            run_name (str): Human-readable identifier for job.
+
+        Returns:
+            'True' if launch request was successfully processed, 'False' if not.
+        """
         payload = {
             'username': user,
             'mod_id': = mod_id,
