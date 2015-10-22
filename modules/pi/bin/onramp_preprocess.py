@@ -4,7 +4,7 @@
 # Curriculum Module Preprocess Script
 # - Run once per run of the module by a user
 # - Run before job submission. So -not- in an allocation.
-# - onramp_run_params.ini file is available in current working directory
+# - onramp_run_params.cfg file is available in current working directory
 #
 import sys
 from configobj import ConfigObj, flatten_errors
@@ -16,9 +16,10 @@ from validate import Validator, ValidateError, is_integer
 #       the validity of the file.
 #
 # This will always be the name of the file, so fine to hardcode here
-conf_file = "../onramp_runparams.ini"
+conf_file = "../onramp_runparams.cfg"
 
-config    = ConfigObj(conf_file, configspec="../config/onramp_uioptions.spec")
+config    = ConfigObj(conf_file,
+                      configspec="../config/onramp_uioptions.cfgspec")
 validator = Validator()
 results   = config.validate(validator, preserve_errors=True)
 if results != True:
