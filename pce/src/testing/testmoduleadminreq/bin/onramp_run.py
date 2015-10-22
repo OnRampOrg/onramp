@@ -4,7 +4,7 @@
 # Curriculum Module Run Script
 # - Run once per run of the module by a user
 # - Run inside job submission. So in an allocation.
-# - onramp_run_params.ini file is available in current working directory
+# - onramp_run_params.cfg file is available in current working directory
 #
 import os
 import sys

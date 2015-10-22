@@ -7,12 +7,12 @@ This is a template curriculum module that lays out a framework for future curric
 
 The ```config``` directory contains a series of configuration files, described below. The syntax for these files is in Python [configobj](https://configobj.readthedocs.org/en/latest/#) format.
 
- * ```config/onramp_metadata.ini``` : Metadata information about your curriculum module (e.g., Author, Title, Description).
- * ```config/onramp.ini``` : Any setup/deployment requirements that OnRamp needs to be aware of when using your module.
- * ```config/onramp_uioptions.spec``` : User interaction configuration. This file describes how the end user will interact with your curriculum module. Written in [configspec](https://configobj.readthedocs.org/en/latest/configobj.html#validation). Descriptions of the keys (if needed) can be listed in the ```config/onramp_metadata.ini``` file.
+ * ```config/onramp_metadata.cfg``` : Metadata information about your curriculum module (e.g., Author, Title, Description).
+ * ```config/onramp.cfg``` : Any setup/deployment requirements that OnRamp needs to be aware of when using your module.
+ * ```config/onramp_uioptions.cfgspec``` : User interaction configuration. This file describes how the end user will interact with your curriculum module. Written in [configspec](https://configobj.readthedocs.org/en/latest/configobj.html#validation). Descriptions of the keys (if needed) can be listed in the ```config/onramp_metadata.cfg``` file.
   * List of files to make visible after the run (regular expressions allowed)
   * List of web form parameters (e.g., block size, number of steps) that change the behavior of the application run. Additional validation criteria should be specified (see the section on [configspec](https://configobj.readthedocs.org/en/latest/configobj.html#validation) in the ```configobj``` documentation)
-  	 * This will become a submission form on the web interface which will validate the input parameters before sending the resulting key/value pairs to the ```onramp_*``` scripts for this curriculum module. The file returned from the server will be a configobj file named ```onramp_runparams.ini```.
+  	 * This will become a submission form on the web interface which will validate the input parameters before sending the resulting key/value pairs to the ```onramp_*``` scripts for this curriculum module. The file returned from the server will be a configobj file named ```onramp_runparams.cfg```.
 
 ---------------------
 ## Documentation
@@ -37,8 +37,8 @@ The following paths in the modules's root directory will be written to by the On
  * ```script.sh``` :
  The PCE-generated batch script will be written here at launch.
 
- * ```onramp_runparams.ini``` :
- User submitted values for config options defined in ```config/onramp_uioptions.spec``` will be written here at launch.
+ * ```onramp_runparams.cfg``` :
+ User submitted values for config options defined in ```config/onramp_uioptions.cfgspec``` will be written here at launch.
 
  * ```.onramp/``` :
  Used by the PCE service to maintain state between HTTP requests.

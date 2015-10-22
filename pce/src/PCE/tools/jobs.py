@@ -6,7 +6,7 @@ setting/storing/updating job state data.
 Exports:
     JobState: Encapsulation of job state that avoids race conditions.
     launch_job: Schedules job launch using system batch scheduler as configured
-        in onramp_pce_config.ini.
+        in onramp_pce_config.cfg.
     get_jobs: Returns list of tracked jobs or single job.
     init_job_delete: Initiate the deletion of a job.
 """
@@ -28,10 +28,10 @@ from subprocess import CalledProcessError, call, check_output, STDOUT
 from configobj import ConfigObj
 from validate import Validator
 
-from PCE import pce_root
 from PCE.tools import module_log
 from PCE.tools.modules import ModState
 from PCE.tools.schedulers import Scheduler
+from PCEHelper import pce_root
 
 _job_state_dir = os.path.join(pce_root, 'src/state/jobs')
 _mod_install_dir = os.path.join(pce_root, 'modules')
@@ -117,13 +117,17 @@ class JobState(dict):
 
 def launch_job(job_id, mod_id, username, run_name, run_params):
     """Schedule job launch using system batch scheduler as configured in
-    onramp_pce_config.ini.
+    onramp_pce_config.cfg.
 
     Args:
         job_id (int): Unique identifier for job.
         mod_id (int): Id for OnRamp educational module to run in this job.
         username (str): Username of user running the job.
         run_name (str): Human-readable label for this job run.
+
+    Returns:
+        Tuple with 0th position being error code and 1st position being string
+        indication of status.
     """
     accepted_states = ['Schedule failed', 'Launch failed', 'Preprocess failed']
     _logger.debug('PCE.tools.launch_job() called')
@@ -195,11 +199,11 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
         pass
     if run_params:
         _logger.debug('Handling run_params')
-        spec = os.path.join(run_dir, 'config/onramp_uioptions.spec')
+        spec = os.path.join(run_dir, 'config/onramp_uioptions.cfgspec')
         params = ConfigObj(run_params, configspec=spec)
         result = params.validate(Validator())
         if result:
-            with open(os.path.join(run_dir, 'onramp_runparams.ini'), 'w') as f:
+            with open(os.path.join(run_dir, 'onramp_runparams.cfg'), 'w') as f:
                 params.write(f)
         else:
             msg = 'Runparams failed validation'
@@ -238,11 +242,11 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
         module_log(run_dir, 'preprocess', result)
 
     # Determine batch scheduler to user from config.
-    ini = ConfigObj(os.path.join(pce_root, 'onramp_pce_config.ini'),
-                    configspec=os.path.join(pce_root,
-                                            'src/onramp_config.inispec'))
-    ini.validate(Validator())
-    scheduler = Scheduler(ini['cluster']['batch_scheduler'])
+    cfg = ConfigObj(os.path.join(pce_root, 'bin', 'onramp_pce_config.cfg'),
+                    configspec=os.path.join(pce_root, 'src', 'configspecs',
+                                            'onramp_pce_config.cfgspec'))
+    cfg.validate(Validator())
+    scheduler = Scheduler(cfg['cluster']['batch_scheduler'])
 
     # Write batch script.
     with open('script.sh', 'w') as f:
@@ -276,6 +280,10 @@ def _job_postprocess(job_id):
 
     Args:
         job_id (int): Id of the job to launch bin/onramp_postprocess.py for.
+
+    Returns:
+        Tuple with 0th position being error code and 1st position being string
+        indication of status.
     """
     _logger.info('PCE.tools.jobs._job_postprocess() called')
 
@@ -332,6 +340,10 @@ def _get_module_status_output(job_id):
 
     Args:
         job_id (int): Id of the job to launch bin/onramp_status.py for.
+
+    Returns:
+        String containint output to stdout and stderr frob job's
+        bin/onramp_status.py script.
     """
     # Get attrs needed.
     with JobState(job_id) as job_state:
@@ -370,6 +382,9 @@ def _build_job(job_id):
 
     Args:
         job_id (int): Id of the job to get state for.
+
+    Returns:
+        OnRamp formatted dictionary containing job attrs.
     """
     status_check_states = ['Scheduled', 'Queued', 'Running']
     with JobState(job_id) as job_state:
@@ -380,11 +395,13 @@ def _build_job(job_id):
             return {}
 
         if job_state['state'] in status_check_states:
-            ini = ConfigObj(os.path.join(pce_root, 'onramp_pce_config.ini'),
-                            configspec=os.path.join(pce_root,
-                                                'src/onramp_config.inispec'))
-            ini.validate(Validator())
-            scheduler = Scheduler(ini['cluster']['batch_scheduler'])
+            specfile = os.path.join(pce_root, 'src', 'configspecs',
+                                    'onramp_pce_config.cfgspec')
+            cfg = ConfigObj(os.path.join(pce_root, 'bin',
+                                         'onramp_pce_config.cfg'),
+                            configspec=specfile)
+            cfg.validate(Validator())
+            scheduler = Scheduler(cfg['cluster']['batch_scheduler'])
             sched_job_num = job_state['scheduler_job_num']
             job_status = scheduler.check_status(sched_job_num)
 
@@ -439,13 +456,13 @@ def _build_job(job_id):
     dir_args = (job['username'], job['mod_name'], job['mod_id'],
                 job['run_name'])
     run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % dir_args)
-    ini_file = os.path.join(run_dir, 'config/onramp_metadata.ini')
+    cfg_file = os.path.join(run_dir, 'config/onramp_metadata.cfg')
     try:
-        conf = ConfigObj(ini_file, file_error=True)
+        conf = ConfigObj(cfg_file, file_error=True)
     except (IOError, SyntaxError):
-        # Badly formed or non-existant config/onramp_metadata.ini.
+        # Badly formed or non-existant config/onramp_metadata.cfg.
         _logger.debug('Bad metadata')
-        _logger.debug(ini_file)
+        _logger.debug(cfg_file)
         return job
 
     if 'onramp' in conf.keys() and 'visible' in conf['onramp'].keys():
@@ -499,6 +516,9 @@ def get_jobs(job_id=None):
     Kwargs:
         job_id (int/None): If int, return jobs resource with corresponding id.
             If None, return list of all tracked job resources.
+
+    Returns:
+        OnRamp formatted dict containing job attrs for each job requested.
     """
     if job_id:
         return _clean_job(_build_job(job_id))
@@ -517,6 +537,10 @@ def init_job_delete(job_id):
 
     Args:
         job_id (int): Id of the job to delete.
+
+    Returns:
+        Tuple with 0th position being error code and 1st position being string
+        indication of status.
     """
     job_cancel_states = ['Scheduled', 'Queued', 'Running']
     accepted_states = ['Launch failed', 'Schedule failed', 'Preprocess failed',
@@ -544,11 +568,12 @@ def _delete_job(job_state):
     """
     job_cancel_states = ['Scheduled', 'Queued', 'Running']
     if job_state['state'] in job_cancel_states:
-        inifile = os.path.join(pce_root, 'onramp_pce_config.ini')
-        specfile = os.path.join(pce_root, 'src/onramp_config.inispec')
-        ini = ConfigObj(inifile, configspec=specfile)
-        ini.validate(Validator())
-        scheduler = Scheduler(ini['cluster']['batch_scheduler'])
+        cfgfile = os.path.join(pce_root, 'bin', 'onramp_pce_config.cfg')
+        specfile = os.path.join(pce_root, 'src', 'configspecs',
+                                'onramp_pce_config.cfgspec')
+        cfg = ConfigObj(cfgfile, configspec=specfile)
+        cfg.validate(Validator())
+        scheduler = Scheduler(cfg['cluster']['batch_scheduler'])
         result = scheduler.cancel_job(job_state['scheduler_job_num'])
         _logger.debug('Cancel job output: %s' % result[1])
     job_state_file = os.path.join(_job_state_dir, str(job_state['job_id']))

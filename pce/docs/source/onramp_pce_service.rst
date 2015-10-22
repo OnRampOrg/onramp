@@ -1,4 +1,4 @@
-onramp_pce_service.py
+bin/onramp_pce_service.py
 =====================
 
 The onramp_pce_setup.py script is used to control the PCE service and to provide a means of administering PCE resources via command-line. Additional commands give the ability to test an OnRamp educational module independent of the running PCE service and the ability to launch a Python interpreter with the exact environment used by the PCE service.

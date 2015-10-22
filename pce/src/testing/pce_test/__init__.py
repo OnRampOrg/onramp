@@ -19,21 +19,22 @@ import unittest
 from configobj import ConfigObj
 from validate import Validator
 
-from PCE import pce_root
 from PCE.tools.jobs import JobState
 from PCE.tools.modules import ModState
+from PCEHelper import pce_root
 
 def setup():
     """Setup the testing environment."""
-    global onramp_ini
-    global test_ini
+    global onramp_cfg
+    global test_cfg
 
-    onramp_ini = ConfigObj('../../onramp_pce_config.ini',
-                           configspec='../onramp_config.inispec')
-    onramp_ini.validate(Validator())
-    test_ini = ConfigObj('test_pce_config.ini',
-                         configspec='test_pce_config.inispec')
-    test_ini.validate(Validator())
+    specfile ='../configspecs/onramp_pce_config.cfgspec'
+    onramp_cfg = ConfigObj('../../bin/onramp_pce_config.cfg',
+                           configspec=specfile)
+    onramp_cfg.validate(Validator())
+    test_cfg = ConfigObj('test_pce_config.cfg',
+                         configspec='test_pce_config.cfgspec')
+    test_cfg.validate(Validator())
 
 def pce_url(endpoint):
     """Build the full URL for the resource at the specified endpoint.
@@ -41,8 +42,8 @@ def pce_url(endpoint):
     Args:
         enpoint (str): Endpoint of the resource reqested.
     """
-    return ('http://%s:%d/%s' % (onramp_ini['server']['socket_host'],
-                                 onramp_ini['server']['socket_port'],
+    return ('http://%s:%d/%s' % (onramp_cfg['server']['socket_host'],
+                                 onramp_cfg['server']['socket_port'],
                                  endpoint))
 
 def pce_get(endpoint, **kwargs):
@@ -268,7 +269,7 @@ class ModulesTest(PCEBase):
         install_path = os.path.join(install_dir, '%s_%d' % ('testmodule2_ui',
                                                             10))
         conf = ConfigObj(os.path.join(location['path'],
-                                      'config/onramp_uioptions.spec'))
+                                      'config/onramp_uioptions.cfgspec'))
         expected_conf = conf.dict()
         self.assertIsNotNone(expected_conf)
         r = pce_post('modules/', mod_id=10, mod_name='testmodule2_ui',
@@ -629,7 +630,7 @@ class JobsTest(PCEBase):
             self.assertTrue(script_exists)
         else:
             self.assertFalse(script_exists)
-        runparams_file = os.path.join(run_dir, 'onramp_runparams.ini')
+        runparams_file = os.path.join(run_dir, 'onramp_runparams.cfg')
         print runparams_file
         runparams_exists = os.path.isfile(runparams_file)
         if runparams_should_exist:
@@ -866,21 +867,21 @@ class JobsTest(PCEBase):
         self.check_job(d['job'], job_id=4, state='Postprocess failed',
                        run_name='testrunbadpostprocess', mod_id=3, error=err)
 
-        # Check handling of ini_params
+        # Check handling of cfg_params
         params = {'np': '4', 'nodes': '4', 'onramp':{}, 'hello':{'name': 'testname'}}
         r = pce_post('jobs/', mod_id=1, job_id=5, username='testuser',
-                     run_name='testruniniparams', ini_params=params)
+                     run_name='testruncfgparams', cfg_params=params)
         self.assertEqual(r.status_code, 200)
         d = r.json()
         self.check_json(d)
         self.assertEqual(d['status_code'], 0)
         self.assertEqual(d['status_msg'], 'Job launched')
-        # Verify stored state for launched ini_param job
+        # Verify stored state for launched cfg_param job
         time.sleep(5)
-        self.verify_launch(5, 1, 'testuser', 'testruniniparams', runparams_should_exist=True)
-        folders = ('testuser', 'testmodule2_1', 'testruniniparams')
+        self.verify_launch(5, 1, 'testuser', 'testruncfgparams', runparams_should_exist=True)
+        folders = ('testuser', 'testmodule2_1', 'testruncfgparams')
         run_dir = os.path.join(pce_root, 'users/%s/%s/%s' % folders)
-        conf = ConfigObj(os.path.join(run_dir, 'onramp_runparams.ini'))
+        conf = ConfigObj(os.path.join(run_dir, 'onramp_runparams.cfg'))
         self.assertEqual(conf, params)
 
     def test_PUT(self):
@@ -1316,7 +1317,7 @@ class ModuleJobFlowTest(PCEBase):
         with open(fname) as f:
             self.assertEqual(r.text, f.read())
 
-        r = pce_get('files/testuser/testmodule_1/testrun1/onramp_runparams.ini')
+        r = pce_get('files/testuser/testmodule_1/testrun1/onramp_runparams.cfg')
         self.assertEqual(r.status_code, 403)
         self.assertEqual(r.text, 'Requested file not configured to be visible')
 

@@ -1,10 +1,10 @@
 #!src/env/bin/python
 """Control the onramp REST server.
 
-Usage: ./onramp_service.py COMMAND [COMMAND_ARGS]
+Usage: bin/onramp_pce_service.py COMMAND [COMMAND_ARGS]
 
 For detailed usage/arguments/instructions for a specific command:
-    ./onramp_service.py COMMAND -h
+    bin/onramp_pce_service.py COMMAND -h
 
 Commands:
 
@@ -55,8 +55,9 @@ from PCE import tools
 from PCE.tools.jobs import init_job_delete, launch_job
 from PCE.tools.modules import deploy_module, get_source_types, \
                               init_module_delete, install_module, ModState
+from PCEHelper import pce_root
 
-_pidfile = 'src/.onrampRESTservice.pid'
+_pidfile = os.path.join(pce_root, 'src', '.onrampRESTservice.pid')
 _script_name = 'src/RESTservice.py'
 
 def _getPID():
@@ -175,10 +176,10 @@ def _stop():
 def _mod_test():
     """Test contents of OnRamp Educational module.
 
-    Usage: onramp_pce_service.py modtest [-h] [-v] mod_ini_file
+    Usage: onramp_pce_service.py modtest [-h] [-v] mod_cfg_file
 
     positional arguments:
-        mod_ini_file   module's modtest configuration file
+        mod_cfg_file   module's modtest configuration file
 
     optional arguments:
         -h, --help     show help message and exit
@@ -194,22 +195,23 @@ def _mod_test():
                                      description=descrip)
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='increase output verbosity')
-    parser.add_argument('mod_ini_file',
+    parser.add_argument('mod_cfg_file',
                         help="module's modtest configuration file")
     args = parser.parse_args(args=sys.argv[2:])
 
-    ret_dir = os.getcwd()
-    env_py = os.path.abspath('src/env/bin/python')
+    env_py = os.path.join(pce_root, 'src', 'env', 'bin', 'python')
 
-    conf = ConfigObj(args.mod_ini_file,
-                     configspec='src/configspecs/modtest.inispec')
+    conf = ConfigObj(args.mod_cfg_file,
+                     configspec=os.path.join(pce_root, 'src', 'configspecs',
+                                             'modtest.cfgspec'))
     conf.validate(Validator())
 
     deploy_path = abspath(expanduser(conf['deploy_path']))
     module_path = abspath(expanduser(conf['module_path']))
 
     if os.path.exists(deploy_path):
-        print ('The deploy path exists. Would you like to remove the old path and continue?')
+        print ('The deploy path exists. Would you like to remove the old path '
+               'and continue?')
         response = raw_input('(Y)es or (N)o? ')
         if response == 'Y' or response == 'y':
             shutil.rmtree(deploy_path)
@@ -316,8 +318,8 @@ def _mod_test():
     os.mkdir(pce_dir)
     if conf['custom_runparams']:
         if args.verbose:
-            print 'Simulating generation of onramp_runparams.ini'
-        shutil.copyfile(custom_runparams, 'onramp_runparams.ini')
+            print 'Simulating generation of onramp_runparams.cfg'
+        shutil.copyfile(custom_runparams, 'onramp_runparams.cfg')
 
     time.sleep(2)
 
@@ -547,7 +549,7 @@ def _job_launch():
     parser.add_argument('username', help='Username of user launching job')
     parser.add_argument('run_name', help='Name for this job run')
     parser.add_argument('run_params',
-                        help='Ini file containing params for this run')
+                        help='Cfg file containing params for this run')
     args = parser.parse_args(args=sys.argv[2:])
 
     params = ConfigObj(args.run_params)
@@ -636,16 +638,17 @@ if __name__ == '__main__':
         'ERROR': logging.ERROR,
         'CRITICAL': logging.CRITICAL
     }
-    log_file = 'log/onramp.log',
+    log_file = os.path.join(pce_root, 'log', 'onramp.log')
     log_level = 'INFO'
-    ini = ConfigObj('onramp_pce_config.ini',
-                    configspec='src/onramp_config.inispec')
-    ini.validate(Validator())
-    if 'cluster' in ini.keys():
-        if 'log_level' in ini['cluster'].keys():
-            log_level = ini['cluster']['log_level']
-        if 'log_file' in ini['cluster'].keys():
-            log_file = ini['cluster']['log_file']
+    cfg = ConfigObj(os.path.join(pce_root, 'bin', 'onramp_pce_config.cfg'),
+                    configspec=os.path.join(pce_root, 'src', 'configspecs',
+                                            'onramp_pce_config.cfgspec'))
+    cfg.validate(Validator())
+    if 'cluster' in cfg.keys():
+        if 'log_level' in cfg['cluster'].keys():
+            log_level = cfg['cluster']['log_level']
+        if 'log_file' in cfg['cluster'].keys():
+            log_file = cfg['cluster']['log_file']
     log_name = 'onramp'
     logger = logging.getLogger(log_name)
     logger.setLevel(log_levels[log_level])

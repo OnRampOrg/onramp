@@ -3,7 +3,7 @@
 #
 # Curriculum Module Deploy Script
 # - Run once per PCE by the admin
-# - onramp_run_params.ini file is -not- available
+# - onramp_run_params.cfg file is -not- available
 #
 import os
 import sys

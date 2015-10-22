@@ -15,6 +15,7 @@ from validate import Validator
 
 from PCE.dispatchers import APIMap, ClusterInfo, ClusterPing, Files, Jobs, \
                             Modules
+from PCEHelper import pce_root
 
 
 def _CORS():
@@ -43,14 +44,14 @@ def _restart_handler(signal, frame):
     logger = logging.getLogger('onramp')
     logger.info('Restarting server')
     # FIXME: This needs to reload the config, including attrs in
-    # onramp_config.ini.
+    # onramp_pce_config.cfg.
     cherrypy.engine.restart()
     logger.debug('Blocking cherrypy engine')
     cherrypy.engine.block()
 
 if __name__ == '__main__':
     # Default conf. Some of these can/will be overrided by attrs in
-    # onramp_config.ini.
+    # onramp_pce_config.cfg.
     conf = {
         'global': {
             'server.socket_host': socket.gethostbyname(socket.gethostname()),
@@ -75,21 +76,23 @@ if __name__ == '__main__':
         }
     }
 
-    # Load onramp_config.ini and integrate appropriate attrs into cherrpy conf.
-    ini = ConfigObj('onramp_pce_config.ini',
-                    configspec='src/onramp_config.inispec')
-    ini.validate(Validator())
-    if 'server' in ini.keys():
-        for k in ini['server']:
-            conf['global']['server.' + k] = ini['server'][k]
-    if 'cluster' in ini.keys():
-        if 'log_level' in ini['cluster'].keys():
-            conf['internal']['log_level'] = ini['cluster']['log_level']
-        if 'log_file' in ini['cluster'].keys():
-            log_file = ini['cluster']['log_file']
+    # Load onramp_pce_config.cfg and integrate appropriate attrs into cherrpy
+    # conf.
+    cfg = ConfigObj(os.path.join(pce_root, 'bin', 'onramp_pce_config.cfg'),
+                    configspec=os.path.join(pce_root, 'src', 'configspecs',
+                                            'onramp_pce_config.cfgspec'))
+    cfg.validate(Validator())
+    if 'server' in cfg.keys():
+        for k in cfg['server']:
+            conf['global']['server.' + k] = cfg['server'][k]
+    if 'cluster' in cfg.keys():
+        if 'log_level' in cfg['cluster'].keys():
+            conf['internal']['log_level'] = cfg['cluster']['log_level']
+        if 'log_file' in cfg['cluster'].keys():
+            log_file = cfg['cluster']['log_file']
             if not log_file.startswith('/'):
-                # Path is relative to onramp_config.ini location
-                log_file = ini['cluster']['log_file']
+                # Path is relative to onramp_pce_config.cfg location
+                log_file = cfg['cluster']['log_file']
             conf['internal']['onramp_log_file'] = log_file
 
     cherrypy.config.update(conf)
@@ -117,12 +120,12 @@ if __name__ == '__main__':
 
     Daemonizer(cherrypy.engine).subscribe()
     cherrypy.tools.CORS = cherrypy.Tool('before_finalize', _CORS)
-    cherrypy.tree.mount(Modules(ini, log_name), '/modules', conf)
-    cherrypy.tree.mount(Jobs(ini, log_name), '/jobs', conf)
-    cherrypy.tree.mount(ClusterInfo(ini, log_name), '/cluster/info', conf)
-    cherrypy.tree.mount(ClusterPing(ini, log_name), '/cluster/ping', conf)
-    cherrypy.tree.mount(Files(ini, log_name), '/files', conf)
-    cherrypy.tree.mount(APIMap(ini, log_name), '/api', conf)
+    cherrypy.tree.mount(Modules(cfg, log_name), '/modules', conf)
+    cherrypy.tree.mount(Jobs(cfg, log_name), '/jobs', conf)
+    cherrypy.tree.mount(ClusterInfo(cfg, log_name), '/cluster/info', conf)
+    cherrypy.tree.mount(ClusterPing(cfg, log_name), '/cluster/ping', conf)
+    cherrypy.tree.mount(Files(cfg, log_name), '/files', conf)
+    cherrypy.tree.mount(APIMap(cfg, log_name), '/api', conf)
 
     logger.info('Starting cherrypy engine')
     cherrypy.engine.start()

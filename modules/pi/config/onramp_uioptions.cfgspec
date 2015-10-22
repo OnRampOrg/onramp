@@ -1,7 +1,7 @@
 #
 # This file describes any User Interface (UI) options that the end user should
 # be presented with in the web interface. The results from the form will be 
-# preserved in a onramp_run_params.ini file in the top-level directory.
+# preserved in a onramp_run_params.cfg file in the top-level directory.
 #
 # This file is a configspec file describing the keys and approprate values for
 # those keys. The file returned from the server will be a configobj file that
@@ -30,5 +30,13 @@ np =
 #
 nodes = 
 
-[hello]
-name = string(max=32,default="World")
+[pi]
+#
+# Number of rectangular elements
+#
+elements = 
+#
+# Number of OpenMP threads
+#
+threads = 
+

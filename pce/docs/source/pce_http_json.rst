@@ -1,7 +1,4 @@
-PCE HTTP/JSON Interface
-=======================
-
-The PCE servivce is made available via the CherryPy web server. The server is contolled via onramp/pce/onramp_pce_service.py commands. Start, stop, and restart are available. When started, onramp/pce/src/RESTservice.py is launched. This script is responsible for initializing the CherryPy web server instance; loading pce configuration from onramp/pce/onramp_pce_config.ini; initializing the service's logger; registering stop and restart signal handlers; tracking the PID of the service via the PIDFile CherryPy plugin; and mapping URL endpoints to HTTP method dispatchers.
+ via onramp/pce/onramp_pce_service.py commands. Start, stop, and restart are available. When started, onramp/pce/src/RESTservice.py is launched. This script is responsible for initializing the CherryPy web server instance; loading pce configuration from onramp/pce/onramp_pce_config.cfg; initializing the service's logger; registering stop and restart signal handlers; tracking the PID of the service via the PIDFile CherryPy plugin; and mapping URL endpoints to HTTP method dispatchers.
 
 The method dispatchers made available to the service live in PCE.dispatchers. This package is the only place in the PCE library where CherryPy-specific code should exist. CherryPy is configured for method dispatching, thus, dispatchers are simply classes that define one or more of GET, POST, PUT, DELETE as functions. The defined functions are then called when a request is made to the corresponding method to the URL the dispatcher is mapped to. The _OnRampDispatcher base class is defined here. This class handles things that most of the PCE dispatchers will need: JSON i/o, logging, and access to the defined logger.
 

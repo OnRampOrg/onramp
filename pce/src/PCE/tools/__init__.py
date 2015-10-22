@@ -25,7 +25,7 @@ from configobj import ConfigObj
 from Crypto import Random
 from Crypto.Cipher import AES
 
-from PCE import pce_root
+from PCEHelper import pce_root
 
 def get_visible_file(dirs):
     """Verify access allowed to requested file and return it.
@@ -33,6 +33,10 @@ def get_visible_file(dirs):
     Args:
         dirs (list of str): Ordered list of folder names between base_dir
             (currently onramp/pce/users) and specific file.
+
+    Returns:
+        Tuple consisting of error code and either the requested file if no error
+        or string indicating cause of error.
     """
     num_parent_dirs = 3
     if len(dirs) <= num_parent_dirs or '..' in dirs:
@@ -42,11 +46,11 @@ def get_visible_file(dirs):
                            '/'.join(dirs[:num_parent_dirs]))
     filename = os.path.join(run_dir, '/'.join(dirs[num_parent_dirs:]))
 
-    ini_file = os.path.join(run_dir, 'config/onramp_metadata.ini')
+    cfg_file = os.path.join(run_dir, 'config/onramp_metadata.cfg')
     try:
-        conf = ConfigObj(ini_file, file_error=True)
+        conf = ConfigObj(cfg_file, file_error=True)
     except (IOError, SyntaxError):
-        return (-3, 'Badly formed or non-existant config/onramp_metadata.ini') 
+        return (-3, 'Badly formed or non-existant config/onramp_metadata.cfg') 
 
     if 'onramp' in conf.keys() and 'visible' in conf['onramp'].keys():
         globs = conf['onramp']['visible']
