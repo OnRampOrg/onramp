@@ -17,8 +17,10 @@ class PCEAccess():
             but not currently installed.
         add_module: Install given module on this PCE.
         deploy_module: Initiate module deployment actions.
+        delete_module: Delete given module from PCE.
         get_jobs: Return the requested jobs.
         launch_job: Initiate job launch.
+        delete_job: Delete given job from PCE.
         check_connection: Ping the server to see if it is still available.
         establish_connection: Handshake to establish authorization (JJH TODO).
     """
@@ -44,7 +46,7 @@ class PCEAccess():
         self._url = "http://%s:%d" % (pce_info['data'][2], pce_info['data'][3])
 
     def _pce_get(endpoint, **kwargs):
-        """Execute GET requests to PCE endpoints.
+        """Execute GET request to PCE endpoint.
 
         Args:
             endpoint (str): API URL endpoint for request. Must not have leading
@@ -58,7 +60,7 @@ class PCEAccess():
             JSON response object on success, 'None' on error.
         """
         s = requests.Sesssion()
-        url = "%s/%s" % (self._url, endpoint)
+        url = "%s/%s/" % (self._url, endpoint)
         r = s.get(url, params=kwargs)
 
         if r.status_code != 200:
@@ -69,7 +71,7 @@ class PCEAccess():
             return r.json()
 
     def _pce_post(endpoint, **kwargs):
-        """Execute JSON-formatted POST requests to PCE endpoints.
+        """Execute JSON-formatted POST request to PCE endpoint.
 
         Args:
             endpoint (str): API URL endpoint for request. Must not have leading
@@ -84,10 +86,35 @@ class PCEAccess():
             if not.
         """
         s = requests.Session()
-        url = "%s/%s" % (self._url, endpoint)
+        url = "%s/%s/" % (self._url, endpoint)
         data = json.dumps(kwargs)
         headers = {"content-type": "application/json"}
         r = s.post(url, data=data, headers=headers)
+
+        if r.status_code != 200:
+            self._logger.error(self._name + " Error: " + str(r.status_code)
+                               + " from GET " + url + ": " + str(r.status_msg))
+            return False
+        else:
+            response = r.json()
+            if ((not response) or ('status_code' not in response.keys())
+                or (0 != response['status_code'])):
+                return False
+            return True
+
+    def _pce_del(endpoint):
+        """Execute DELETE request to PCE endpoint.
+
+        Args:
+            endpoint (str): API URL endpoint for request. Must not have leading
+                or trailing slashes.
+        Returns:
+            'True' if request was successfully processed by RXing PCE, 'False'
+            if not.
+        """
+        s = requests.Session()
+        url = "%s/%s/" % (self._url, endpoint)
+        r = s.delete(url)
 
         if r.status_code != 200:
             self._logger.error(self._name + " Error: " + str(r.status_code)
@@ -107,7 +134,7 @@ class PCEAccess():
         Returns:
             List of JSON-formatted module objects. Returns 'None' on error.
         """
-        response = self._rce_get("modules", state="Available")
+        response = self._pce_get("modules", state="Available")
         if (not response) or ("modules" not in response.keys()):
             return None
         return [mod for mod in response["modules"]]
@@ -179,6 +206,19 @@ class PCEAccess():
         endpoint = "modules/%d" % id
         return self._pce_post(endpoint)
 
+    def delete_module(id):
+        """Delete given module from PCE.
+
+        Args:
+            id (int): Id of the module to delete.
+
+        Returns:
+            'True' if delete request was successfully processed, 'False'
+            if not.
+        """
+        endpoint = "modules/%d" % id
+        return self._pce_delete(endpoint)
+
     def get_jobs(id=None):
         """Return the requested jobs.
 
@@ -228,6 +268,18 @@ class PCEAccess():
         }
         return self._pce_post("jobs", **payload)
 
+    def delete_job(id):
+        """Delete given job from PCE.
+
+        Args:
+            id (int): Id of the job to delete.
+
+        Returns:
+            'True' if delete request was successfully processed, 'False'
+            if not.
+        """
+        endpoint = "jobs/%d" % id
+        return self._pce_delete(endpoint)
 
     def check_connection(self, data=None):
         #
