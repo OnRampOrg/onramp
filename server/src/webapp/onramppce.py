@@ -3,8 +3,8 @@
 Exports:
     PCEAccess: Client-side interface to OnRamp PCE server.
 """
-import os
 import json
+import os
 import requests
 
 class PCEAccess():
@@ -45,12 +45,14 @@ class PCEAccess():
         pce_info = self._db.pce_get_info(pce_id)
         self._url = "http://%s:%d" % (pce_info['data'][2], pce_info['data'][3])
 
-    def _pce_get(endpoint, **kwargs):
+    def _pce_get(self, endpoint, raw=False, **kwargs):
         """Execute GET request to PCE endpoint.
 
         Args:
             endpoint (str): API URL endpoint for request. Must not have leading
                 or trailing slashes.
+            raw (bool): If True, return raw response, else return JSON portion
+                of response only.
 
         Kwargs:
             Key/val pairs in kwargs will become key/val pairs included as HTTP
@@ -59,23 +61,27 @@ class PCEAccess():
         Returns:
             JSON response object on success, 'None' on error.
         """
-        s = requests.Sesssion()
+        s = requests.Session()
         url = "%s/%s/" % (self._url, endpoint)
         r = s.get(url, params=kwargs)
 
         if r.status_code != 200:
-            self._logger.error(self._name + " Error: " + str(r.status_code)
-                               + " from GET " + url + ": " + str(r.status_msg))
+            self._logger.error('%s Error: %d from GET %s: %s'
+                               % (self._name, r.status_code, url, r.text))
             return None
         else:
+            if raw:
+                return r
             return r.json()
 
-    def _pce_post(endpoint, **kwargs):
+    def _pce_post(self, endpoint, raw=False, **kwargs):
         """Execute JSON-formatted POST request to PCE endpoint.
 
         Args:
             endpoint (str): API URL endpoint for request. Must not have leading
                 or trailing slashes.
+            raw (bool): If True, return raw response, else return JSON portion
+                of response only.
 
         Kwargs:
             Key/val pairs in kwargs will be included as JSON key/val pairs in
@@ -92,17 +98,19 @@ class PCEAccess():
         r = s.post(url, data=data, headers=headers)
 
         if r.status_code != 200:
-            self._logger.error(self._name + " Error: " + str(r.status_code)
-                               + " from GET " + url + ": " + str(r.status_msg))
+            self._logger.error('%s Error: %d from POST %s: %s'
+                               % (self._name, r.status_code, url, r.text))
             return False
         else:
+            if raw:
+                return r
             response = r.json()
             if ((not response) or ('status_code' not in response.keys())
                 or (0 != response['status_code'])):
                 return False
             return True
 
-    def _pce_del(endpoint):
+    def _pce_delete(self, endpoint):
         """Execute DELETE request to PCE endpoint.
 
         Args:
@@ -117,8 +125,8 @@ class PCEAccess():
         r = s.delete(url)
 
         if r.status_code != 200:
-            self._logger.error(self._name + " Error: " + str(r.status_code)
-                               + " from GET " + url + ": " + str(r.status_msg))
+            self._logger.error('%s Error: %d from DELETE %s: %s'
+                               % (self._name, r.status_code, url, r.text))
             return False
         else:
             response = r.json()
@@ -127,7 +135,7 @@ class PCEAccess():
                 return False
             return True
 
-    def get_modules_avail():
+    def get_modules_avail(self):
         """Return the list of modules that are available at the PCE but not
         currently installed.
 
@@ -139,7 +147,7 @@ class PCEAccess():
             return None
         return [mod for mod in response["modules"]]
 
-    def get_modules(id=None):
+    def get_modules(self, id=None):
         """Return the requested modules.
 
         Args:
@@ -149,13 +157,12 @@ class PCEAccess():
             JSON-formatted module object for given id, or if no id given, list
             of JSON-formatted module objects. Returns 'None' on error.
         """
-        s = requests.Session()
         url = "modules"
         if id:
             url += "/%d" % id
 
         response = self._pce_get(url)
-        if not resposne:
+        if not response:
             return None
 
         if id:
@@ -168,7 +175,7 @@ class PCEAccess():
         return [mod for mod in response["modules"]]
             
 
-    def add_module(id, module_name, mod_type, mod_path):
+    def add_module(self, id, module_name, mod_type, mod_path):
         """Install given module on this PCE.
 
         Args:
@@ -193,7 +200,7 @@ class PCEAccess():
         }
         return self._pce_post("modules", **payload)
 
-    def deploy_module(id):
+    def deploy_module(self, id):
         """Initiate module deployment actions.
 
         Args:
@@ -206,7 +213,7 @@ class PCEAccess():
         endpoint = "modules/%d" % id
         return self._pce_post(endpoint)
 
-    def delete_module(id):
+    def delete_module(self, id):
         """Delete given module from PCE.
 
         Args:
@@ -219,7 +226,7 @@ class PCEAccess():
         endpoint = "modules/%d" % id
         return self._pce_delete(endpoint)
 
-    def get_jobs(id=None):
+    def get_jobs(self, id):
         """Return the requested jobs.
 
         Args:
@@ -229,26 +236,19 @@ class PCEAccess():
             JSON-formatted job object for given id, or if no id given, list
             of JSON-formatted job objects. Returns 'None' on error.
         """
-        s = requests.Session()
-        url = "jobs"
-        if id:
-            url += "/%d" % id
+        url = "jobs/%d" % id
 
         response = self._pce_get(url)
-        if not resposne:
+
+        if not response:
+            return None
+        if "job" not in response.keys():
             return None
 
-        if id:
-            if "job" not in response.keys():
-                return None
-            return response["job"]
-
-        if "jobs" not in response.keys():
-            return None
-        return [job for job in response["jobs"]]
+        return response["job"]
 
 
-    def launch_job(user, mod_id, job_id, run_name):
+    def launch_job(self, user, mod_id, job_id, run_name, cfg_params=None):
         """Initiate job launch.
 
         Args:
@@ -256,19 +256,23 @@ class PCEAccess():
             mod_id (int): Id of the module to run.
             job_id (int): Id to be given to launched job on PCE.
             run_name (str): Human-readable identifier for job.
+            cfg_params (dict): Dict containing attrs to be written to
+                onramp_runparams.cfg
 
         Returns:
             'True' if launch request was successfully processed, 'False' if not.
         """
         payload = {
             'username': user,
-            'mod_id': = mod_id,
-            'job_id': = job_id,
+            'mod_id': mod_id,
+            'job_id': job_id,
             'run_name': run_name
         }
+        if cfg_params:
+            payload['cfg_params'] = cfg_params
         return self._pce_post("jobs", **payload)
 
-    def delete_job(id):
+    def delete_job(self, id):
         """Delete given job from PCE.
 
         Args:
@@ -285,11 +289,11 @@ class PCEAccess():
         #
         # Ping the server to see if it is still available
         #
-        s = requests.Session()
-        url = "%s/cluster" % (self._url)
-        r = s.get(url)
+        endpoint = "cluster/ping"
+        r = self._pce_get(endpoint, raw=True)
 
-        self._logger.debug(self._name + "check_connection() " + str(r.status_code) + " from " + url)
+        self._logger.debug("%scheck_connection() %d from %s%s"
+                           % (self._name, r.status_code, self._url, endpoint))
 
         if r.status_code == 200:
             self._db.pce_update_state( self._pce_id, 0 ) # see onrampdb.py
@@ -345,3 +349,109 @@ class PCEAccess():
             self._db.pce_update_module_state(self._pce_id, module_id, 1) # see onrampdb.py
 
         return True
+
+if __name__ == '__main__':
+
+    import logging
+    import sys
+    import time
+
+    if len(sys.argv) < 3:
+        sys.exit('usage: python onramppce.py IP_ADDRESS PORT')
+    class Dummy:
+        _ip_addr = sys.argv[1]
+        _port = int(sys.argv[2])
+        def __init__(self, logger):
+            self.logger = logger
+
+        def pce_get_info(self, pce_id):
+            return {'data': (None, None, self._ip_addr, self._port)}
+
+        def pce_add_module(self, *args):
+            self.logger.debug('pce_add_module: pce_id %d, mod_id %d, '
+                              'source_type %s, path %s' % args)
+            return None
+
+        def pce_update_module_state(self, *args):
+            self.logger.debug('pce_update_module_state: pce_id %d, mod_id %d, '
+                              'state %d' % args)
+
+        def pce_update_state(self, *args):
+            self.logger.debug('pce_update_state: pce_id %d, state %d' % args)
+
+        def module_add_if_new(self, *args):
+            self.logger.debug('module_add_if_new: mod_name %s' % args)
+            return {'exits':True, 'id':1}
+
+    log_name = 'onramp'
+    logger = logging.getLogger(log_name)
+    logger.setLevel(logging.DEBUG)
+    handler = logging.FileHandler('test.log')
+    handler.setFormatter(
+        logging.Formatter('[%(asctime)s] %(levelname)s %(message)s'))
+    logger.addHandler(handler)
+
+    pce = PCEAccess(logger, Dummy(logger), 1)
+    print 'Connection'
+    print pce.establish_connection()
+    print 'Available mods'
+    avail_mods = pce.get_modules_avail()
+    print avail_mods
+    print 'Mods before install'
+    print pce.get_modules()
+    print 'Installing all available mods...'
+    i = 1
+    for mod in avail_mods:
+        source = mod['source_location']
+        pce.add_module(i, 'test%d' % i, source['type'], source['path'])
+        i += 1
+    time.sleep(5)
+    print 'Mods after install'
+    installed_mods = pce.get_modules()
+    print installed_mods
+    print 'Deploying all installed mods...'
+    for mod in installed_mods:
+        pce.deploy_module(mod['mod_id'])
+    time.sleep(5)
+    print 'Mods after deploy'
+    deployed_mods = pce.get_modules()
+    print deployed_mods
+    print 'Deleting "Admin required" modules...'
+    for mod in deployed_mods:
+        if mod['state'] == 'Admin required':
+            pce.delete_module(mod['mod_id'])
+    time.sleep(5)
+    print 'Mods after delete'
+    ready_mods = pce.get_modules()
+    print ready_mods
+    print 'Individual module'
+    print pce.get_modules(1)
+    print 'Launching jobs...'
+    job_attrs = {
+        'onramp': {'np': 2, 'nodes': 1},
+        'ring': {'iters': 1, 'work': 1},
+        'hello': {'name': 'testname'}
+    }
+    i = 1
+    for mod in ready_mods:
+        pce.launch_job('testuser', mod['mod_id'], i, 'run%d' % i,
+                       cfg_params=job_attrs)
+        i += 1
+    print 'Launched jobs'
+    jobs = map(pce.get_jobs, range(1, i))
+    print jobs
+    print 'Pausing to let jobs finish...'
+    time.sleep(5)
+    print 'Postprocessing jobs'
+    jobs = map(pce.get_jobs, range(1, i))
+    print jobs
+    print 'Pausing to let jobs finish postprocessing...'
+    time.sleep(5)
+    print 'Done jobs'
+    jobs = map(pce.get_jobs, range(1, i))
+    print jobs
+    print 'Deleting jobs'
+    jobs = map(pce.delete_job, range(1, i))
+    jobs = map(pce.get_jobs, range(1, i))
+    print 'Remaining jobs (each job should be empty)'
+    print jobs
