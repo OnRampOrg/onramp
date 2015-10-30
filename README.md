@@ -48,7 +48,7 @@ $$ bin/onramp_pce_setup.py
  1. Configure the OnRamp PCE service.
 
   ```
-$$ $EDITOR onramp_pce_config.cfg
+$$ $EDITOR bin/onramp_pce_config.cfg
 # Follow instructions in the file to customize it for your system.
 # Let's assume you are running on 127.0.0.1 port 9091
   ```
