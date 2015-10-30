@@ -53,7 +53,7 @@ def _restart_handler(signal, frame):
     logger = logging.getLogger('onramp')
     logger.info('Restarting server')
     # FIXME: This needs to reload the config, including attrs in
-    # onramp_config.ini.
+    # onramp_config.cfg.
     cherrypy.engine.restart()
     logger.debug('Blocking cherrypy engine')
     cherrypy.engine.block()
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.realpath(__file__))
 
     # Default conf. Some of these can/will be overrided by attrs in
-    # onramp_config.ini.
+    # onramp_config.cfg.
     conf = {
         'global': {
             'server.socket_host': socket.gethostbyname(socket.gethostname()),
@@ -93,23 +93,23 @@ if __name__ == '__main__':
 #'tools.response_headers.headers': [('Content-Type', 'text/plain')],
 
     #
-    # Load onramp_config.ini and integrate appropriate attrs into cherrpy conf.
+    # Load onramp_config.cfg and integrate appropriate attrs into cherrpy conf.
     #
-    ini = ConfigObj('../bin/onramp_server_config.ini',
-                    configspec='onramp_server_config.spec')
-    ini.validate(Validator())
-    if 'server' in ini.keys():
-        for k in ini['server']:
-            conf['global']['server.' + k] = ini['server'][k]
+    cfg = ConfigObj('../bin/onramp_server_config.cfg',
+                    configspec='onramp_server_config.cfgspec')
+    cfg.validate(Validator())
+    if 'server' in cfg.keys():
+        for k in cfg['server']:
+            conf['global']['server.' + k] = cfg['server'][k]
     
-    if 'logging' in ini.keys():
-        if 'log_level' in ini['logging'].keys():
-            conf['internal']['log_level'] = ini['logging']['log_level']
-        if 'log_file' in ini['logging'].keys():
-            log_file = ini['logging']['log_file']
+    if 'logging' in cfg.keys():
+        if 'log_level' in cfg['logging'].keys():
+            conf['internal']['log_level'] = cfg['logging']['log_level']
+        if 'log_file' in cfg['logging'].keys():
+            log_file = cfg['logging']['log_file']
             if not log_file.startswith('/'):
-                # Path is relative to onramp_config.ini location
-                log_file = '../' + ini['logging']['log_file']
+                # Path is relative to onramp_config.cfg location
+                log_file = '../' + cfg['logging']['log_file']
             conf['internal']['onramp_log_file'] = log_file
 
     cherrypy.config.update(conf)
@@ -144,15 +144,15 @@ if __name__ == '__main__':
     #cherrypy.tools.CORS = cherrypy.Tool('before_handler', _CORS)
     cherrypy.tools.CORS = cherrypy._cptools.HandlerTool( _CORS )
 
-    cherrypy.tree.mount(Root(ini),       '/',           conf)
-    cherrypy.tree.mount(Users(ini),      '/users',      conf)
-    cherrypy.tree.mount(Workspaces(ini), '/workspaces', conf)
-    cherrypy.tree.mount(PCEs(ini),       '/pces',       conf)
-    cherrypy.tree.mount(Modules(ini),    '/modules',    conf)
-    cherrypy.tree.mount(Jobs(ini),       '/jobs',       conf)
-    cherrypy.tree.mount(Login(ini),      '/login',      conf)
-    cherrypy.tree.mount(Logout(ini),     '/logout',      conf)
-    cherrypy.tree.mount(Admin(ini),      '/admin',      conf)
+    cherrypy.tree.mount(Root(cfg),       '/',           conf)
+    cherrypy.tree.mount(Users(cfg),      '/users',      conf)
+    cherrypy.tree.mount(Workspaces(cfg), '/workspaces', conf)
+    cherrypy.tree.mount(PCEs(cfg),       '/pces',       conf)
+    cherrypy.tree.mount(Modules(cfg),    '/modules',    conf)
+    cherrypy.tree.mount(Jobs(cfg),       '/jobs',       conf)
+    cherrypy.tree.mount(Login(cfg),      '/login',      conf)
+    cherrypy.tree.mount(Logout(cfg),     '/logout',      conf)
+    cherrypy.tree.mount(Admin(cfg),      '/admin',      conf)
 
     logger.info('Starting cherrypy engine')
     cherrypy.engine.start()

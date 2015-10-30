@@ -22,7 +22,7 @@ pce/src/.*.pid
 pce/src/testing/deploy
 pce/src/state
 pce/docs/build
-pce/bin/onramp_pce_config.ini
+pce/bin/onramp_pce_config.cfg
 
 server/tmp
 server/tmp/users
@@ -30,5 +30,5 @@ server/tmp/pce
 server/log
 server/src/env
 server/src/.*.pid
-server/bin/onramp_server_config.ini
+server/bin/onramp_server_config.cfg
 server/.htaccess

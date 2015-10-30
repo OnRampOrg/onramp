@@ -28,7 +28,7 @@
 #   - Connect to the PCE (Opens the connection)
 #   - Deploy Module
 #     - Push the Module information
-#     - Get the Module doc, and onramp_uioptions.spec file
+#     - Get the Module doc, and onramp_uioptions.cfgspec file
 # - User
 #   - Configure and Run the module
 #   - Check status of the job

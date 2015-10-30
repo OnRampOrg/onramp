@@ -27,8 +27,8 @@ tmp_pce_dir   = tmp_dir + '/pce'
 tmpl_htaccess  = ".htaccess.tmpl"
 final_htaccess = ".htaccess"
 
-tmpl_conf  = "bin/onramp_server_config.ini.tmpl"
-final_conf = "bin/onramp_server_config.ini"
+tmpl_conf  = "bin/onramp_server_config.cfg.tmpl"
+final_conf = "bin/onramp_server_config.cfg"
 
 
 ###################################################
