@@ -74,7 +74,7 @@ class PCEAccess():
                 return r
             return r.json()
 
-    def _pce_post(self, endpoint, raw=False, **kwargs):
+    def _pce_post(self, endpoint, **kwargs):
         """Execute JSON-formatted POST request to PCE endpoint.
 
         Args:
@@ -101,14 +101,14 @@ class PCEAccess():
             self._logger.error('%s Error: %d from POST %s: %s'
                                % (self._name, r.status_code, url, r.text))
             return False
-        else:
-            if raw:
-                return r
-            response = r.json()
-            if ((not response) or ('status_code' not in response.keys())
-                or (0 != response['status_code'])):
-                return False
-            return True
+
+        response = r.json()
+
+        if ((not response) or ('status_code' not in response.keys())
+            or (0 != response['status_code'])):
+            return False
+
+        return True
 
     def _pce_delete(self, endpoint):
         """Execute DELETE request to PCE endpoint.
@@ -285,24 +285,35 @@ class PCEAccess():
         endpoint = "jobs/%d" % id
         return self._pce_delete(endpoint)
 
-    def check_connection(self, data=None):
-        #
-        # Ping the server to see if it is still available
-        #
+    def ping(self):
+        """Ping the given PCE.
+
+        Returns:
+            HTTP response code from PCE ping request.
+        """
         endpoint = "cluster/ping"
-        r = self._pce_get(endpoint, raw=True)
+        return self._pce_get(endpoint, raw=True).status_code
 
-        self._logger.debug("%scheck_connection() %d from %s%s"
-                           % (self._name, r.status_code, self._url, endpoint))
+    def check_connection(self):
+        """Ping the server to see if it still available. Record status in given
+        DB.
 
-        if r.status_code == 200:
+        Returns:
+            True if connected, False if not.
+        """
+        status_code = self.ping()
+
+        self._logger.debug("%scheck_connection() %d from %s"
+                           % (self._name, status_code, self._url))
+
+        if status_code == 200:
             self._db.pce_update_state( self._pce_id, 0 ) # see onrampdb.py
             return True
         else:
             self._db.pce_update_state( self._pce_id, 2 ) # see onrampdb.py
             return False
 
-    def establish_connection(self, data=None):
+    def establish_connection(self):
         #
         # Handshake to establish authorization (JJH TODO)
         #
@@ -311,37 +322,34 @@ class PCEAccess():
         #
         # Check if it is a valid connection
         #
-        is_connected = self.check_connection( data )
+        is_connected = self.check_connection()
         if is_connected is False:
             return False
 
         #
         # Access the list of available modules
         #
-        self._logger.debug(self._name + "establish_connection() Get available modules")
-        s = requests.Session()
-        url = "%s/modules/?state=Available" % (self._url)
-        r = s.get(url)
+        self._logger.debug("%sestablish_connection() Get available modules"
+                           % self._name)
+        avail_mods = self.get_modules_avail()
 
-        if r.status_code != 200:
+        if avail_mods is None:
             self._db.pce_update_state( self._pce_id, 2 ) # see onrampdb.py
             return False
 
-        result = r.json()
-        self._logger.debug(self._name + "\n" + json.dumps(r.json(), sort_keys=True, indent=4, separators=(',',': ')) )
-
-        # Add to the modules table (if not already there)
-        all_mods = {}
-        module_id = 0
-        for module in result['modules']:
-            self._logger.debug(self._name + "establish) Add Module: " + module['mod_name'])
+        for module in avail_mods:
+            self._logger.debug("%sestablish) Add Module: %s"
+                               % (self._name, module['mod_name']))
             mod_info = self._db.module_add_if_new(module['mod_name'])
             module_id = mod_info['id']
-            all_mods[module['mod_name']] = module_id
 
             # Add it to the PCE/Module pair table (if not already there)
-            self._logger.debug(self._name + "establish) Add Module to PCE: " + str(self._pce_id) + " module " + str(module_id) )
-            pair_info = self._db.pce_add_module(self._pce_id, module_id, module['source_location']['type'], module['source_location']['path'])
+            self._logger.debug("%sestablish) Add Module to PCE: %d module %d" 
+                               % (self._name, self._pce_id, module_id))
+
+            pair_info = self._db.pce_add_module(self._pce_id, module_id,
+                                                module['source_location']['type'],
+                                                module['source_location']['path'])
 
             state = -1
             if module['state'] == "Available":
