@@ -339,7 +339,7 @@ def get_modules(mod_id=None):
                     else:
                         mod['uioptions'] = None
                 return _clean_mod(mod)
-        _logger.debug('Mod does not exist at: %s' % time.time())
+        _logger.debug('Mod (%s) does not exist at: %s' % (str(mod_id), time.time()))
         return {
             'mod_id': mod_id,
             'mod_name': None,

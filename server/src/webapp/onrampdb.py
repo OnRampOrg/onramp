@@ -16,11 +16,15 @@ class Database():
                       -1 : "Error: Undefined",
                       }
 
-    module_states = { 0 : "Not on PCE",
-                      1 : "Available on PCE, Not Deployed",
-                      2 : "Available on PCE, Deploying",
-                      3 : "Available on PCE, Deploy wait for admin",
-                      4 : "Available on PCE, Deployed ",
+    module_states = {  0 : "Not on PCE",
+                       1 : "Available on PCE, Not Installed",
+                       2 : "Checkout in progress",
+                      -2 : "Error: Checkout failed",
+                       3 : "Available on PCE, Installed, Not Deployed",
+                       4 : "Available on PCE, Deploying",
+                      -4 : "Error: Deploy failed",
+                       5 : "Available on PCE, Deploy wait for admin",
+                       6 : "Available on PCE, Deployed",
                       -1 : "Error: Undefined",
                       }
 
@@ -45,7 +49,6 @@ class Database():
 
     def disconnect(self):
         raise NotImplemented("Please implement this method")
-
 
     ##########################################################
     def is_valid_session_id(self, session_id):
@@ -172,7 +175,7 @@ class Database():
     def get_pce_workspaces(self, pce_id):
         raise NotImplemented("Please implement this method")
 
-    def get_pce_modules(self, pce_id):
+    def get_pce_modules(self, pce_id, module_id=None):
         raise NotImplemented("Please implement this method")
 
     def get_pce_jobs(self, pce_id, search_params):
@@ -233,11 +236,26 @@ class DBAccess():
     ##########################################
     # State translations
     ##########################################
+    def get_pce_state_str(self, id):
+        if id not in self._db.pce_states:
+            return None
+        return self._db.pce_states[id]
+
     def get_pce_states(self):
         return self._db.pce_states
 
+    def get_module_state_str(self, id):
+        if id not in self._db.module_states:
+            return None
+        return self._db.module_states[id]
+
     def get_module_states(self):
         return self._db.module_states
+
+    def get_job_state_str(self, id):
+        if id not in self._db.job_states:
+            return None
+        return self._db.job_states[id]
 
     def get_job_states(self):
         return self._db.job_states
@@ -735,7 +753,7 @@ class DBAccess():
         return pce_info
 
     ##########################################
-    def pce_get_modules(self, pce_id):
+    def pce_get_modules(self, pce_id, module_id = None):
         self._db.connect()
 
         if pce_id is not None and self._db.is_valid_pce_id(pce_id) is False:
@@ -743,7 +761,25 @@ class DBAccess():
             self._db.disconnect()
             return None
 
-        pce_info = self._db.get_pce_modules(pce_id)
+        pce_info = self._db.get_pce_modules(pce_id, module_id)
+
+        # Add the string representation of each of the module states
+        pce_info["fields"] = list(pce_info["fields"])
+        pce_info["fields"].append("state_str")
+
+        self._logger.debug("module_id ("+str(module_id)+")")
+        if module_id is None:
+            data = []
+            for m in pce_info["data"]:
+                m = list(m)
+                sstr = self.get_module_state_str( m[2] )
+                m.append( sstr )
+                data.append(m)
+            pce_info["data"] = data
+        else:
+            pce_info["data"] = list(pce_info["data"])
+            pce_info["data"].append( self.get_module_state_str( pce_info["data"][2] ) )
+
         self._db.disconnect()
         return pce_info
 
@@ -786,7 +822,7 @@ class DBAccess():
         self._db.connect()
         module_id = self._db.get_module_id(name)
         self._db.disconnect()
-        return module_id
+        return int(module_id)
 
     ##########################################
     def module_add(self, name):

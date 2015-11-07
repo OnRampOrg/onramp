@@ -679,8 +679,11 @@ class Database_sqlite(onrampdb.Database):
 
         return {"fields": fields, "data": all_rows }
 
-    def get_pce_modules(self, pce_id):
-        self._logger.debug(self._name + "get_pce_modules(" + str(pce_id)+")")
+    def get_pce_modules(self, pce_id, module_id=None):
+        if module_id is None:
+            self._logger.debug(self._name + "get_pce_modules(" + str(pce_id)+")")
+        else:
+            self._logger.debug(self._name + "get_pce_modules(" + str(pce_id)+", "+str(module_id)+")")
 
         fields = ("module_id", "module_name")
         pa_fields = ("state", "install_location", "is_visible", "src_location_type", "src_location_path")
@@ -688,13 +691,20 @@ class Database_sqlite(onrampdb.Database):
         sql += " FROM module_to_pce AS PA"
         sql += " JOIN module AS M on M.module_id = PA.module_id"
         sql += " WHERE pce_id = ?"
-        args = (pce_id, )
+        if module_id is not None:
+            sql += " AND PA.module_id = ?"
+            args = (pce_id, module_id)
+        else:
+            args = (pce_id, )
 
         self._logger.debug(self._name + " " + sql)
         
         self._connect()
         self._cursor.execute(sql, args )
-        all_rows = self._cursor.fetchall()
+        if module_id is not None:
+            all_rows = self._cursor.fetchone()
+        else:
+            all_rows = self._cursor.fetchall()
         self._disconnect()
 
         return {"fields": fields + pa_fields, "data": all_rows }
