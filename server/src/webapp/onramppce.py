@@ -411,7 +411,7 @@ class PCEAccess():
 
         self._logger.debug("%s Add Module to PCE: %d module %d : State = %s" 
                            % (prefix, self._pce_id, module_id, str(module['state'])))
-        state = -1
+        state = -99
         if module['state'] == "Does not exist":
             state =  0
         elif module['state'] == "Available":
@@ -483,6 +483,117 @@ class PCEAccess():
         #     raise cherrypy.HTTPError(400)
 
         return {}
+
+    def _update_job_in_db(self, prefix, job_id):
+
+        self._logger.debug("%s Checking on Job %d" % (prefix, job_id))
+        job = self.get_jobs(job_id)
+
+
+        self._logger.debug("%s Response: ID = %d/%d, State = %s" 
+                           % (prefix, job["job_id"], job_id, job["state"]) )
+        state = -99
+        if job['state'] == "Setting up launch":
+            state =  1
+        elif job['state'] == "Launch failed":
+            state = -1
+        elif job['state'] == "Preprocessing":
+            state =  2
+        elif job['state'] == "Preprocess failed":
+            state = -2
+        elif job['state'] == "Scheduled":
+            state =  3
+        elif job['state'] == "Schedule failed":
+            state = -3
+        elif job['state'] == "Queued":
+            state =  4
+        elif job['state'] == "Running":
+            state =  5
+        elif job['state'] == "Run failed":
+            state = -5
+        elif job['state'] == "Postprocessing":
+            state =  6
+        elif job['state'] == "Done":
+            state =  7
+
+        self._db.job_update_state(job_id, state) # see onrampdb.py
+
+        return state
+
+    def check_on_job(self, job_id):
+        job_id = int(job_id)
+        prefix = ("%scheck_on_job()" % self._name)
+
+        # Pull update from PCE to the DB
+        state_id = self._update_job_in_db( prefix, job_id )
+        self._logger.debug("%s Checking on the job... %d = %s" % (prefix, state_id, self._db.get_job_state_str(state_id) ))
+
+
+        # Get full info from DB to return
+        info = self._db.job_get_info(job_id)
+        job_info = dict( zip( info["fields"], info["data"] ) )
+        job_info["state_str"] = self._db.get_job_state_str( job_info["state"] )
+
+        # JJH Do we want this to be 'unzip'ed?
+        return job_info
+
+    def launch_a_job(self, user_id, workspace_id, module_id, job_data):
+        prefix = ("%slaunch_a_job()" % self._name)
+
+        #
+        # Make sure the IDs are valid
+        #
+        self._logger.debug("%s Checking IDs (%d, %d, %d) with %s" % (prefix, user_id, workspace_id, module_id, str(job_data)))
+
+        info = self._db.user_get_info(user_id)
+        user_info = dict( zip( info["fields"], info["data"]) )
+
+
+        #
+        # Get a job id from the DB
+        #
+        self._logger.debug("%s Getting Job ID from DB..." % (prefix))
+        result = self._db.job_add(user_id, workspace_id, self._pce_id, module_id, job_data)
+        if result is None:
+            return self._return_error(prefix, -100, "Failed to start job - Bad IDs")
+
+        exists = result[0]
+        job_id = int(result[1])
+        run_name = job_data["job_name"]
+        cfg_params = {
+            'onramp': {'np': 2, 'nodes': 1},
+            'ring': {'iters': 1, 'work': 1},
+            'hello': {'name': 'testname'}
+            }
+
+        self._logger.debug("%s DEBUG: Job Info %s / %d" % (prefix, str(exists), job_id))
+
+        #
+        # Launch the job with this configuration
+        #
+        if exists is False:
+            self._logger.debug("%s Launching job ID %d on PCE... [exists=%s]" % (prefix, job_id, str(exists)))
+            result = self.launch_job(user_info["username"], module_id, job_id, run_name, cfg_params)
+            if result is False:
+                return {'error_msg' : "Failed to deploy the module"}
+            
+            # Pause to get started then check status
+            #time.sleep(2)
+        else:
+            self._logger.debug("%s -Not- Launching job ID %d on PCE... [exists=%s]" % (prefix, job_id, str(exists)))
+
+
+        #
+        # Update status in the DB
+        #
+        state_id = self._update_job_in_db( prefix, job_id )
+        self._logger.debug("%s Checking on the job... %d = %s" % (prefix, state_id, self._db.get_job_state_str(state_id) ))
+
+
+        #
+        # Return to the user
+        #
+        return {'exists' : exists, 'job_id' : job_id, 'state' : state_id, 'state_str' : self._db.get_job_state_str(state_id)}
 
 if __name__ == '__main__':
 

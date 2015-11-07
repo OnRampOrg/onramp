@@ -14,7 +14,7 @@ from cherrypy.process.plugins import Daemonizer, PIDFile
 from configobj import ConfigObj
 from validate import Validator
 
-from webapp.dispatchers import Root, Users, Workspaces, PCEs, Modules, Jobs, Login, Logout, Admin
+from webapp.dispatchers import Root, Users, Workspaces, PCEs, Modules, Jobs, States, Login, Logout, Admin
 import webapp.onramppce
 
 def _CORS():
@@ -150,6 +150,7 @@ if __name__ == '__main__':
     cherrypy.tree.mount(PCEs(cfg),       '/pces',       conf)
     cherrypy.tree.mount(Modules(cfg),    '/modules',    conf)
     cherrypy.tree.mount(Jobs(cfg),       '/jobs',       conf)
+    cherrypy.tree.mount(States(cfg),     '/states',     conf)
     cherrypy.tree.mount(Login(cfg),      '/login',      conf)
     cherrypy.tree.mount(Logout(cfg),     '/logout',      conf)
     cherrypy.tree.mount(Admin(cfg),      '/admin',      conf)

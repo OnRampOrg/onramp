@@ -25,16 +25,22 @@ class Database():
                       -4 : "Error: Deploy failed",
                        5 : "Available on PCE, Deploy wait for admin",
                        6 : "Available on PCE, Deployed",
-                      -1 : "Error: Undefined",
+                      -99 : "Error: Undefined",
                       }
 
-    job_states = { 0 : "Not on PCE",
-                   1 : "On PCE",
-                   2 : "On PCE Preprocess",
-                   3 : "On PCE Queued",
-                   4 : "On PCE Postprocess",
-                   5 : "Finished",
-                  -1 : "Error: Undefined",
+    job_states = {  0 : "Unknown job id",
+                    1 : "Setting up launch",
+                   -1 : "Launch failed",
+                    2 : "Preprocessing",
+                   -2 : "Preprocess failed",
+                    3 : "Scheduled",
+                   -3 : "Schedule failed",
+                    4 : "Queued",
+                    5 : "Running",
+                   -5 : "Run failed",
+                    6 : "Postprocessing",
+                    7 : "Done",
+                   -99 : "Error: Undefined",
                   }
 
     def __init__(self, logger, auth):
@@ -211,6 +217,9 @@ class Database():
         raise NotImplemented("Please implement this method")
 
     def get_job_data(self, job_id):
+        raise NotImplemented("Please implement this method")
+
+    def update_job_state(self, job_id, state):
         raise NotImplemented("Please implement this method")
 
     ##########################################################
@@ -936,6 +945,19 @@ class DBAccess():
             return None
 
         job_info = self._db.get_job_data(job_id)
+        self._db.disconnect()
+        return job_info
+
+    ##########################################
+    def job_update_state(self, job_id, state ):
+        self._db.connect()
+
+        if self._db.is_valid_job_id(job_id) is False:
+            self._logger.error("Invalid Job ID ("+str(job_id)+")")
+            self._db.disconnect()
+            return None
+
+        job_info = self._db.update_job_state(job_id, state)
         self._db.disconnect()
         return job_info
 
