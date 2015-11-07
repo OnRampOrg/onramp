@@ -83,10 +83,6 @@ else:
     call(['cp', tmpl_conf, final_conf])
 call(['chmod', 'og+rX', final_conf])
 
-print "==>"
-print "==> NOTICE: Please edit the file: " + final_conf
-print "==>"
-
 
 if os.path.exists(final_htaccess) is True:
     print "=" * 70
@@ -101,9 +97,6 @@ else:
     call(['cp', tmpl_htaccess, final_htaccess])
 call(['chmod', 'og+rX', final_htaccess])
 
-print "==>"
-print "==> NOTICE: Please edit the file: " + final_htaccess
-print "==>"
 
 
 ###################################################
@@ -132,5 +125,14 @@ call([env_dir + '/bin/python', source_dir + '/onramp_server_install_stage_two.py
 print "=" * 70
 print "Status: Setup Complete"
 print "=" * 70
+
+print "==>"
+print "==> NOTICE: Please edit the file: " + final_conf
+print "==>"
+
+print "==>"
+print "==> NOTICE: Please edit the file: " + final_htaccess
+print "==>"
+
 
 sys.exit(0)
