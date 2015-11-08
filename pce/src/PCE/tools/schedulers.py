@@ -129,7 +129,7 @@ class SLURMScheduler(_BatchScheduler):
         contents += '###################################\n'
         contents += '# Slurm Submission options\n'
         contents += '#\n'
-        contents += '#SBATCH --job-name=' + run_name + '\n'
+        contents += '#SBATCH --job-name=\"' + run_name + '\"\n'
         contents += '#SBATCH -o output.txt\n'
         contents += '#SBATCH -n ' + str(numtasks) + '\n'
         if email:
@@ -161,8 +161,9 @@ class SLURMScheduler(_BatchScheduler):
             msg = 'Job scheduling call failed'
             os.chdir(ret_dir)
             return {
-                'returncode': e.returncode,
-                'msg': '%s: %s' % (msg, e.output)
+                'status_code': e.returncode,
+                'msg': '%s: %s' % (msg, e.output),
+                'status_msg': '%s: %s' % (msg, e.output)
             }
         os.chdir(ret_dir)
         output_fields = batch_output.strip().split()

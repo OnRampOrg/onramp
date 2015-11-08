@@ -254,6 +254,7 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
 
     # Schedule job.
     result = scheduler.schedule(run_dir)
+
     if result['status_code'] != 0:
         _logger.error(result['msg'])
         with JobState(job_id) as job_state:
@@ -273,6 +274,7 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
         if job_state['_marked_for_del']:
             _delete_job(job_state)
             return (-2, 'Job %d deleted' % job_id)
+
     return (0, 'Job scheduled')
 
 def _job_postprocess(job_id):

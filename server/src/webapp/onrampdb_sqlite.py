@@ -679,8 +679,11 @@ class Database_sqlite(onrampdb.Database):
 
         return {"fields": fields, "data": all_rows }
 
-    def get_pce_modules(self, pce_id):
-        self._logger.debug(self._name + "get_pce_modules(" + str(pce_id)+")")
+    def get_pce_modules(self, pce_id, module_id=None):
+        if module_id is None:
+            self._logger.debug(self._name + "get_pce_modules(" + str(pce_id)+")")
+        else:
+            self._logger.debug(self._name + "get_pce_modules(" + str(pce_id)+", "+str(module_id)+")")
 
         fields = ("module_id", "module_name")
         pa_fields = ("state", "install_location", "is_visible", "src_location_type", "src_location_path")
@@ -688,13 +691,20 @@ class Database_sqlite(onrampdb.Database):
         sql += " FROM module_to_pce AS PA"
         sql += " JOIN module AS M on M.module_id = PA.module_id"
         sql += " WHERE pce_id = ?"
-        args = (pce_id, )
+        if module_id is not None:
+            sql += " AND PA.module_id = ?"
+            args = (pce_id, module_id)
+        else:
+            args = (pce_id, )
 
         self._logger.debug(self._name + " " + sql)
         
         self._connect()
         self._cursor.execute(sql, args )
-        all_rows = self._cursor.fetchall()
+        if module_id is not None:
+            all_rows = self._cursor.fetchone()
+        else:
+            all_rows = self._cursor.fetchall()
         self._disconnect()
 
         return {"fields": fields + pa_fields, "data": all_rows }
@@ -833,7 +843,9 @@ class Database_sqlite(onrampdb.Database):
 
     def get_job_info(self, job_id=None, search_params={}):
         self._logger.debug(self._name + "get_job_info(" + str(job_id)+")")
+        with_out_job_id = True
         if job_id is not None:
+            with_out_job_id = False
             return self._find_jobs_by('job_id', job_id, search_params)
 
         args = ()
@@ -845,7 +857,6 @@ class Database_sqlite(onrampdb.Database):
         wsql = ""
         largs = []
 
-        self._logger.debug(self._name + "DEBUG len = " + str(search_params) )
         for key, value in search_params.iteritems():
             self._logger.debug(self._name + "DEBUG Key = " + key)
 
@@ -876,7 +887,10 @@ class Database_sqlite(onrampdb.Database):
         
         self._connect()
         self._cursor.execute(sql, args )
-        all_rows = self._cursor.fetchall()
+        if with_out_job_id is False:
+            all_rows = self._cursor.fetchone()
+        else:
+            all_rows = self._cursor.fetchall()
         self._disconnect()
 
         return {"fields" : fields, "data": all_rows }
@@ -885,6 +899,22 @@ class Database_sqlite(onrampdb.Database):
         self._logger.debug(self._name + "get_job_doc(" + str(job_id)+")")
 
         return {"fields": None, "data": None }
+
+    def update_job_state(self, job_id, state):
+        self._logger.debug(self._name + "update_job_state (" + str(job_id) +" in " + str(state) + ")")
+
+        sql = "UPDATE job SET state = ? WHERE job_id = ?"
+        args = (state, job_id)
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._connect()
+        self._cursor.execute(sql, args )
+        rowid = self._cursor.lastrowid
+        self._disconnect()
+
+        return rowid
+
 
     ##########################################################
     def _find_jobs_by(self, id_str, id_value, search_params):
@@ -917,7 +947,10 @@ class Database_sqlite(onrampdb.Database):
         
         self._connect()
         self._cursor.execute(sql, args )
-        all_rows = self._cursor.fetchall()
+        if id_str == "job_id":
+            all_rows = self._cursor.fetchone()
+        else:
+            all_rows = self._cursor.fetchall()
         self._disconnect()
 
         return {"fields" : fields, "data": all_rows }

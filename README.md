@@ -18,7 +18,7 @@ The OnRamp project provides a web portal interface to parallel compute environme
 
 ## Progress
 
-This project is still being designed and implemented.  We hope to have a first implementation available on github by then end of the summer 2015.
+This project is still being designed and implemented.  We hope to have a first implementation available on github by then end of the year 2015.
 
 
 -----------------------------------
@@ -43,7 +43,7 @@ $$ git checkout https://github.com/ssfoley/onramp.git onramp
 
   ```
 $$ cd onramp/pce
-$$ bin/onramp_pce_setup.py 
+$$ ./bin/onramp_pce_install.py 
   ```
  1. Configure the OnRamp PCE service.
 
@@ -62,8 +62,8 @@ $$
  1. Confirm that the OnRamp PCE service is running.
 
   ```
-$$ curl http://127.0.0.1:9091/cluster
-{"status_code": 0, "status_msg": "Success"}
+$$ curl -I http://127.0.0.1:9091/cluster/ping
+HTTP/1.1 200 OK
 $$ 
   ```
 
@@ -86,7 +86,7 @@ $$ ./bin/onramp_server_install.py
  1. Configure the OnRamp Server service.
 
   ```
-$$ $EDITOR bin/onramp_server_config.ini
+$$ $EDITOR bin/onramp_server_config.cfg
 # Follow instructions in the file to customize it for your system.
 # Let's assume you are running on 127.0.0.1 port 9092
 $$
@@ -126,6 +126,7 @@ $$
  1. Open a webpage to the URL and you should see the welcome page:
   * OnRamp Server Homepage: `http://www.mydomain.edu/~username/onramp/`
   * OnRamp Server API: `http://www.mydomain.edu/~username/onramp/api/`
+
 
 ### Connect the OnRamp Server with the OnRamp PCE
 

@@ -47,6 +47,7 @@ class _ServerResourceBase:
     exposed = True
 
     _db = None
+    _tmp_dir = ""
 
     def __init__(self, conf):
         """Instantiate OnRamp Server Resource.
@@ -56,6 +57,8 @@ class _ServerResourceBase:
         """
         self.conf = conf
         self.logger = logging.getLogger('onramp')
+
+        self._tmp_dir = conf['tmp_dir']
 
         server = None
         if 'url_docroot' in conf['server'].keys():
@@ -80,7 +83,7 @@ class _ServerResourceBase:
         if len(all_pce_ids) <= 0:
             self.logger.info("No PCE Connections Available")
         for pce_id in all_pce_ids:
-            self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id)
+            self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
 
     def _get_is_valid_fns(self):
         return {'user' :      self._db.is_valid_user_id,
@@ -472,12 +475,13 @@ class PCEs(_ServerResourceBase):
     #     /pces/:ID/docs
     #     /pces/:ID/workspaces
     #     /pces/:ID/modules
+    #     /pces/:ID/module/:ID
     #     /pces/:ID/jobs
     #     /pces/:ID/jobs?user=ID&workspace=ID&module=ID
     @cherrypy.tools.json_out()
     @cherrypy.tools.json_in()
     @cherrypy.popargs('level')
-    def GET(self, pce_id=None, level=None, **kwargs):
+    def GET(self, pce_id=None, level=None, level_id=None, **kwargs):
         prefix = '[GET /pces]'
         self.logger.debug(prefix)
 
@@ -565,12 +569,66 @@ class PCEs(_ServerResourceBase):
                 rtn['pces'] = pce_info
 
         #
+        # /pces/:ID/module/:ID
+        #
+        elif level is not None and level == "module" and level_id is not None:
+            prefix = prefix[:-1] + "/"+str(pce_id)+"/"+level+"/"+str(level_id)+"]"
+            self.logger.debug(prefix + " Processing...")
+
+            #
+            # Find this PCE
+            #
+            if self._db.is_valid_pce_id(pce_id) is False:
+                self.logger.info(prefix + " Invalid PCE ID " + str(pce_id))
+                raise cherrypy.HTTPError(400)
+            if pce_id in self._pces:
+                self._pces[pce_id].check_connection()
+            else:
+                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
+                self._pces[pce_id].check_connection()
+
+            #
+            # Update from PCE
+            #
+            self._pces[pce_id].refresh_module_states(level_id)
+
+            #
+            # Pull from DB
+            #
+            pce_info = self._db.pce_get_modules(pce_id, level_id)
+            if pce_info is None:
+                self.logger.error(prefix + " Error no data found")
+            else:
+                self.logger.debug(prefix + " Package info for 1 module")
+                rtn['pces'] = pce_info
+                rtn['pces']['uioptions'] = self._pces[pce_id].get_module_uioptions(level_id, True)
+        #
         # /pces/:ID/modules
         #
         elif level is not None and level == "modules":
             prefix = prefix[:-1] + "/"+str(pce_id)+"/"+level+"]"
             self.logger.debug(prefix + " Processing...")
 
+            #
+            # Find this PCE
+            #
+            if self._db.is_valid_pce_id(pce_id) is False:
+                self.logger.info(prefix + " Invalid PCE ID " + str(pce_id))
+                raise cherrypy.HTTPError(400)
+            if pce_id in self._pces:
+                self._pces[pce_id].check_connection()
+            else:
+                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
+                self._pces[pce_id].check_connection()
+
+            #
+            # Update from PCE
+            #
+            self._pces[pce_id].refresh_module_states()
+
+            #
+            # Pull from DB
+            #
             pce_info = self._db.pce_get_modules(pce_id)
             if pce_info is None:
                 self.logger.error(prefix + " Error no data found")
@@ -811,6 +869,38 @@ class Modules(_ServerResourceBase):
         return rtn
 
 ########################################################
+# State translations
+########################################################
+class States(_ServerResourceBase):
+
+    # GET /states/jobs
+    #     /states/modules
+    #     /states/pces
+    #
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
+    def GET(self, type_id, **kwargs):
+        prefix = '[GET /states/'+type_id+']'
+        self.logger.debug(prefix)
+
+        rtn = {}
+        rtn['status'] = 0
+        rtn['status_message'] = 'Success'
+
+        
+        if type_id == "jobs":
+            rtn[type_id] = self._db.get_job_states()
+        elif type_id == "pces":
+            rtn[type_id] = self._db.get_pce_states()
+        elif type_id == "modules":
+            rtn[type_id] = self._db.get_module_states()
+        else:
+            raise cherrypy.HTTPError(400)
+
+        return rtn
+
+
+########################################################
 # Jobs
 ########################################################
 class Jobs(_ServerResourceBase):
@@ -895,12 +985,36 @@ class Jobs(_ServerResourceBase):
             prefix = prefix[:-1] + "/"+str(job_id)+"]"
             self.logger.debug(prefix + " Processing...")
 
-            job_info = self._db.job_get_info(job_id)
-            if job_info is None:
+            #
+            # Get PCE associated with this job
+            #
+            info = self._db.job_get_info(job_id)
+            if info is None:
                 self.logger.error(prefix + " Error no data found")
+                raise cherrypy.HTTPError(400)
+
+            job_info = dict( zip( info["fields"], info["data"] ) )
+            pce_id = int( job_info["pce_id"] )
+
+            self.logger.info(prefix + " Job ID " + str(job_id) + " running on PCE ID " + str(pce_id))
+
+            #
+            # Ask that PCE to update the job state
+            #
+            if self._db.is_valid_pce_id(pce_id) is False:
+                self.logger.info(prefix + " Invalid PCE ID " + str(pce_id))
+                raise cherrypy.HTTPError(400)
+
+            if pce_id in self._pces:
+                self._pces[pce_id].check_connection()
             else:
-                self.logger.debug(prefix + " Package info for " + str(len(job_info)-1) + " jobs")
-                rtn['jobs'] = job_info
+                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
+                self._pces[pce_id].check_connection()
+
+            # Ask the PCE
+            job_info = self._pces[pce_id].check_on_job( job_id )
+
+            rtn['jobs'] = job_info
 
         #
         # /jobs/:ID/data
@@ -979,6 +1093,7 @@ class Jobs(_ServerResourceBase):
         module_id    = data['info']['module_id']
         job_data = {}
         job_data["job_name"] = data['info']['job_name']
+        job_data["uioptions"] = data['uioptions']
 
         #
         # Authorized to submit a job as this user? (Must be the user or an Admin)
@@ -991,27 +1106,32 @@ class Jobs(_ServerResourceBase):
                 self.logger.debug(prefix + " Admin submitting for user " + str(data['info']['user_id']) )
 
 
+        #
+        # Find this PCE
+        #
+        if self._db.is_valid_pce_id(pce_id) is False:
+            self.logger.info(prefix + " Invalid PCE ID " + str(pce_id))
+            raise cherrypy.HTTPError(400)
+
+        if pce_id in self._pces:
+            self._pces[pce_id].check_connection()
+        else:
+            self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
+            self._pces[pce_id].check_connection()
 
         #
         # Try to launch the job
         #
-        result = self._db.job_add(user_id, workspace_id, pce_id, module_id, job_data)
-        if result is None:
-            return self._return_error(prefix, -100, "Failed to start job - Bad IDs")
+        result = self._pces[pce_id].launch_a_job(user_id, workspace_id, module_id, job_data)
+        if 'error_msg' in result.keys():
+            self.logger.info(prefix + " " + rdata['error_msg'])
+            raise cherrypy.HTTPError(400)
 
-        exists = result[0]
-        job_id = result[1]
-
-        rtn['job'] = {}
-        rtn['job']['exists'] = exists
-        rtn['job']['job_id'] = job_id
-
-        self.logger.debug(prefix + " job_id = " + str(job_id) + ", exists = " + str(exists))
+        rtn['job'] = result
 
         #
         # Return information about the submission
         #
-
         return rtn
 
     #
@@ -1371,14 +1491,14 @@ class Admin(_ServerResourceBase):
             # Connect to the PCE
             #
             if rdata['exists'] is True:
-                self._pces[pce_id].check_connection(data)
+                self._pces[pce_id].check_connection()
             else:
-                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id)
-                self._pces[pce_id].establish_connection(data)
+                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
+                self._pces[pce_id].establish_connection()
 
             rdata['state'] = self._db.pce_get_state(pce_id)
         #
-        # Associate a module with a PCE
+        # Associate a module with a PCE (trigger deployment)
         # /admin/pce/:PCEID/module/:MODULEID
         #
         elif level2 is not None and level2 == "module" and level2_id is not None and level3_id is None:
@@ -1386,11 +1506,30 @@ class Admin(_ServerResourceBase):
             prefix = prefix[:-1] + "/" + str(pce_id) + "/module/" + str(module_id) + "]"
             self.logger.info(prefix + " Associate module " + str(module_id) + " with PCE "+str(pce_id))
 
-            # Add the result
-            rdata = self._db.pce_add_module( pce_id, module_id )
+            #
+            # Find this PCE
+            #
+            if self._db.is_valid_pce_id(pce_id) is False:
+                self.logger.info(prefix + " Invalid PCE ID " + str(pce_id))
+                raise cherrypy.HTTPError(400)
+            if pce_id in self._pces:
+                self._pces[pce_id].check_connection()
+            else:
+                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
+                self._pces[pce_id].check_connection()
+
+            #
+            # Add the module to the PCE
+            #
+            rdata = self._pces[pce_id].install_and_deploy_module(int(module_id))
             if 'error_msg' in rdata.keys():
                 self.logger.info(prefix + " " + rdata['error_msg'])
                 raise cherrypy.HTTPError(400)
+
+            #
+            # Return the state of the module to the user
+            #
+            rdata = self._db.pce_get_modules(pce_id, module_id)
         #
         # Other not handled
         #
