@@ -414,7 +414,11 @@ class PCEAccess():
 
     def _save_job_output(self, job_id, output):
         prefix = ("%ssave_job_output(%s)" % (self._name, str(job_id)))
-        self._logger.debug("%s Save Job output: %s" % (prefix, str(output)))
+        self._logger.debug("%s Save Job output..." % (prefix))
+        #self._logger.debug("%s Save Job output: %s" % (prefix, str(output)))
+
+        if output is None:
+            return True
 
         job_dir = self._pce_job_dir + "/" + str(job_id) + "/"
 
@@ -508,7 +512,7 @@ class PCEAccess():
         self._logger.debug("%s Add Module to PCE: %d module %d" 
                            % (prefix, self._pce_id, module_id))
 
-        if module["uioptions"] is not None:
+        if 'uioptions' in module and module["uioptions"] is not None:
             self._save_uioptions(module_id, module["uioptions"])
 
         pair_info = self._db.pce_add_module(self._pce_id, module_id,
@@ -642,7 +646,11 @@ class PCEAccess():
         job_info = dict( zip( info["fields"], info["data"] ) )
         job_info["state_str"] = self._db.get_job_state_str( job_info["state"] )
 
-        job_info["output"] = self.get_job_output( job_id )
+        output = self.get_job_output( job_id )
+        if output is None:
+            output = ""
+
+        job_info["output"] = output
 
         # JJH Do we want this to be 'unzip'ed?
         return job_info
