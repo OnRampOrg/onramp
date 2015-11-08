@@ -29,6 +29,7 @@ class PCEAccess():
     _tmp_dir = ""
     _pce_dir = ""
     _pce_module_dir = ""
+    _pce_job_dir = ""
 
     def __init__(self, logger, dbaccess, pce_id, tmp_dir):
         """Initialize PCEAccess instance.
@@ -46,10 +47,14 @@ class PCEAccess():
         self._tmp_dir = tmp_dir
         self._pce_dir = self._tmp_dir + "tmp/pce/" + str(self._pce_id) + "/"
         self._pce_module_dir = self._pce_dir + "/modules/"
+        self._pce_job_dir = self._pce_dir + "/jobs/"
+
         if not os.path.exists(self._pce_dir):
             os.makedirs(self._pce_dir)
         if not os.path.exists(self._pce_module_dir):
             os.makedirs(self._pce_module_dir)
+        if not os.path.exists(self._pce_job_dir):
+            os.makedirs(self._pce_job_dir)
 
         #
         # Get the PCE server information
@@ -407,6 +412,40 @@ class PCEAccess():
 
         return True
 
+    def _save_job_output(self, job_id, output):
+        prefix = ("%ssave_job_output(%s)" % (self._name, str(job_id)))
+        self._logger.debug("%s Save Job output: %s" % (prefix, str(output)))
+
+        job_dir = self._pce_job_dir + "/" + str(job_id) + "/"
+
+        if not os.path.exists(job_dir):
+            os.makedirs(job_dir)
+
+        # Write it out
+        output_file = job_dir + "output.txt"
+        with open(output_file, 'w') as f:
+            f.write(output)
+
+        return True
+
+    def get_job_output(self, job_id):
+        prefix = ("%sget_job_output(%s)" % (self._name, str(job_id)))
+        self._logger.debug("%s load Job output: %s" % (prefix, str(job_id)))
+
+        job_dir = self._pce_job_dir + "/" + str(job_id) + "/"
+
+        if not os.path.exists(job_dir):
+            return None
+
+        output_file = job_dir + "output.txt"
+        output = ""
+        with open(output_file) as f:
+            for line in f:
+                output += line
+
+        return output
+
+
     def _save_uioptions(self, module_id, module_options):
         prefix = ("%ssave_uioptions(%s)" % (self._name, str(module_id)))
         self._logger.debug("%s Updating UI Options: %s" % (prefix, str(module_options)))
@@ -556,6 +595,8 @@ class PCEAccess():
         self._logger.debug("%s Checking on Job %d" % (prefix, job_id))
         job = self.get_jobs(job_id)
 
+        self._logger.debug("%s job RAW %s" % (prefix, str(job)))
+        self._save_job_output( job["job_id"], job["output"] )
 
         self._logger.debug("%s Response: ID = %d/%d, State = %s" 
                            % (prefix, job["job_id"], job_id, job["state"]) )
@@ -601,6 +642,8 @@ class PCEAccess():
         job_info = dict( zip( info["fields"], info["data"] ) )
         job_info["state_str"] = self._db.get_job_state_str( job_info["state"] )
 
+        job_info["output"] = self.get_job_output( job_id )
+
         # JJH Do we want this to be 'unzip'ed?
         return job_info
 
@@ -622,17 +665,12 @@ class PCEAccess():
         self._logger.debug("%s Getting Job ID from DB..." % (prefix))
         result = self._db.job_add(user_id, workspace_id, self._pce_id, module_id, job_data)
         if result is None:
-            return self._return_error(prefix, -100, "Failed to start job - Bad IDs")
+            return {'error_msg' : "Failed to start_job - Bad ID (%s)" % (str(job_data)) }
 
         exists = result[0]
         job_id = int(result[1])
         run_name = job_data["job_name"]
         cfg_params = job_data["uioptions"]
-        # {
-        #     'onramp': {'np': 2, 'nodes': 1},
-        #     'ring': {'iters': 1, 'work': 1},
-        #     'hello': {'name': 'testname'}
-        #     }
 
         self._logger.debug("%s DEBUG: Job Info %s / %d" % (prefix, str(exists), job_id))
         self._logger.debug("%s CFG Params: %s" % (prefix, str(cfg_params) ))
