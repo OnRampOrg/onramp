@@ -26,8 +26,11 @@ class PCEAccess():
         establish_connection: Handshake to establish authorization (JJH TODO).
     """
     _name = "[PCEAccess] "
+    _tmp_dir = ""
+    _pce_dir = ""
+    _pce_module_dir = ""
 
-    def __init__(self, logger, dbaccess, pce_id):
+    def __init__(self, logger, dbaccess, pce_id, tmp_dir):
         """Initialize PCEAccess instance.
 
         Args:
@@ -40,11 +43,20 @@ class PCEAccess():
         self._db     = dbaccess
         self._pce_id = int(pce_id)
 
+        self._tmp_dir = tmp_dir
+        self._pce_dir = self._tmp_dir + "tmp/pce/" + str(self._pce_id) + "/"
+        self._pce_module_dir = self._pce_dir + "/modules/"
+        if not os.path.exists(self._pce_dir):
+            os.makedirs(self._pce_dir)
+        if not os.path.exists(self._pce_module_dir):
+            os.makedirs(self._pce_module_dir)
+
         #
         # Get the PCE server information
         #
         pce_info = self._db.pce_get_info(pce_id)
         self._url = "http://%s:%d" % (pce_info['data'][2], pce_info['data'][3])
+
 
     def _pce_get(self, endpoint, raw=False, **kwargs):
         """Execute GET request to PCE endpoint.
@@ -361,6 +373,10 @@ class PCEAccess():
                 m_id = self._db.module_lookup(m['mod_name'])
                 if m_id == module_id:
                     avail_mods = m
+                    #self._logger.debug("%s TESTING (1): %s" % (prefix, str(avail_mods)))
+                    # JJH confirm this is the proper behavior
+                    avail_mods = self.get_modules( int(module_id) )
+                    #self._logger.debug("%s TESTING (2): %s" % (prefix, str(avail_mods)))
                     self._logger.debug("%s Get module info for %s: Found (I)" % (prefix, str(module_id)))
                     break
 
@@ -391,6 +407,52 @@ class PCEAccess():
 
         return True
 
+    def _save_uioptions(self, module_id, module_options):
+        prefix = ("%ssave_uioptions(%s)" % (self._name, str(module_id)))
+        self._logger.debug("%s Updating UI Options: %s" % (prefix, str(module_options)))
+
+        module_dir = self._pce_module_dir + "/" + str(module_id) + "/"
+
+        if not os.path.exists(module_dir):
+            os.makedirs(module_dir)
+
+        # Write it out to a file
+        uioptions_file = module_dir + "uioptions.json"
+        with open(uioptions_file, 'w') as f:
+            json.dump( module_options, f)
+
+        return True
+
+    def get_module_uioptions(self, module_id, fields_only=False):
+        prefix = ("%sget_module_uioptions(%s)" % (self._name, str(module_id)))
+        self._logger.debug("%s Loading UI Options for module %s" % (prefix, str(module_id)))
+
+        module_dir = self._pce_module_dir + "/" + str(module_id) + "/"
+
+        if not os.path.exists(module_dir):
+            return None
+
+        # Read the JSON from a file
+        uioptions_file = module_dir + "uioptions.json"
+        module_options = None
+        with open(uioptions_file, 'r') as f:
+            module_options = json.load(f)
+
+        if fields_only is True:
+            # JJH Assume only two levels deep
+            options = {}
+            for out in module_options:
+                #self._logger.debug("%s Outer: %s" % (prefix, str(out)))
+                options[out] = []
+                for inner in module_options[out]:
+                    #self._logger.debug("%s Outer: %s Inner: %s" % (prefix, str(out), str(inner)))
+                    #options[out][inner] = ""
+                    options[out].append(inner)
+            return options
+
+        return module_options
+
+
     def _update_module_in_db(self, prefix, module):
         if module['state'] == "Does not exist":
             self._logger.error("%s Asking to update a module that does not exist. %s" % (prefix, str(module)))
@@ -398,12 +460,17 @@ class PCEAccess():
             return False
 
         self._logger.debug("%s Add Module: %s" % (prefix, module['mod_name']))
+
         mod_info = self._db.module_add_if_new(module['mod_name'])
         module_id = int(mod_info['id'])
 
         # Add it to the PCE/Module pair table (if not already there)
+        self._logger.debug("---------------------------------------------------")
         self._logger.debug("%s Add Module to PCE: %d module %d" 
                            % (prefix, self._pce_id, module_id))
+
+        if module["uioptions"] is not None:
+            self._save_uioptions(module_id, module["uioptions"])
 
         pair_info = self._db.pce_add_module(self._pce_id, module_id,
                                             module['source_location']['type'],
@@ -560,13 +627,15 @@ class PCEAccess():
         exists = result[0]
         job_id = int(result[1])
         run_name = job_data["job_name"]
-        cfg_params = {
-            'onramp': {'np': 2, 'nodes': 1},
-            'ring': {'iters': 1, 'work': 1},
-            'hello': {'name': 'testname'}
-            }
+        cfg_params = job_data["uioptions"]
+        # {
+        #     'onramp': {'np': 2, 'nodes': 1},
+        #     'ring': {'iters': 1, 'work': 1},
+        #     'hello': {'name': 'testname'}
+        #     }
 
         self._logger.debug("%s DEBUG: Job Info %s / %d" % (prefix, str(exists), job_id))
+        self._logger.debug("%s CFG Params: %s" % (prefix, str(cfg_params) ))
 
         #
         # Launch the job with this configuration
@@ -577,8 +646,6 @@ class PCEAccess():
             if result is False:
                 return {'error_msg' : "Failed to deploy the module"}
             
-            # Pause to get started then check status
-            #time.sleep(2)
         else:
             self._logger.debug("%s -Not- Launching job ID %d on PCE... [exists=%s]" % (prefix, job_id, str(exists)))
 

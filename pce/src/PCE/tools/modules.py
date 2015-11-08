@@ -326,10 +326,13 @@ def get_modules(mod_id=None):
     Returns:
         OnRamp formatted dict containing module attrs for each requested module.
     """
-    if mod_id:
+    _logger.debug('Mod (%s) HERE' % (str(mod_id)))
+    if mod_id is not None:
         with ModState(mod_id) as mod_state:
+            _logger.debug('Mod (%s) HERE 2' % (str(mod_id)))
             if 'state' in mod_state.keys():
                 mod = copy.deepcopy(mod_state)
+                _logger.debug('Mod (%s) state = %s : %s' % (str(mod_id), mod_state['state'], str(mod)))
                 if mod_state['state'] == 'Module ready':
                     uifile = os.path.join(mod_state['installed_path'],
                                           'config/onramp_uioptions.cfgspec')

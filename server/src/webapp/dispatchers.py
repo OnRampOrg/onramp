@@ -47,6 +47,7 @@ class _ServerResourceBase:
     exposed = True
 
     _db = None
+    _tmp_dir = ""
 
     def __init__(self, conf):
         """Instantiate OnRamp Server Resource.
@@ -56,6 +57,8 @@ class _ServerResourceBase:
         """
         self.conf = conf
         self.logger = logging.getLogger('onramp')
+
+        self._tmp_dir = conf['tmp_dir']
 
         server = None
         if 'url_docroot' in conf['server'].keys():
@@ -80,7 +83,7 @@ class _ServerResourceBase:
         if len(all_pce_ids) <= 0:
             self.logger.info("No PCE Connections Available")
         for pce_id in all_pce_ids:
-            self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id)
+            self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
 
     def _get_is_valid_fns(self):
         return {'user' :      self._db.is_valid_user_id,
@@ -581,7 +584,7 @@ class PCEs(_ServerResourceBase):
             if pce_id in self._pces:
                 self._pces[pce_id].check_connection()
             else:
-                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id)
+                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
                 self._pces[pce_id].check_connection()
 
             #
@@ -598,6 +601,7 @@ class PCEs(_ServerResourceBase):
             else:
                 self.logger.debug(prefix + " Package info for 1 module")
                 rtn['pces'] = pce_info
+                rtn['pces']['uioptions'] = self._pces[pce_id].get_module_uioptions(level_id, True)
         #
         # /pces/:ID/modules
         #
@@ -614,7 +618,7 @@ class PCEs(_ServerResourceBase):
             if pce_id in self._pces:
                 self._pces[pce_id].check_connection()
             else:
-                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id)
+                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
                 self._pces[pce_id].check_connection()
 
             #
@@ -1004,7 +1008,7 @@ class Jobs(_ServerResourceBase):
             if pce_id in self._pces:
                 self._pces[pce_id].check_connection()
             else:
-                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id)
+                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
                 self._pces[pce_id].check_connection()
 
             # Ask the PCE
@@ -1089,6 +1093,7 @@ class Jobs(_ServerResourceBase):
         module_id    = data['info']['module_id']
         job_data = {}
         job_data["job_name"] = data['info']['job_name']
+        job_data["uioptions"] = data['uioptions']
 
         #
         # Authorized to submit a job as this user? (Must be the user or an Admin)
@@ -1111,7 +1116,7 @@ class Jobs(_ServerResourceBase):
         if pce_id in self._pces:
             self._pces[pce_id].check_connection()
         else:
-            self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id)
+            self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
             self._pces[pce_id].check_connection()
 
         #
@@ -1488,7 +1493,7 @@ class Admin(_ServerResourceBase):
             if rdata['exists'] is True:
                 self._pces[pce_id].check_connection()
             else:
-                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id)
+                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
                 self._pces[pce_id].establish_connection()
 
             rdata['state'] = self._db.pce_get_state(pce_id)
@@ -1510,7 +1515,7 @@ class Admin(_ServerResourceBase):
             if pce_id in self._pces:
                 self._pces[pce_id].check_connection()
             else:
-                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id)
+                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
                 self._pces[pce_id].check_connection()
 
             #

@@ -112,6 +112,8 @@ if __name__ == '__main__':
                 log_file = '../' + cfg['logging']['log_file']
             conf['internal']['onramp_log_file'] = log_file
 
+    cfg['tmp_dir'] = os.getcwd() + "/../"
+
     cherrypy.config.update(conf)
 
     #
