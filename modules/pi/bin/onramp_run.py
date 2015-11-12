@@ -15,16 +15,42 @@ from configobj import ConfigObj
 # Read the configobj values
 #
 # This will always be the name of the file, so fine to hardcode here
-conf_file = "../onramp_runparams.cfg"
+conf_file = "onramp_runparams.cfg"
 # Already validated the file in our onramp_preprocess.py script - no need to do it again
 config    = ConfigObj(conf_file)
 
 #
 # Run my program
 #
-os.chdir('../src')
-call(['mpirun', '-np', config['onramp']['np'], './pi-hybrid', '-n', config['pi']['elements'], '-t', config['pi']['threads']])
+os.chdir('src')
 
+# Retrive mode
+mode = config['pi']['mode']
+
+# Call functions
+def default_case():
+	print 'Mode option ' + mode + ' invalid.\n'
+	sys.exit(-1)
+
+def serial():
+	call(['time', '-p', 'mpirun', '-np', '1', 'pi-serial', '-n', config['pi']['rectangles']])
+
+def openmp():
+	call(['time', '-p', 'mpirun', '-np', '1', 'pi-openmp', '-n', config['pi']['rectangles'], '-t', config['pi']['threads']])
+
+def mpi():
+	call(['time', '-p', 'mpirun', '-np', config['onramp']['np'], 'pi-mpi', '-n', config['pi']['rectangles']])
+
+def hybrid():
+	call(['time', '-p', 'mpirun', '-np', config['onramp']['np'], 'pi-hybrid', '-n', config['pi']['rectangles'], '-t', config['pi']['threads']])
+
+# Set options
+executables = { 's' : serial, 'o' : openmp, 'm' : mpi, 'h' : hybrid }
+
+# Execute
+executables.get(mode, default_case)()
+
+# call(['time', '-p', 'mpirun', '-np', config['onramp']['np'], executables[config['pi']['mode']], '-n', config['pi']['rectangles'], '-t', config['pi']['threads']])
 
 # Exit 0 if all is ok
 sys.exit(0)
