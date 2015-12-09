@@ -16,10 +16,10 @@ from validate import Validator, ValidateError, is_integer
 #       the validity of the file.
 #
 # This will always be the name of the file, so fine to hardcode here
-conf_file = "../onramp_runparams.cfg"
+conf_file = "onramp_runparams.cfg"
 
 config    = ConfigObj(conf_file,
-                      configspec="../config/onramp_uioptions.cfgspec")
+                      configspec="config/onramp_uioptions.cfgspec")
 validator = Validator()
 results   = config.validate(validator, preserve_errors=True)
 if results != True:

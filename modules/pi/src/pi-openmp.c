@@ -1,6 +1,6 @@
 // Program: pi-serial
 // Author: Jason Regina
-// Date: 5 July 2015
+// Date: 12 November 2015
 // Description: This program approximates pi using the Riemann Sum method
 
 #include <stdlib.h>
@@ -23,6 +23,7 @@ int main( int argc, char** argv )
     int num_threads = 1;
 
     // Parse command line
+    const char* name = argv[0];
     int c;
 
     while ((c = getopt(argc, argv, "n:t:")) != -1)
@@ -37,7 +38,7 @@ int main( int argc, char** argv )
                 break;
             case '?':
             default:
-                fprintf(stderr, "Usage: %s [-n NUMBER_OF_RECTANGLES -t OMP_NUM_THREADS]\n", argv[0]);
+                fprintf(stderr, "Usage: %s -n [NUMBER_OF_RECTANGLES] -t [OMP_NUM_THREADS]\n", name);
                 return -1;
         }
     }
@@ -65,8 +66,11 @@ int main( int argc, char** argv )
     }
 
     // Print result
-    printf("Number of rectangles: %d\n", recs);
-    printf("pi is approximately %f\n", sum);
+    printf(" --- %s --- \n", name);
+    printf("Number of processes: %d\n", 1);
+    printf("Threads per process: %d\n", num_threads);
+    printf("Rectangles         : %d\n", recs);
+    printf("pi is approximately: %f\n", sum);
 
     // Terminate
     return 0;

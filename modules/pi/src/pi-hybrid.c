@@ -1,6 +1,6 @@
 // Program: pi
 // Author: Jason Regina
-// Date: 23 June 2015
+// Date: 12 November 2015
 // Description: This program approximates pi using the Riemann Sum method
 
 #include <stdlib.h>
@@ -30,6 +30,7 @@ int main( int argc, char** argv )
     MPI_Comm_size(MPI_COMM_WORLD, &procs);
 
     // Parse command line
+    const char* name = argv[0];
     int c;
 
     while ((c = getopt(argc, argv, "n:t:")) != -1)
@@ -44,7 +45,7 @@ int main( int argc, char** argv )
                 break;
             case '?':
             default:
-                fprintf(stderr, "Usage: %s [-n NUMBER_OF_RECTANGLES -t NUM_OMP_THREADS]\n", argv[0]);
+                fprintf(stderr, "Usage: %s -n [NUMBER_OF_RECTANGLES] -t [NUM_OMP_THREADS]\n", name);
                 return -1;
         }
     }
@@ -81,8 +82,11 @@ int main( int argc, char** argv )
     // Print result
     if (rank == 0)
     {
-        printf("Number of rectangles: %d\n", recs);
-        printf("pi is approximately %f\n", total_sum);
+	printf(" --- %s --- \n", name);
+	printf("Number of processes: %d\n", procs);
+	printf("Threads per process: %d\n", num_threads);
+        printf("Rectangles         : %d\n", recs);
+        printf("pi is approximately: %f\n", total_sum);
     }
 
     // Terminate

@@ -31,12 +31,6 @@ np =
 nodes = 
 
 [pi]
-#
-# Number of rectangular elements
-#
-elements = 
-#
-# Number of OpenMP threads
-#
-threads = 
-
+mode = string(max=2,default="s")
+rectangles = string(max=32,default="100000000")
+threads = string(max=32,default="1")

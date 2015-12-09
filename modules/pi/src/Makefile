@@ -1,6 +1,6 @@
 # DESCRIPTION: Makefile for pi program
 # AUTHOR: Jason Regina
-# REVISION: 5 July 2015
+# REVISION: 12 November 2015
 #
 # Code Prefix
 PREFIX=pi-
@@ -10,6 +10,22 @@ CC=gcc
 MPICC=mpicc
 LDFLAGS=-lm
 EXECUTABLES=$(PREFIX){serial,mpi,openmp,hybrid}
+
+all:
+	make clean
+	make $(EXECUTABLES)
+
+serial:
+	make $(PREFIX)serial
+
+mpi:
+	make $(PREFIX)mpi
+
+openmp:
+	make $(PREFIX)openmp
+
+hybrid:
+	make $(PREFIX)hybrid
 
 $(PREFIX)serial: $(PREFIX)serial.c
 	$(CC) $(PREFIX)serial.c $(LDFLAGS) -o $(PREFIX)serial
@@ -25,20 +41,4 @@ $(PREFIX)hybrid: $(PREFIX)hybrid.c
 
 clean:
 	rm -f $(EXECUTABLES) *.o
-
-serial:
-	make $(PREFIX)serial
-
-mpi:
-	make $(PREFIX)mpi
-
-openmp:
-	make $(PREFIX)openmp
-
-hybrid:
-	make $(PREFIX)hybrid
-
-all:
-	make clean
-	make $(EXECUTABLES)
 
