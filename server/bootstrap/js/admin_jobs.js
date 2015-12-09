@@ -11,7 +11,7 @@ function Job(data){
 
 	self.viewJob = function () {
 		// go to manage Jobs page and show this job
-		window.location.href = "admin_jobs.html";
+		window.location.href = "job_details.html";
 	};
 
 	self.viewJobResults = function () {
@@ -20,7 +20,7 @@ function Job(data){
 	};
 
 	self.removeOnServer = function () {
-		alert("removing on server");
+		alert("removing on server - not implemented yet");
 	};
 }
 
@@ -29,7 +29,7 @@ function AdminJobsViewModel() {
 	var self = this;
 	self.username = sessionStorage['UserID'];
 	self.userID = sessionStorage['UserID'];
-
+	self.auth_data = sessionStorage['auth_data'];
 
 
 	self.Jobslist = ko.observableArray();
@@ -46,9 +46,28 @@ function AdminJobsViewModel() {
 		self.Jobslist.removeAll();
 
 		// get data from server
-		self.Jobslist.push(new Job({'JobID':1, 'User': 4, 'Workspace':1, 'PCE': 2, 'Module':1, 'RunName':'test1', 'Status':'Running', 'Runtime':'0:32'}));
-		self.Jobslist.push(new Job({'JobID':2, 'User': 4, 'Workspace':1, 'PCE': 1, 'Module':1, 'RunName':'test2', 'Status':'Running', 'Runtime':'0:02'}));
-		self.Jobslist.push(new Job({'JobID':3, 'User': 4, 'Workspace':1, 'PCE': 2, 'Module':2, 'RunName':'does it work?', 'Status':'Queued', 'Runtime':'--'}));
+		// get jobs for this user
+		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+								//self.auth_data,
+								function (data){
+									// {"status": 0,
+									//  "status_message": "Success",
+									//  "users": {
+									//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+									//    "data": [2, "alice", "", "", 0, 1]}}
+									console.log(JSON.stringify(data));
+									for (var x = 0; x < data.users.data.length; x++){
+										var raw = data.users.data[x];
+										console.log(raw);
+										var conv_data = {};
+										for(var i = 0; i < data.users.fields.length; i++){
+											console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
+											conv_data[data.users.fields[i]] = raw[i];
+										}
+										self.Jobslist.push(new Job(conv_data));
+									}
+								}
+							);
 
 	});
 
