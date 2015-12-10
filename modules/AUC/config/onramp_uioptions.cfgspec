@@ -24,11 +24,11 @@
 #
 # Number of processes
 #
-np = 1
+np =
 #
 # Number of nodes
 #
-nodes = 1
+nodes =
 
 [pi]
 mode = string(max=2,default="s")
