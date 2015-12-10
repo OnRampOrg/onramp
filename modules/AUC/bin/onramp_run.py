@@ -50,8 +50,6 @@ executables = { 's' : serial, 'o' : openmp, 'm' : mpi, 'h' : hybrid }
 # Execute
 executables.get(mode, default_case)()
 
-# call(['time', '-p', 'mpirun', '-np', config['onramp']['np'], executables[config['pi']['mode']], '-n', config['pi']['rectangles'], '-t', config['pi']['threads']])
-
 # Exit 0 if all is ok
 sys.exit(0)
 # Exit with a negative value if there was a problem

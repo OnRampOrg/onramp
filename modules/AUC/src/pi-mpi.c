@@ -1,4 +1,4 @@
-// Program: pi
+// Program: pi-mpi
 // Author: Jason Regina
 // Date: 12 November 2015
 // Description: This program approximates pi using the Riemann Sum method
@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include <math.h>
 #include <mpi.h>
-#include <omp.h>
 
 // This function returns a y-value on a unit circle 
 // centered at the origin, given an x-value
@@ -21,7 +20,6 @@ int main( int argc, char** argv )
 {
     // Set number of rectangles
     int recs = 100000000;
-    int num_threads = 1;
 
     // Initialize MPI
     int rank = 0, procs = 0;
@@ -33,19 +31,16 @@ int main( int argc, char** argv )
     const char* name = argv[0];
     int c;
 
-    while ((c = getopt(argc, argv, "n:t:")) != -1)
+    while ((c = getopt(argc, argv, "n:")) != -1)
     {
         switch(c)
         {
             case 'n':
                 recs = atoi(optarg);
                 break;
-            case 't':
-                num_threads = atoi(optarg);
-                break;
             case '?':
             default:
-                fprintf(stderr, "Usage: %s -n [NUMBER_OF_RECTANGLES] -t [NUM_OMP_THREADS]\n", name);
+                fprintf(stderr, "Usage: %s -n [NUMBER_OF_RECTANGLES]\n", name);
                 return -1;
         }
     }
@@ -62,15 +57,10 @@ int main( int argc, char** argv )
     if (rank != (procs - 1))
         last = first + (recs / procs);
 
-    // Set number of OMP_THREADS
-    omp_set_num_threads(num_threads);
-
     // Calculate total area
     double sum = 0.0;
     int i = 0;
-
-#pragma omp parallel for reduction(+:sum) shared(first,last,width) private(i)
-    for (i = first; i < last; i++)
+    for (i = first; i != last; ++i)
     {
         sum += func(width * i) * width * 4.0;
     }
@@ -84,7 +74,7 @@ int main( int argc, char** argv )
     {
 	printf(" --- %s --- \n", name);
 	printf("Number of processes: %d\n", procs);
-	printf("Threads per process: %d\n", num_threads);
+	printf("Threads per process: %d\n", 1);
         printf("Rectangles         : %d\n", recs);
         printf("pi is approximately: %f\n", total_sum);
     }
