@@ -1,3 +1,7 @@
+/*
+ * Interface for admin to do things to jobs is not implemented on server
+ */
+
 function Job(data){
 	var self = this;
 	self.jID = data['JobID'];

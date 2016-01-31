@@ -97,33 +97,9 @@
 
 
 
-  <!-- list of workspaces -->
-  <div class="row">
-    <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
-      <h4>Workspaces (<span data-bind="text: Userslist().length"></span>)</h4>
-
-      <table class="table table-striped">
-        <thead>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Description</th>
-          <th>View/Edit</th>
-          <!-- <th>Remove</th> -->
-        </thead>
-        <tbody data-bind="foreach: Workspacelist">
-          <tr>
-            <td data-bind="text: wID"></td>
-            <td data-bind="text: name"></td>
-            <td data-bind="text: desc"></td>
-            <td><a data-bind="click: viewWorkspace">View</a></td>
-            <!--<td><a data-bind="click: $parent.removeFromWorkspace">Remove</a></td> -->
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
 
   <!-- list of Jobs -->
+  <!-- don't really want to show jobs
   <div class="row">
     <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
       <h4>Jobs (<span data-bind="text: Jobslist().length"></span>)</h4>
@@ -139,7 +115,6 @@
           <th>Status</th>
           <th>Runtime</th>
           <th>View/Edit</th>
-          <!-- <th>Delete</th> -->
         </thead>
         <tbody data-bind="foreach: Jobslist">
           <tr>
@@ -152,16 +127,14 @@
             <td data-bind="text: status"></td>
             <td data-bind="text: time"></td>
             <td><a data-bind="click: viewJob">View</a></td>
-            <!-- <td><a data-bind="click: $parent.deleteJob">Remove</a></td> -->
           </tr>
         </tbody>
       </table>
     </div>
   </div>
-
+ -->
 
   <!-- list of modules -->
-    <!-- don't really want to show modules and PCEs
   <div class="row">
     <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
       <h4>Modules (<span data-bind="text: Moduleslist().length"></span>)</h4>
@@ -184,11 +157,9 @@
       </table>
     </div>
   </div>
-  -->
 
 
   <!-- list of PCEs -->
-  <!-- don't really want to show modules and PCEs
   <div class="row">
     <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
       <h4>PCEs (<span data-bind="text: PCEslist().length"></span>)</h4>
@@ -219,7 +190,6 @@
       </table>
     </div>
   </div>
--->
 
   <!-- Save Changes button -->
   <div class="row">
