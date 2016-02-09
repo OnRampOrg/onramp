@@ -32,17 +32,22 @@ def default_case():
 	print 'Mode option ' + mode + ' invalid.\n'
 	sys.exit(-1)
 
+# May change commented lines for time -p ("portable" time output)
 def serial():
-	call(['time', '-p', 'mpirun', '-np', '1', 'pi-serial', '-n', config['pi']['rectangles']])
+	call(['time', 'mpirun', '-np', '1', 'pi-serial', '-n', config['pi']['rectangles']])	
+	#call(['time', '-p', 'mpirun', '-np', '1', 'pi-serial', '-n', config['pi']['rectangles']])
 
 def openmp():
-	call(['time', '-p', 'mpirun', '-np', '1', 'pi-openmp', '-n', config['pi']['rectangles'], '-t', config['pi']['threads']])
+	call(['time', 'mpirun', '-np', '1', 'pi-openmp', '-n', config['pi']['rectangles'], '-t', config['pi']['threads']])	
+	#call(['time', '-p', 'mpirun', '-np', '1', 'pi-openmp', '-n', config['pi']['rectangles'], '-t', config['pi']['threads']])
 
 def mpi():
-	call(['time', '-p', 'mpirun', '-np', config['onramp']['np'], 'pi-mpi', '-n', config['pi']['rectangles']])
+	call(['time', 'mpirun', '-np', config['onramp']['np'], 'pi-mpi', '-n', config['pi']['rectangles']])
+	#call(['time', '-p', 'mpirun', '-np', config['onramp']['np'], 'pi-mpi', '-n', config['pi']['rectangles']])
 
 def hybrid():
-	call(['time', '-p', 'mpirun', '-np', config['onramp']['np'], 'pi-hybrid', '-n', config['pi']['rectangles'], '-t', config['pi']['threads']])
+	call(['time', 'mpirun', '-np', config['onramp']['np'], 'pi-hybrid', '-n', config['pi']['rectangles'], '-t', config['pi']['threads']])
+	#call(['time', '-p', 'mpirun', '-np', config['onramp']['np'], 'pi-hybrid', '-n', config['pi']['rectangles'], '-t', config['pi']['threads']])
 
 # Set options
 executables = { 's' : serial, 'o' : openmp, 'm' : mpi, 'h' : hybrid }
