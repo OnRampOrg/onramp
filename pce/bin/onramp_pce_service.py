@@ -53,7 +53,7 @@ from os.path import abspath, expanduser
 
 from PCE import tools
 from PCE.tools.jobs import init_job_delete, job_init_state, job_preprocess, \
-                           job_run
+                           job_run, get_jobs
 from PCE.tools.modules import deploy_module, get_source_types, \
                               init_module_delete, install_module, ModState
 from PCEHelper import pce_root
@@ -215,25 +215,8 @@ def _mod_test():
     module_name = conf['module_name']
     deploy_path = os.path.join(deploy_path_parent,
                                '%s_%d' % (module_name, module_id))
-
     mod_state_f = mkstemp()
     job_state_f = mkstemp()
-
-    if os.path.exists(deploy_path):
-        print ('The deploy path exists. Would you like to remove the old path '
-               'and continue?')
-        response = raw_input('(Y)es or (N)o? ')
-        if response == 'Y' or response == 'y':
-            shutil.rmtree(deploy_path)
-        else:
-            sys.exit('Aborted')
-
-    # Install.
-    install_module('local', module_path, deploy_path_parent, module_id,
-                   module_name, mod_state_file=mod_state_f[1])
-
-    os.chdir(deploy_path)
-
     custom_runparams = abspath(expanduser(conf['custom_runparams']))
     post_deploy_test = ('post_deploy_test',
                         abspath(expanduser(conf['post_deploy_test'])))
@@ -244,15 +227,17 @@ def _mod_test():
     post_status_test = ('post_status_test',
                         abspath(expanduser(conf['post_status_test'])))
     post_postprocess_test = ('post_postprocess_test',
-                        abspath(expanduser(conf['post_postprocess_test'])))
-
-    os.close(mod_state_f[0])
-    os.close(job_state_f[0])
-
+                   abspath(expanduser(conf['post_postprocess_test'])))
+    ret_dir = os.getcwd()
+     
     def finish(conf, error=False):
         path = deploy_path
         results = job_output_file
         params = args
+        os.close(mod_state_f[0])
+        os.close(job_state_f[0])
+        os.remove(mod_state_f[1])
+        os.remove(job_state_f[1])
 
         if error:
             if conf['cleanup']:
@@ -274,12 +259,20 @@ def _mod_test():
             else:
                 print 'No job output file found.'
 
-    def run_test(test):
+        os.chdir(ret_dir)
+        return
+
+    def run_test(ret_val=None, test=None):
         py = env_py
         cfg = conf
         params = args
 
-        if cfg[test[0]]:
+        if ret_val is not None and ret_val[0] != 0:
+            print 'Error: %s' % ret[1]
+            finish(cfg, error=True)
+            return -1
+
+        if test is not None and cfg[test[0]]:
             if params.verbose:
                 print 'Running %s' % test[0]
             if 0 != call([py, test[1]]):
@@ -289,110 +282,83 @@ def _mod_test():
 
         return 0
 
-    # Deploy.
-    ret = deploy_module(module_id, mod_state_file=mod_state_f[1])
-    if ret[0] != 0:
-        print ret[1]
+    # Install.
+    if args.verbose:
+        print 'Installing module %s to %s' % (module_name, deploy_path)
+    if os.path.exists(deploy_path):
+        print ('The deploy path exists. Would you like to remove the old path '
+               'and continue?')
+        response = raw_input('(Y)es or (N)o? ')
+        if response == 'Y' or response == 'y':
+            shutil.rmtree(deploy_path)
+        else:
+            sys.exit('Aborted')
+
+    ret = install_module('local', module_path, deploy_path_parent, module_id,
+                         module_name, mod_state_file=mod_state_f[1])
+    if 0 != run_test(ret_val=ret):
         return
-    if 0 != run_test(test=post_deploy_test):
+
+    os.chdir(deploy_path)
+
+    # Deploy.
+    if args.verbose:
+        print 'Deploying module'
+    ret = deploy_module(module_id, mod_state_file=mod_state_f[1])
+    if 0 != run_test(ret_val=ret, test=post_deploy_test):
+        return
+
+    # Init job state.
+    if args.verbose:
+        print 'Initializing job state'
+    ret = job_init_state(job_id, module_id, username, module_name,
+                         custom_runparams, job_state_file=job_state_f[1],
+                         mod_state_file=mod_state_f[1], run_dir=deploy_path)
+    if 0 != run_test(ret_val=ret):
         return
 
     # Preprocess.
-    ret = job_init_state(job_id, module_id, username, module_name, custom_runparams,
-                         job_state_file=job_state_f[1],
-                         mod_state_file=mod_state_f[1], run_dir=deploy_path)
-    if ret[0] != 0:
-        print ret[1]
-        return
-
+    if args.verbose:
+        print 'Preprocessing job'
     ret = job_preprocess(job_id, job_state_file=job_state_f[1])
-    if ret[0] != 0:
-        print ret[1]
-        return
-    if 0 != run_test(test=post_preprocess_test):
+    if 0 != run_test(ret_val=ret, test=post_preprocess_test):
         return
 
+    # Schedule.
+    if args.verbose:
+        print 'Deploying module'
     ret = job_run(job_id, job_state_file=job_state_f[1])
-    if ret[0] != 0:
-        print ret[1]
-        return
-    if 0 != run_test(test=post_preprocess_test):
+    if 0 != run_test(ret_val=ret, test=post_launch_test):
         return
 
-    sys.exit(0)
+    # Wait for job to finish, call onramp_status.py when appropriate.
+    if args.verbose:
+        print 'Waiting/polling job state for completion'
+        
+    sleep_time = conf['results_check_sleep']
+    if not sleep_time:
+        sleep_time = default_sleep_time
+    job_state = 'Queued'
 
-#    os.mkdir(pce_dir)
-#    if conf['custom_runparams']:
-#        if args.verbose:
-#            print 'Simulating generation of onramp_runparams.cfg'
-#        shutil.copyfile(custom_runparams, 'onramp_runparams.cfg')
-#
-#    time.sleep(2)
-#
-#    # Preprocess.
-#    result = run_section(script='bin/onramp_preprocess.py',
-#                         test=post_preprocess_test)
-#    if 0 != result:
-#        return
-#        
-#    # Run.
-#    if conf['batch_scheduler'] == 'SLURM':
-#        status_check = SLURM_status
-#        tools._build_SLURM_script('modtest', conf['num_tasks'], None,
-#                                filename=batch_script_name)
-#        if args.verbose:
-#            print 'Launching job'
-#        try:
-#            batch_output = check_output(['sbatch', batch_script_name])
-#            job_num = batch_output.strip().split()[3:][0] 
-#        except (CalledProcessError, ValueError, IndexError):
-#            print 'Job scheduling call failed or gave unexpected output.'
-#            finish(conf, error=True)
-#            return
-#    else:
-#        print "Invalid value given for 'batch_scheduler'."
-#        finish(conf, error=True)
-#        return
-#
-#    result = run_section(test=post_launch_test)
-#    if 0 != result:
-#        return
-#        
-#    # Wait for job to finish, call onramp_status.py when appropriate.
-#    if args.verbose:
-#        print 'Waiting/polling job state for completion'
-#        
-#    sleep_time = conf['results_check_sleep']
-#    if not sleep_time:
-#        sleep_time = default_sleep_time
-#    job_state = 'Queued'
-#
-#    while job_state != 'Done':
-#        time.sleep(sleep_time)
-#        (status, job_state) = status_check(job_num)
-#
-#        if 0 != status:
-#            print 'Job info call failed.'
-#            finish(conf, error=True)
-#            return
-#
-#        if job_state == 'Running':
-#            result = run_section(script='bin/onramp_status.py',
-#                                 test=post_status_test,
-#                                 print_output=True)
-#            if 0 != result:
-#                return
-#
-#    # Postprocess.
-#    result = run_section(script='bin/onramp_postprocess.py',
-#                         test=post_postprocess_test)
-#    if 0 != result:
-#        return
-#
-#    if args.verbose:
-#        print 'No errors found.'
-#
-#    finish(conf)
+    while job_state != 'Done':
+        time.sleep(sleep_time)
+        job = get_jobs(job_id, job_state_file=job_state_f[1])
+        job_state = job['state']
+
+        if job_state == 'Running':
+            if job['mod_status_output'] != '' and args.verbose:
+                print job['mod_status_output']
+            if 0 != run_test(test=post_status_test):
+                return
+
+    # Postprocess.
+    if args.verbose:
+        print 'Deploying module'
+    ret = job_postprocess(job_id, job_state_file=job_state_f[1])
+    if 0 != run_test(ret_val=ret, test=post_postprocess_test):
+        return
+
+    print 'No errors found.'
 
 def _mod_install():
     """Install an OnRamp educational module from the given location.

@@ -179,7 +179,6 @@ def job_init_state(job_id, mod_id, username, run_name, run_params,
             proj_loc = mod_state['installed_path']
             mod_name = mod_state['mod_name']
 
-    print 'init state?'
     _logger.debug('Testing project location')
     if not os.path.isdir(proj_loc):
         msg = 'Project location does not exist'
@@ -203,12 +202,8 @@ def job_init_state(job_id, mod_id, username, run_name, run_params,
             # Thrown if dir already exists.
             pass
 
-    print 'init state'
-    print job_state_file
     with JobState(job_id, job_state_file) as job_state:
         job_state['run_dir'] = run_dir
-        print job_state
-    print '---------------'
 
     # The way the following is setup, if a run_dir has already been setup with
     # this run_name, it will be used (that is, not overwritten) for this launch.
@@ -235,13 +230,10 @@ def job_init_state(job_id, mod_id, username, run_name, run_params,
 def job_preprocess(job_id, job_state_file=None):
     ret_dir = os.getcwd()
     _logger.info('Calling bin/onramp_preprocess.py')
-    print 'preprocess'
-    print job_state_file
     with JobState(job_id, job_state_file) as job_state:
         job_state['state'] = 'Preprocessing'
         job_state['error'] = None
         run_dir = job_state['run_dir']
-        print job_state
     os.chdir(run_dir)
 
     try:
@@ -371,7 +363,7 @@ def job_postprocess(job_id, job_state_file=None):
             _delete_job(job_state)
             return (-2, 'Job %d deleted' % job_id)
 
-def _get_module_status_output(job_id):
+def _get_module_status_output(job_id, job_state_file=None):
     """Run bin/onramp_status.py for job and return any output.
 
     Args:
@@ -382,13 +374,14 @@ def _get_module_status_output(job_id):
         bin/onramp_status.py script.
     """
     # Get attrs needed.
-    with JobState(job_id) as job_state:
+    with JobState(job_id, job_state_file) as job_state:
         username = job_state['username']
         mod_id = job_state['mod_id']
         run_name = job_state['run_name']
         mod_name = job_state['mod_name']
-    args = (username, mod_name, mod_id, run_name)
-    run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % args)
+        run_dir = job_state['run_dir']
+    #args = (username, mod_name, mod_id, run_name)
+    #run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % args)
     ret_dir = os.getcwd()
 
     # Run bin/onramp_status.py and grab output.
@@ -408,7 +401,7 @@ def _get_module_status_output(job_id):
     os.chdir(ret_dir)
     return output
 
-def _build_job(job_id):
+def _build_job(job_id, job_state_file=None):
     """Launch actions required to maintain job state and/or currate job results
     and return the state.
 
@@ -423,7 +416,7 @@ def _build_job(job_id):
         OnRamp formatted dictionary containing job attrs.
     """
     status_check_states = ['Scheduled', 'Queued', 'Running']
-    with JobState(job_id) as job_state:
+    with JobState(job_id, job_state_file) as job_state:
         _logger.debug('Building at %s' % time.time())
         if 'state' not in job_state.keys():
             _logger.debug('No state at %s' % time.time())
@@ -472,7 +465,8 @@ def _build_job(job_id):
                     _delete_job(job_state)
                     # FIXME: This might cause trouble. About to return {}.
                     return copy.deepcopy(job_state)
-                mod_status_output = _get_module_status_output(job_id)
+                mod_status_output = _get_module_status_output(job_id,
+                                                              job_state_file)
                 job_state['mod_status_output'] = mod_status_output
             elif job_status[1] == 'Queued':
                 job_state['state'] = 'Queued'
@@ -546,7 +540,7 @@ def _clean_job(job):
             job.pop(key, None)
     return job
 
-def get_jobs(job_id=None):
+def get_jobs(job_id=None, job_state_file=None):
     """Return list of tracked jobs or single job.
 
     Kwargs:
@@ -557,7 +551,7 @@ def get_jobs(job_id=None):
         OnRamp formatted dict containing job attrs for each job requested.
     """
     if job_id:
-        return _clean_job(_build_job(job_id))
+        return _clean_job(_build_job(job_id, job_state_file))
 
     return [_clean_job(_build_job(job_id)) for job_id in
             filter(lambda x: not x.startswith('.'),
