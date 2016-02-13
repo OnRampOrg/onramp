@@ -52,7 +52,8 @@ from validate import Validator
 from os.path import abspath, expanduser
 
 from PCE import tools
-from PCE.tools.jobs import init_job_delete, launch_job
+from PCE.tools.jobs import init_job_delete, job_init_state, job_preprocess, \
+                           job_run
 from PCE.tools.modules import deploy_module, get_source_types, \
                               init_module_delete, install_module, ModState
 from PCEHelper import pce_root
@@ -190,6 +191,9 @@ def _mod_test():
     default_sleep_time = 5.0
     job_output_file = 'output.txt'
     descrip = 'Test contents of OnRamp educational module.'
+    username = 'testuser'
+    module_id = 1
+    job_id = 1
 
     parser = argparse.ArgumentParser(prog='onramp_pce_service.py modtest',
                                      description=descrip)
@@ -209,7 +213,6 @@ def _mod_test():
     module_path = abspath(expanduser(conf['module_path']))
     deploy_path_parent = abspath(expanduser(conf['deploy_path']))
     module_name = conf['module_name']
-    module_id = 1
     deploy_path = os.path.join(deploy_path_parent,
                                '%s_%d' % (module_name, module_id))
 
@@ -225,6 +228,7 @@ def _mod_test():
         else:
             sys.exit('Aborted')
 
+    # Install.
     install_module('local', module_path, deploy_path_parent, module_id,
                    module_name, mod_state_file=mod_state_f[1])
 
@@ -286,8 +290,33 @@ def _mod_test():
         return 0
 
     # Deploy.
-    deploy_module(module_id, mod_state_file=mod_state_f[1])
-    if 0 != run_test(test=post_deploy_test)
+    ret = deploy_module(module_id, mod_state_file=mod_state_f[1])
+    if ret[0] != 0:
+        print ret[1]
+        return
+    if 0 != run_test(test=post_deploy_test):
+        return
+
+    # Preprocess.
+    ret = job_init_state(job_id, module_id, username, module_name, custom_runparams,
+                         job_state_file=job_state_f[1],
+                         mod_state_file=mod_state_f[1], run_dir=deploy_path)
+    if ret[0] != 0:
+        print ret[1]
+        return
+
+    ret = job_preprocess(job_id, job_state_file=job_state_f[1])
+    if ret[0] != 0:
+        print ret[1]
+        return
+    if 0 != run_test(test=post_preprocess_test):
+        return
+
+    ret = job_run(job_id, job_state_file=job_state_f[1])
+    if ret[0] != 0:
+        print ret[1]
+        return
+    if 0 != run_test(test=post_preprocess_test):
         return
 
     sys.exit(0)

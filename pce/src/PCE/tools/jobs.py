@@ -59,7 +59,7 @@ class JobState(dict):
         Args:
             id (int): Id of the job to get/create state for.
         """
-        if jobs_state_file is None:
+        if job_state_file is None:
             job_state_file = os.path.join(_job_state_dir, str(id))
         self.job_id = id
 
@@ -179,6 +179,7 @@ def job_init_state(job_id, mod_id, username, run_name, run_params,
             proj_loc = mod_state['installed_path']
             mod_name = mod_state['mod_name']
 
+    print 'init state?'
     _logger.debug('Testing project location')
     if not os.path.isdir(proj_loc):
         msg = 'Project location does not exist'
@@ -202,14 +203,18 @@ def job_init_state(job_id, mod_id, username, run_name, run_params,
             # Thrown if dir already exists.
             pass
 
+    print 'init state'
+    print job_state_file
     with JobState(job_id, job_state_file) as job_state:
         job_state['run_dir'] = run_dir
+        print job_state
+    print '---------------'
 
     # The way the following is setup, if a run_dir has already been setup with
     # this run_name, it will be used (that is, not overwritten) for this launch.
     try:
         shutil.copytree(proj_loc, run_dir)
-    except shutil.Error as e:
+    except (shutil.Error, OSError) as e:
         pass
     if run_params:
         _logger.debug('Handling run_params')
@@ -224,14 +229,19 @@ def job_init_state(job_id, mod_id, username, run_name, run_params,
             _logger.warn(msg)
             return (-1, msg)
 
+    return (0, 'Job state initialized')
+
 
 def job_preprocess(job_id, job_state_file=None):
     ret_dir = os.getcwd()
     _logger.info('Calling bin/onramp_preprocess.py')
+    print 'preprocess'
+    print job_state_file
     with JobState(job_id, job_state_file) as job_state:
         job_state['state'] = 'Preprocessing'
         job_state['error'] = None
         run_dir = job_state['run_dir']
+        print job_state
     os.chdir(run_dir)
 
     try:
@@ -256,6 +266,8 @@ def job_preprocess(job_id, job_state_file=None):
         module_log(run_dir, 'preprocess', result)
         os.chdir(ret_dir)
 
+    return (0, 'Job preprocess complete')
+
 def job_run(job_id, job_state_file=None):
     # Determine batch scheduler to user from config.
     cfg = ConfigObj(os.path.join(pce_root, 'bin', 'onramp_pce_config.cfg'),
@@ -267,6 +279,7 @@ def job_run(job_id, job_state_file=None):
     ret_dir = os.getcwd()
     with JobState(job_id, job_state_file) as job_state:
         run_dir = job_state['run_dir']
+        run_name = job_state['run_name']
     os.chdir(run_dir)
 
     # Write batch script.
