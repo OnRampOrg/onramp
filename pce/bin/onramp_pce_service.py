@@ -354,9 +354,8 @@ def _mod_test():
 
     # Postprocess.
     if args.verbose:
-        print 'Deploying module'
-    ret = job_postprocess(job_id, job_state_file=job_state_f[1])
-    if 0 != run_test(ret_val=ret, test=post_postprocess_test):
+        print 'Testing job postprocess'
+    if 0 != run_test(test=post_postprocess_test):
         return
 
     print 'No errors found.'

@@ -456,7 +456,7 @@ def _build_job(job_id, job_state_file=None):
                     return copy.deepcopy(job_state)
                 job_state['error'] = None
                 job_state['mod_status_output'] = None
-                p = Process(target=_job_postprocess, args=(job_id,))
+                p = Process(target=job_postprocess, args=(job_id, job_state_file))
                 p.start()
             elif job_status[1] == 'Running':
                 job_state['state'] = 'Running'
