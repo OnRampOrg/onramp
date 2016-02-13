@@ -194,6 +194,7 @@ def _mod_test():
     username = 'testuser'
     module_id = 1
     job_id = 1
+    ret_dir = os.getcwd()
 
     parser = argparse.ArgumentParser(prog='onramp_pce_service.py modtest',
                                      description=descrip)
@@ -217,7 +218,6 @@ def _mod_test():
                                '%s_%d' % (module_name, module_id))
     mod_state_f = mkstemp()
     job_state_f = mkstemp()
-    custom_runparams = abspath(expanduser(conf['custom_runparams']))
     post_deploy_test = ('post_deploy_test',
                         abspath(expanduser(conf['post_deploy_test'])))
     post_preprocess_test = ('post_preprocess_test',
@@ -228,12 +228,12 @@ def _mod_test():
                         abspath(expanduser(conf['post_status_test'])))
     post_postprocess_test = ('post_postprocess_test',
                    abspath(expanduser(conf['post_postprocess_test'])))
-    ret_dir = os.getcwd()
      
     def finish(conf, error=False):
         path = deploy_path
         results = job_output_file
         params = args
+
         os.close(mod_state_f[0])
         os.close(job_state_f[0])
         os.remove(mod_state_f[1])
@@ -311,6 +311,7 @@ def _mod_test():
     # Init job state.
     if args.verbose:
         print 'Initializing job state'
+    custom_runparams = ConfigObj(abspath(expanduser(conf['custom_runparams'])))
     ret = job_init_state(job_id, module_id, username, module_name,
                          custom_runparams, job_state_file=job_state_f[1],
                          mod_state_file=mod_state_f[1], run_dir=deploy_path)
