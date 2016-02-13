@@ -60,7 +60,7 @@ class JobState(dict):
             id (int): Id of the job to get/create state for.
         """
         if jobs_state_file is None:
-			job_state_file = os.path.join(_job_state_dir, str(id))
+            job_state_file = os.path.join(_job_state_dir, str(id))
         self.job_id = id
 
         try:
@@ -140,13 +140,13 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
             _logger.warn(msg)
             return (-1, msg)
 
-	job_init_state(job_id, mod_id, username, run_name, run_params)
-	job_preprocess(job_id)
-	job_run(job_id)
+    job_init_state(job_id, mod_id, username, run_name, run_params)
+    job_preprocess(job_id)
+    job_run(job_id)
 
 def job_init_state(job_id, mod_id, username, run_name, run_params,
-				   job_state_file=None, mod_state_file=None,
-				   run_dir=None):
+                   job_state_file=None, mod_state_file=None,
+                   run_dir=None):
 
     with JobState(job_id, job_state_file) as job_state:
         job_state['job_id'] = job_id
@@ -188,19 +188,19 @@ def job_init_state(job_id, mod_id, username, run_name, run_params,
 
     # Initialize dir structure.
     if run_dir is None:
-		user_dir = os.path.join(os.path.join(pce_root, 'users'), username)
-		user_mod_dir = os.path.join(user_dir, '%s_%d' % (mod_name, mod_id))
-		run_dir = os.path.join(user_mod_dir, run_name)
-		try:
-			os.mkdir(user_dir)
-		except OSError:
-			# Thrown if dir already exists.
-			pass
-		try:
-			os.mkdir(user_mod_dir)
-		except OSError:
-			# Thrown if dir already exists.
-			pass
+        user_dir = os.path.join(os.path.join(pce_root, 'users'), username)
+        user_mod_dir = os.path.join(user_dir, '%s_%d' % (mod_name, mod_id))
+        run_dir = os.path.join(user_mod_dir, run_name)
+        try:
+            os.mkdir(user_dir)
+        except OSError:
+            # Thrown if dir already exists.
+            pass
+        try:
+            os.mkdir(user_mod_dir)
+        except OSError:
+            # Thrown if dir already exists.
+            pass
 
     with JobState(job_id, job_state_file) as job_state:
         job_state['run_dir'] = run_dir
@@ -254,7 +254,7 @@ def job_preprocess(job_id, job_state_file=None):
         return (-1, msg)
     finally:
         module_log(run_dir, 'preprocess', result)
-		os.chdir(ret_dir)
+        os.chdir(ret_dir)
 
 def job_run(job_id, job_state_file=None):
     # Determine batch scheduler to user from config.
@@ -316,7 +316,7 @@ def job_postprocess(job_id, job_state_file=None):
         mod_id = job_state['mod_id']
         run_name = job_state['run_name']
         mod_name = job_state['mod_name']
-		run_dir = job_state['run_dir']
+        run_dir = job_state['run_dir']
     args = (username, mod_name, mod_id, run_name)
     ret_dir = os.getcwd()
 

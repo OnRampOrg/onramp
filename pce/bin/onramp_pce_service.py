@@ -45,7 +45,7 @@ import shutil
 import sys
 import time
 from subprocess import CalledProcessError, call, check_output
-from tempfile import TemporaryFile
+from tempfile import TemporaryFile, mkstemp
 
 from configobj import ConfigObj
 from validate import Validator
@@ -206,8 +206,15 @@ def _mod_test():
                                              'modtest.cfgspec'))
     conf.validate(Validator())
 
-    deploy_path = abspath(expanduser(conf['deploy_path']))
     module_path = abspath(expanduser(conf['module_path']))
+    deploy_path_parent = abspath(expanduser(conf['deploy_path']))
+    module_name = conf['module_name']
+    module_id = 1
+    deploy_path = os.path.join(deploy_path_parent,
+                               '%s_%d' % (module_name, module_id))
+
+    mod_state_f = mkstemp()
+    job_state_f = mkstemp()
 
     if os.path.exists(deploy_path):
         print ('The deploy path exists. Would you like to remove the old path '
@@ -218,9 +225,11 @@ def _mod_test():
         else:
             sys.exit('Aborted')
 
-    shutil.copytree(module_path, deploy_path)
+    install_module('local', module_path, deploy_path_parent, module_id,
+                   module_name, mod_state_file=mod_state_f[1])
 
     os.chdir(deploy_path)
+
     custom_runparams = abspath(expanduser(conf['custom_runparams']))
     post_deploy_test = ('post_deploy_test',
                         abspath(expanduser(conf['post_deploy_test'])))
@@ -232,6 +241,9 @@ def _mod_test():
                         abspath(expanduser(conf['post_status_test'])))
     post_postprocess_test = ('post_postprocess_test',
                         abspath(expanduser(conf['post_postprocess_test'])))
+
+    os.close(mod_state_f[0])
+    os.close(job_state_f[0])
 
     def finish(conf, error=False):
         path = deploy_path
@@ -258,135 +270,100 @@ def _mod_test():
             else:
                 print 'No job output file found.'
 
-    def run_section(script=None, test=None, print_output=False):
+    def run_test(test):
         py = env_py
-        params = args
         cfg = conf
+        params = args
 
-        if script:
+        if cfg[test[0]]:
             if params.verbose:
-                print 'Running %s' % script
-            try:
-                # FIXME: This needs to be able to handle the 'admin required'
-                # situation when script = 'bin/onramp_deploy'
-                output = check_output([py, script])
-            except CalledProcessError as e:
-                print '%s call failed.' % script
-                print e.output
-                finish(conf, error=True)
+                print 'Running %s' % test[0]
+            if 0 != call([py, test[1]]):
+                print '%s failed.' % test[0]
+                finish(cfg, error=True)
                 return -1
-
-        if print_output:
-            print output
-
-        if test:
-            if cfg[test[0]]:
-                if params.verbose:
-                    print 'Running %s' % test[0]
-                if 0 != call([py, test[1]]):
-                    print '%s failed.' % test[0]
-                    finish(cfg, error=True)
-                    return -1
 
         return 0
 
-    def SLURM_status(job_num):
-        try:
-            job_info = check_output(['scontrol', 'show', 'job', job_num])
-        except CalledProcessError as e:
-            print 'CalledProcessError'
-            return (-1, '')
-    
-        job_state = job_info.split('JobState=')[1].split()[0]
-        if job_state == 'RUNNING':
-            job_state = 'Running'
-        elif job_state == 'COMPLETED':
-            job_state = 'Done'
-        elif job_state == 'PENDING':
-            job_state = 'Queued'
-        else:
-            print 'Unexpected job state: %s' % job_state
-            return (-1, '')
-        
-        return (0, job_state)
-
     # Deploy.
-    result = run_section(script='bin/onramp_deploy.py', test=post_deploy_test)
-    if 0 != result:
+    deploy_module(module_id, mod_state_file=mod_state_f[1])
+    if 0 != run_test(test=post_deploy_test)
         return
 
-    os.mkdir(pce_dir)
-    if conf['custom_runparams']:
-        if args.verbose:
-            print 'Simulating generation of onramp_runparams.cfg'
-        shutil.copyfile(custom_runparams, 'onramp_runparams.cfg')
+    sys.exit(0)
 
-    time.sleep(2)
-
-    # Preprocess.
-    result = run_section(script='bin/onramp_preprocess.py',
-                         test=post_preprocess_test)
-    if 0 != result:
-        return
-        
-    # Run.
-    if conf['batch_scheduler'] == 'SLURM':
-        status_check = SLURM_status
-        tools._build_SLURM_script('modtest', conf['num_tasks'], None,
-                                filename=batch_script_name)
-        if args.verbose:
-            print 'Launching job'
-        try:
-            batch_output = check_output(['sbatch', batch_script_name])
-            job_num = batch_output.strip().split()[3:][0] 
-        except (CalledProcessError, ValueError, IndexError):
-            print 'Job scheduling call failed or gave unexpected output.'
-            finish(conf, error=True)
-            return
-    else:
-        print "Invalid value given for 'batch_scheduler'."
-        finish(conf, error=True)
-        return
-
-    result = run_section(test=post_launch_test)
-    if 0 != result:
-        return
-        
-    # Wait for job to finish, call onramp_status.py when appropriate.
-    if args.verbose:
-        print 'Waiting/polling job state for completion'
-        
-    sleep_time = conf['results_check_sleep']
-    if not sleep_time:
-        sleep_time = default_sleep_time
-    job_state = 'Queued'
-
-    while job_state != 'Done':
-        time.sleep(sleep_time)
-        (status, job_state) = status_check(job_num)
-
-        if 0 != status:
-            print 'Job info call failed.'
-            finish(conf, error=True)
-            return
-
-        if job_state == 'Running':
-            result = run_section(script='bin/onramp_status.py',
-                                 test=post_status_test,
-                                 print_output=True)
-            if 0 != result:
-                return
-
-    # Postprocess.
-    result = run_section(script='bin/onramp_postprocess.py',
-                         test=post_postprocess_test)
-    if 0 != result:
-        return
-
-    if args.verbose:
-        print 'No errors found.'
-
-    finish(conf)
+#    os.mkdir(pce_dir)
+#    if conf['custom_runparams']:
+#        if args.verbose:
+#            print 'Simulating generation of onramp_runparams.cfg'
+#        shutil.copyfile(custom_runparams, 'onramp_runparams.cfg')
+#
+#    time.sleep(2)
+#
+#    # Preprocess.
+#    result = run_section(script='bin/onramp_preprocess.py',
+#                         test=post_preprocess_test)
+#    if 0 != result:
+#        return
+#        
+#    # Run.
+#    if conf['batch_scheduler'] == 'SLURM':
+#        status_check = SLURM_status
+#        tools._build_SLURM_script('modtest', conf['num_tasks'], None,
+#                                filename=batch_script_name)
+#        if args.verbose:
+#            print 'Launching job'
+#        try:
+#            batch_output = check_output(['sbatch', batch_script_name])
+#            job_num = batch_output.strip().split()[3:][0] 
+#        except (CalledProcessError, ValueError, IndexError):
+#            print 'Job scheduling call failed or gave unexpected output.'
+#            finish(conf, error=True)
+#            return
+#    else:
+#        print "Invalid value given for 'batch_scheduler'."
+#        finish(conf, error=True)
+#        return
+#
+#    result = run_section(test=post_launch_test)
+#    if 0 != result:
+#        return
+#        
+#    # Wait for job to finish, call onramp_status.py when appropriate.
+#    if args.verbose:
+#        print 'Waiting/polling job state for completion'
+#        
+#    sleep_time = conf['results_check_sleep']
+#    if not sleep_time:
+#        sleep_time = default_sleep_time
+#    job_state = 'Queued'
+#
+#    while job_state != 'Done':
+#        time.sleep(sleep_time)
+#        (status, job_state) = status_check(job_num)
+#
+#        if 0 != status:
+#            print 'Job info call failed.'
+#            finish(conf, error=True)
+#            return
+#
+#        if job_state == 'Running':
+#            result = run_section(script='bin/onramp_status.py',
+#                                 test=post_status_test,
+#                                 print_output=True)
+#            if 0 != result:
+#                return
+#
+#    # Postprocess.
+#    result = run_section(script='bin/onramp_postprocess.py',
+#                         test=post_postprocess_test)
+#    if 0 != result:
+#        return
+#
+#    if args.verbose:
+#        print 'No errors found.'
+#
+#    finish(conf)
 
 def _mod_install():
     """Install an OnRamp educational module from the given location.
