@@ -136,13 +136,18 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
     with JobState(job_id) as job_state:
         if ('state' in job_state.keys()
             and job_state['state'] not in accepted_states):
-            msg = 'Job launch already initiated'
+            msg = ('Job launch already initiated. '
+                   'Has state %s.' % job_state['state'])
             _logger.warn(msg)
             return (-1, msg)
 
-    job_init_state(job_id, mod_id, username, run_name, run_params)
-    job_preprocess(job_id)
-    job_run(job_id)
+    ret = job_init_state(job_id, mod_id, username, run_name, run_params)
+    if ret[0] != 0:
+        return ret
+    ret = job_preprocess(job_id)
+    if ret[0] != 0:
+        return ret
+    return job_run(job_id)
 
 def job_init_state(job_id, mod_id, username, run_name, run_params,
                    job_state_file=None, mod_state_file=None,
@@ -478,7 +483,7 @@ def _build_job(job_id, job_state_file=None):
 
         job = copy.deepcopy(job_state)
 
-    if job['state'] == 'Launch failed':
+    if job['state'] in ['Launch failed', 'Setting up launch']:
         return job
 
     # Build visible files.
