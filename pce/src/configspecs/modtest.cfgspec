@@ -1,5 +1,6 @@
 module_path = string()
 deploy_path = string()
+module_name = string()
 batch_scheduler = option('SLURM')
 num_tasks = integer()
 results_check_sleep = float(default=5.0)

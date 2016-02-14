@@ -7,9 +7,9 @@ This script is only intended to be run in a fresh install of the repository. It
 has side-effects that could corrupt module and user data if run in a production
 setting.
 
-Prior to running this script, ensure that onramp/pce/onramp_pce_setup.py has
-been called and that the server is running. Also Ensure ./test_pce_config.cfg
-contains the proper settings.
+Prior to running this script, ensure that onramp/pce/bin/onramp_pce_install.py
+has been called and that the server is running. Also Ensure
+./test_pce_config.cfg contains the proper settings.
 """
 import nose
 import sys

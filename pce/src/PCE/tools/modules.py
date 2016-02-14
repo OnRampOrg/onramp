@@ -50,7 +50,7 @@ class ModState(dict):
             mod_state['key2'] = 'val2'
     """
 
-    def __init__(self, id):
+    def __init__(self, id, mod_state_file=None):
         """Return initialized ModState instance.
 
         Method works in get-or-create fashion, that is, if state exists for
@@ -59,7 +59,8 @@ class ModState(dict):
         Args:
             id (int): Id of the module to get/create state for.
         """
-        mod_state_file = os.path.join(_mod_state_dir, str(id))
+        if mod_state_file is None:
+            mod_state_file = os.path.join(_mod_state_dir, str(id))
         self.mod_id = id
 
         try:
@@ -142,7 +143,7 @@ def get_source_types():
     return source_handlers.keys()
 
 def install_module(source_type, source_path, install_parent_folder, mod_id,
-                   mod_name, verbose=False):
+                   mod_name, verbose=False, mod_state_file=None):
     """Install OnRamp educational module into environment.
 
     Args:
@@ -167,7 +168,7 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
     _logger.debug('cwd: %s' % os.getcwd())
     _logger.debug('source_abs_path: %s' % source_abs_path)
 
-    with ModState(mod_id) as mod_state:
+    with ModState(mod_id, mod_state_file=mod_state_file) as mod_state:
         if 'state' in mod_state.keys():
             if mod_state['state'] == 'Checkout in progress':
                 return (-1, 'Module %d already undergoing install process'
@@ -191,7 +192,7 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
     result = source_handlers[source_type](source_abs_path, mod_dir)
 
     if result:
-        with ModState(mod_id) as mod_state:
+        with ModState(mod_id, mod_state_file=mod_state_file) as mod_state:
             mod_state['state'] = 'Checkout failed'
             mod_state['error'] = result
             if mod_state['_marked_for_del']:
@@ -206,7 +207,7 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
         # Dir already exists. All good.
         pass
 
-    with ModState(mod_id) as mod_state:
+    with ModState(mod_id, mod_state_file=mod_state_file) as mod_state:
         mod_state['state'] = 'Installed'
         mod_state['error'] = None
         mod_state['installed_path'] = mod_dir
@@ -216,7 +217,7 @@ def install_module(source_type, source_path, install_parent_folder, mod_id,
 
     return (0, 'Module %d installed' % mod_id)
 
-def deploy_module(mod_id, verbose=False):
+def deploy_module(mod_id, verbose=False, mod_state_file=None):
     """Deploy an installed OnRamp educational module.
 
     Args:
@@ -233,7 +234,7 @@ def deploy_module(mod_id, verbose=False):
     not_installed_states = ['Available', 'Checkout in Progress',
                             'Checkout failed']
 
-    with ModState(mod_id) as mod_state:
+    with ModState(mod_id, mod_state_file=mod_state_file) as mod_state:
         if ('state' not in mod_state.keys()
             or mod_state['state'] in not_installed_states):
             return (-1, 'Module %d not installed' % mod_id)
@@ -260,7 +261,7 @@ def deploy_module(mod_id, verbose=False):
             code -= 256
         output = e.output
         if code != 1:
-            with ModState(mod_id) as mod_state:
+            with ModState(mod_id, mod_state_file=mod_state_file) as mod_state:
                 msg = ('Deploy exited with return status %d and output: %s'
                          % (code, output))
                 _logger.debug(msg)
@@ -270,7 +271,7 @@ def deploy_module(mod_id, verbose=False):
                     _delete_module(mod_state)
                     return (-3, 'Module %d deleted' % mod_id)
             return (-1, msg)
-        with ModState(mod_id) as mod_state:
+        with ModState(mod_id, mod_state_file=mod_state_file) as mod_state:
             msg = 'Admin required'
             _logger.debug(msg)
             mod_state['state'] = msg
@@ -283,7 +284,7 @@ def deploy_module(mod_id, verbose=False):
         output = str(e1)
         _logger.debug('OSError from bin/onramp_deploy.py')
         _logger.debug(e1)
-        with ModState(mod_id) as mod_state:
+        with ModState(mod_id, mod_state_file=mod_state_file) as mod_state:
             mod_state['state'] = 'Deploy failed'
             mod_state['error'] = str(e1)
         return (-1, str(e1))
@@ -292,7 +293,7 @@ def deploy_module(mod_id, verbose=False):
         module_log(mod_dir, 'deploy', output)
 
     _logger.debug("Updating state to 'Module ready'")
-    with ModState(mod_id) as mod_state:
+    with ModState(mod_id, mod_state_file=mod_state_file) as mod_state:
         mod_state['state'] = 'Module ready'
         mod_state['error'] = None
         if mod_state['_marked_for_del']:
