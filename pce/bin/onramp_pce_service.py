@@ -219,15 +219,20 @@ def _mod_test():
     mod_state_f = mkstemp()
     job_state_f = mkstemp()
     post_deploy_test = ('post_deploy_test',
-                        abspath(expanduser(conf['post_deploy_test'])))
+                        abspath(expanduser(os.path.join(
+                        deploy_path, conf['post_deploy_test']))))
     post_preprocess_test = ('post_preprocess_test',
-                        abspath(expanduser(conf['post_preprocess_test'])))
+                            abspath(expanduser(os.path.join(
+                            deploy_path, conf['post_preprocess_test']))))
     post_launch_test = ('post_launch_test',
-                        abspath(expanduser(conf['post_launch_test'])))
+                        abspath(expanduser(os.path.join(
+                        deploy_path, conf['post_launch_test']))))
     post_status_test = ('post_status_test',
-                        abspath(expanduser(conf['post_status_test'])))
+                        abspath(expanduser(os.path.join(
+                        deploy_path, conf['post_status_test']))))
     post_postprocess_test = ('post_postprocess_test',
-                   abspath(expanduser(conf['post_postprocess_test'])))
+                             abspath(expanduser(os.path.join(
+                             deploy_path, conf['post_postprocess_test']))))
      
     def finish(conf, error=False):
         path = deploy_path
