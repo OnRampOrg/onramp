@@ -99,7 +99,7 @@ class PCEBase(unittest.TestCase):
         self.job_state_dir = 'src/state/jobs'
         self.install_dir = 'modules'
         self.users_dir = 'users'
-        self.avail_mods = ['template', 'mpi-ring', 'pi']
+        self.avail_mods = ['template', 'mpi-ring', 'AUC']
 
         def not_hidden(x):
             return not x.startswith('.')
