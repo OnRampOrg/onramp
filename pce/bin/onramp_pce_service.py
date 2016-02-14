@@ -364,6 +364,7 @@ def _mod_test():
         return
 
     print 'No errors found.'
+    finish(conf, error=False)
 
 def _mod_install():
     """Install an OnRamp educational module from the given location.
