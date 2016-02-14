@@ -194,6 +194,9 @@ function PCE (data) {
 			contentType: 'application/json'
 		} );
 	}
+	self.removeOnServer = function () {
+		alert("remove on server not implmented");
+	}
 }
 
 

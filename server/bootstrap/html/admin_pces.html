@@ -81,7 +81,7 @@
 
 
 <!-- Add a new -->
-<div class="container" data-bind="with: newPCE">
+<div class="container" data-bind="with: newPCE()">
   <div class="row">
     <h3>PCE Info: <span data-bind="text:name"></span></h3>
   </div>
@@ -161,7 +161,7 @@
 
 
 <!-- View an existing PCE -->
-<div class="container" data-bind="with: selectedPCE">
+<div class="container" data-bind="with: selectedPCE()">
   <div class="row">
     <h3>PCE Info: <span data-bind="text:name"></span> (PCE ID: <span data-bind="text: id"></span>)</h3>
   </div>
