@@ -11,7 +11,7 @@ the environment, and creates a default admin user.
 import os
 import shutil
 import sys
-from subprocess import call
+from subprocess import call, PIPE, Popen
 from tempfile import mkstemp
 
 if __name__ == '__main__':
@@ -41,6 +41,7 @@ if __name__ == '__main__':
         shutil.rmtree(env_dir, True)
         shutil.rmtree(users_dir, True)
         shutil.rmtree(modules_dir, True)
+        shutil.rmtree(log_dir, True)
         shutil.rmtree(log_dir, True)
         shutil.rmtree(module_state_dir, True)
         shutil.rmtree(job_state_dir, True)
@@ -96,10 +97,6 @@ if __name__ == '__main__':
     with open(mod_file, 'w') as f:
         print>>f, "pce_root = '%s'\n" % cwd
 
-    # Use virtual environment to complete server setup
-    call([env_dir + '/bin/python', source_dir + '/stage_two.py'])
-
-###
     if os.path.exists(users_dir):
         msg = 'It appears users already exist on this system.\n'
         msg += '(R)emove current users and create new admin user or '
@@ -116,9 +113,17 @@ if __name__ == '__main__':
     os.chdir(docs_dir)
     call(['make', 'html'])
     os.chdir(ret_dir)
-###
 
-    ###################################################
+    # Added lstopo info output to static html files.
+    print "=" * 70
+    print "Status: Adding lstopo output to static html files."
+    print "=" * 70
+
+    try:
+        call(['lstopo', os.path.join(docs_dir, 'build', 'html', 'topo.pdf')])
+    except:
+        print 'Error calling "lstopo". Skipping topo.pdf generation.'
+
     print "=" * 70
     print "Status: Setup Complete"
     print "=" * 70
