@@ -425,6 +425,32 @@ class Jobs(_OnRampDispatcher):
         result = init_job_delete(job_id)
         return self.get_response(status_msg=result[1])
 
+class ClusterInfo2():
+    exposed = True
+
+    def __init__(self, conf, log_name):
+        self.conf = conf
+        self.logger = logging.getLogger(log_name)
+        self.logger.debug('Initialized %s' % self.__class__.__name__)
+
+    def GET(self, *args):
+        return 'ClusterInfo2'
+        self.logger.debug('args: %s' % str(args))
+
+        if not args:
+            args = ('index.html',)
+
+        prefix = os.path.abspath(os.path.join(pce_root, 'docs', 'build',
+                                              'html'))
+        index_file = os.path.join(pce_root, 'docs', 'build', 'html', *args)
+        index_file = os.path.normpath(os.path.abspath(index_file))
+
+        if (not index_file.startswith(prefix)
+            or not os.path.isfile(index_file)):
+            cherrypy.response.status = 404
+            return 'File %s not found' % os.path.join(*args)
+
+        return serve_file(index_file)
 
 class ClusterInfo():
     """Provide acces to information about the given cluster.
@@ -455,7 +481,13 @@ class ClusterInfo():
         Returns:
             Requested documentation file if it exists, 404 if not.
         """
-        self.logger.debug('args: %s' % str(args))
+        if cherrypy.request.path_info == "":
+            # No trailing slash in request URI. This breaks relative paths in
+            # Sphinx-generated docs. Fix by redirecting to URI with trailing
+            # slash.
+            redirect_path = "/cluster/info/"
+            self.logger.debug('Redirecting to: %s' % redirect_path)
+            raise cherrypy.HTTPRedirect(redirect_path)
 
         if not args:
             args = ('index.html',)
