@@ -38,19 +38,19 @@
 <br>
 <div class="container">
   <div class="jumbotron">
-    <h1>Users Admin Dashboard</h1>
+    <h1>PCE Admin Dashboard</h1>
   </div>
 </div>
 
-<!-- User info -->
+<!-- PCE info -->
 <div class="container">
   <div class="row">
-    <h2>User Info (<span data-bind="text: Userslist().length"></span>)</h2>
-    <p>This is a list of all users associated with this OnRamp server instance.  Current functionality allows you to add and delete users.</p>
+    <h2>PCE Info (<span data-bind="text: PCElist().length"></span>)</h2>
+    <p>This is a list of all PCEs associated with this OnRamp server instance.  Current functionality allows you to add PCEs.</p>
   </div>
 
   <div class="row">
-    <button class="btn btn-primary" data-bind="click: addUser">Add New User</button>
+    <button class="btn btn-primary" data-bind="click: addPCE">Add New PCE</button>
   </div>
 
   <div class="row">
@@ -58,73 +58,143 @@
       <thead >
         <th>ID</th>
         <th>Name</th>
-        <th>Email</th>
-        <th>Admin?</th>
+        <th>State</th>
+        <th>Description</th>
+        <th>Location</th>
         <th>Delete</th>
       </thead>
-      <tbody data-bind="foreach: Userslist()">
-        <tr data-bind="click: $parent.selectUser">
+      <tbody data-bind="foreach: PCElist()">
+        <tr data-bind="click: $parent.selectPCE">
           <td data-bind="text: id"></td>
-          <td data-bind="text: username"></td>
-          <td data-bind="text: fullName"></td>
-          <td data-bind="text: isAdmin"></td>
-          <td><button class="btn btn-danger" data-bind="click: $parent.deleteUser">Delete</button></td>
+          <td data-bind="text: name"></td>
+          <td data-bind="text: status"></td>
+          <td data-bind="text: description"></td>
+          <td data-bind="text: location"></td>
+          <td data-bind="text: port"></td>
+          <td data-bind="text: url"></td>
+          <td><button class="btn btn-danger" data-bind="click: $parent.deletePCE">Delete</button></td>
         </tr>
       </tbody>
     </table>
   </div>
 </div>
 
-<div class="container" data-bind="with: selectedUser">
+
+<!-- Add a new -->
+<div class="container" data-bind="with: newPCE()">
   <div class="row">
-    <h3>User Info: <span data-bind="text:username"></span> (User ID: <span data-bind="text: id"></span>)</h3>
+    <h3>PCE Info: <span data-bind="text:name"></span></h3>
   </div>
   <div class="row">
     <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p data-bind="text: username"></p>
+      <p data-bind="text: name"></p>
     </div>
     <div class="col-lg-4 col-md-5 col-sm-6">
-      <input data-bind="value: username"/>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p data-bind="text: fullName"></p>
-    </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
-      <input data-bind="value: fullName"/>
+      <input data-bind="value: name"/>
     </div>
   </div>
   <div class="row">
     <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p data-bind="text: email"></p>
+      <p data-bind="text: description"></p>
     </div>
     <div class="col-lg-4 col-md-5 col-sm-6">
-      <input data-bind="value: email"/>
+      <input data-bind="value: description"/>
     </div>
   </div>
   <div class="row">
     <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p data-bind="text: password"></p>
+      <p data-bind="text: location"></p>
     </div>
     <div class="col-lg-4 col-md-5 col-sm-6">
-      <input data-bind="value: password"/>
+      <input data-bind="value: location"/>
     </div>
   </div>
   <div class="row">
     <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p>Admin? (<span data-bind="text: isAdmin"></span>)</p>
+      <p data-bind="text: contact_info"></p>
     </div>
     <div class="col-lg-4 col-md-5 col-sm-6">
-      <input data-bind="checked: isAdmin" type="checkbox" />
+      <input data-bind="value: contact_info"/>
     </div>
   </div>
   <div class="row">
     <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p>Enabled? (<span data-bind="text: isEnabled"></span>)</p>
+      <p data-bind="text: pce_username"></p>
     </div>
     <div class="col-lg-4 col-md-5 col-sm-6">
-      <input data-bind="checked: isEnabled" type="checkbox" />
+      <input data-bind="value: pce_username"/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p data-bind="text: pce_password"></p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <input data-bind="value: pce_password"/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p data-bind="text: port"></p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <input data-bind="value: port"/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p data-bind="text: url"></p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <input data-bind="value: url"/>
+    </div>
+  </div>
+
+
+  <!-- Add PCE button -->
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <button class="btn" data-bind="click: $parent.updateServer">Add PCE</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- View an existing PCE -->
+<div class="container" data-bind="with: selectedPCE()">
+  <div class="row">
+    <h3>PCE Info: <span data-bind="text:name"></span> (PCE ID: <span data-bind="text: id"></span>)</h3>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p data-bind="text: name"></p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <input data-bind="value: name"/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p>Status</p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <p data-bind="text: status"/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p data-bind="text: description"></p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <input data-bind="value: description"/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p data-bind="text: location"></p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <input data-bind="value: location"/>
     </div>
   </div>
 
@@ -193,7 +263,7 @@
 
 
   <!-- list of modules -->
-    <!-- don't really want to show modules and PCEs
+
   <div class="row">
     <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
       <h4>Modules (<span data-bind="text: Moduleslist().length"></span>)</h4>
@@ -216,49 +286,7 @@
       </table>
     </div>
   </div>
-  -->
 
-
-  <!-- list of PCEs -->
-  <!-- don't really want to show modules and PCEs
-  <div class="row">
-    <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
-      <h4>PCEs (<span data-bind="text: PCEslist().length"></span>)</h4>
-
-      <table class="table table-striped">
-        <thead>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Status</th>
-          <th>Description</th>
-          <th>Nodes</th>
-          <th>Cores per node</th>
-          <th>Mem per node</th>
-          <th>View/Edit</th>
-        </thead>
-        <tbody data-bind="foreach: PCEslist">
-          <tr>
-            <td data-bind="text: ID"></td>
-            <td data-bind="text: name"></td>
-            <td data-bind="text: status"></td>
-            <td data-bind="text: description"></td>
-            <td data-bind="text: nodes"></td>
-            <td data-bind="text: corespernode"></td>
-            <td data-bind="text: mempernode"></td>
-            <td><a data-bind="click: viewPCE">View</a></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
--->
-
-  <!-- Save Changes button -->
-  <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6">
-      <button class="btn" data-bind="click: updateServer">Save Changes</button>
-    </div>
-  </div>
 </div>
 
 <!-- footer -->
@@ -272,6 +300,6 @@
 <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
 <script src="../js/bootstrap.min.js"></script>
 <script src="../js/knockout-3.3.0.js"></script>
-<script src="../js/admin_users.js"></script>
+<script src="../js/admin_PCEs.js"></script>
 </body>
 </html>
