@@ -8,7 +8,7 @@ For a Quick Start Guide see the [README](../README.md) in the base directory.
 --------------------------
 ## OnRamp User Role
 
-The OnRamp project is an interactive web portal that allows you to launch parallel applications and explore 
+Editing: The OnRamp project is an interactive web portal that allows you to launch parallel applications and explore 
 system software.  The user friendly interface hides the complexity of the parallel computing environments (PCE) allowing 
 you to focus on learning the parallel and distributed computing (PDC) concepts outlined in your modules.  Be sure to 
 hover over any highlighted words to view the definition and the role it plays in launching your job in a PCE.  Understanding
