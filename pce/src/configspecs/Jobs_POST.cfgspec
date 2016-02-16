@@ -1,0 +1,4 @@
+mod_id = integer()
+job_id = integer()
+username = string()
+run_name = string()

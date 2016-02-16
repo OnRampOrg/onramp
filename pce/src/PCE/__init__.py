@@ -1,4 +1,4 @@
-"""onramp REST server functionality and endpoints, independent of particular web
+"""OnRamp REST server functionality and endpoints, independent of particular web
 server.
 
 Exports:

@@ -5,31 +5,31 @@ This directory contains the code necessary to setup a new OnRamp Parallel Comput
 
 ## Directory Structure
 
- * [onramp\_pce\_config.ini](onramp_pce_config.ini) : PCE configuration file (Uses Python [configobj](https://configobj.readthedocs.org/en/latest/) syntax)
+ * [bin/onramp\_pce\_config.cfg](bin/onramp_pce_config.cfg) : PCE configuration file (Uses Python [configobj](https://configobj.readthedocs.org/en/latest/) syntax)
  * [onramp\_pce\_service.py](onramp_pce_service.py) : Provides start/stop/restart/status options to control the OnRamp daemon running on the PCE.
  
 	```
 	// Start the OnRamp PCE Service
- 	$ ./onramp_pce_service.py start
+ 	$ bin/onramp_pce_service.py start
 	```
 	```
  	// Stop the OnRamp PCE Service
- 	$ ./onramp_pce_service.py stop
+ 	$ bin/onramp_pce_service.py stop
 	```
 	```
  	// Restart the OnRamp PCE Service
- 	$ ./onramp_pce_service.py restart
+ 	$ bin/onramp_pce_service.py restart
 	```
 	```
  	// Check the status of the OnRamp PCE Service
- 	$ ./onramp_pce_service.py status
+ 	$ bin/onramp_pce_service.py status
  	```
  	
- * [onramp\_pce\_setup.py](onramp_pce_setup.py) : A one-time setup script that will assist the user with deploying the OnRamp PCE Service on a new machine.
+ * [bin/onramp\_pce\_install.py](bin/onramp_pce_install.py) : A one-time setup script that will assist the user with deploying the OnRamp PCE Service on a new machine.
 
 	```
 	// Setup the OnRamp PCE Service on this PCE
- 	$ ./onramp_pce_setup.py
+ 	$ bin/onramp_pce_install.py
 	```
 	
  * [docs](docs/) : Documentation about the PCE that should be provided to the OnRamp users.
