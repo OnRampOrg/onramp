@@ -154,7 +154,7 @@
   <!-- Add PCE button -->
   <div class="row">
     <div class="col-lg-4 col-md-5 col-sm-6">
-      <button class="btn" data-bind="click: $parent.updateServer">Add PCE</button>
+      <button class="btn btn-primary" data-bind="click: $parent.updateServer">Add PCE</button>
     </div>
   </div>
 </div>
@@ -164,9 +164,6 @@
 <div class="container" data-bind="with: selectedPCE()">
   <div class="row">
     <h3>PCE Info: <span data-bind="text:name"></span> (PCE ID: <span data-bind="text: id"></span>)</h3>
-  </div>
-  <div class="row">
-    <button class="btn btn-primary" data-bind="click: $parent.showNewModuleForm">Add New Module</button>
   </div>
   <div class="row">
     <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
@@ -201,63 +198,7 @@
     </div>
   </div>
 
-  <!-- Add a module -->
-  <div class="container" data-bind="with: newModule()">
-      <div class="row">
-        <h3>Module to add: <span data-bind="text:name"></span></h3>
-      </div>
-      <div class="row">
-        <div class="col-lg-3 col-md-4 col-sm-6 col-md-offset-1">
-            <p>Name</p>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6 col-md-offset-1">
-          <p data-bind="text: name"></p>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-          <input data-bind="value: name"/>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-lg-3 col-md-4 col-sm-6 col-md-offset-1">
-            <p>Install Location</p>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6 col-md-offset-1">
-          <p data-bind="text: install_location"></p>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-          <input data-bind="value: install_location"/>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-lg-3 col-md-4 col-sm-6 col-md-offset-1">
-            <p>Source Location Type</p>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6 col-md-offset-1">
-          <p data-bind="text: src_location_type"></p>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-          <input data-bind="value: src_location_type"/>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-lg-3 col-md-4 col-sm-6 col-md-offset-1">
-            <p>Source Location Path</p>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6 col-md-offset-1">
-          <p data-bind="text: src_location_path"></p>
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-          <input data-bind="value: src_location_path"/>
-        </div>
-      </div>
 
-      <!-- Add Module button -->
-      <div class="row">
-        <div class="col-lg-4 col-md-5 col-sm-6">
-          <button class="btn" data-bind="click: $parent.addModule">Add Module</button>
-        </div>
-      </div>
-  </div>
 
 
   <!-- list of workspaces -->
@@ -266,7 +207,7 @@
         <h4>Workspaces (<span data-bind="text: Workspacelist().length"></span>)</h4>
       </div>
       <div class="col-lg-3 col-md-2 col-sm-1">
-        <button class="btn" data-bind="click: $parent.refreshWorkspaces">Refresh Workspaces</button>
+        <button class="btn btn-primary" data-bind="click: $parent.refreshWorkspaces">Refresh Workspaces</button>
       </div>
       <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
       <table class="table table-striped">
@@ -296,7 +237,7 @@
         <h4>Jobs (<span data-bind="text: Jobslist().length"></span>)</h4>
       </div>
       <div class="col-lg-3 col-md-2 col-sm-1">
-        <button class="btn" data-bind="click: $parent.refreshJobs">Refresh Jobs</button>
+        <button class="btn btn-primary" data-bind="click: $parent.refreshJobs">Refresh Jobs</button>
       </div>
       <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
       <table class="table table-striped">
@@ -334,11 +275,14 @@
   <!-- list of modules -->
   <!-- Need to add buttons to deploy modules -->
   <div class="row">
-    <div class="col-lg-6 col-md-7 col-sm-8 col-md-offset-1">
+    <div class="col-lg-4 col-md-4 col-sm-6 col-md-offset-1">
       <h4>Modules (<span data-bind="text: Moduleslist().length"></span>)</h4>
     </div>
     <div class="col-lg-3 col-md-2 col-sm-1">
-      <button class="btn" data-bind="click: refreshModules">Refresh Modules</button>
+      <button class="btn btn-primary" data-bind="click: $parent.showNewModuleForm">Add a Module</button>
+    </div>
+    <div class="col-lg-3 col-md-2 col-sm-1">
+      <button class="btn btn-primary" data-bind="click: refreshModules">Refresh Modules</button>
     </div>
     <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
       <table class="table table-striped">
@@ -349,7 +293,6 @@
           <th>Is Visible?</th>
           <th>State</th>
           <th>View</th>
-          <th>Check Status</th>
           <th>Deploy</th>
         </thead>
         <tbody data-bind="foreach: Moduleslist">
@@ -359,14 +302,72 @@
             <td data-bind="text: desc"></td>
             <td data-bind="text: is_visible"></td>
             <td data-bind="text: state_str"></td>
-            <td><a data-bind="click: viewModule">View</a></td>
-            <td><a data-bind="click: $parent.checkModuleStatus">Check</a></td>
-            <td><a data-bind="click: $parent.deployModule">Deploy</a></td>
+            <td><button class="btn" data-bind="click: viewModule">View</button></td>
+            <td><button class="btn" data-bind="click: $parent.deployModule">Deploy</button></td>
           </tr>
         </tbody>
       </table>
     </div>
-  </div>
+</div>
+
+    <!-- Add a module -->
+    <div class="container" data-bind="with: newModule()">
+        <div class="row">
+          <h3>Module to add: <span data-bind="text:name"></span></h3>
+        </div>
+        <div class="row">
+          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+              <p>Name</p>
+          </div>
+          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+            <p data-bind="text: name"></p>
+          </div>
+          <div class="col-lg-2 col-md-3 col-sm-4">
+            <input data-bind="value: name"/>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+              <p>Install Location</p>
+          </div>
+          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+            <p data-bind="text: install_location"></p>
+          </div>
+          <div class="col-lg-2 col-md-3 col-sm-4">
+            <input data-bind="value: install_location"/>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+              <p>Source Location Type</p>
+          </div>
+          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+            <p data-bind="text: src_location_type"></p>
+          </div>
+          <div class="col-lg-2 col-md-3 col-sm-4">
+            <input data-bind="value: src_location_type"/>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+              <p>Source Location Path</p>
+          </div>
+          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+            <p data-bind="text: src_location_path"></p>
+          </div>
+          <div class="col-lg-2 col-md-3 col-sm-4">
+            <input data-bind="value: src_location_path"/>
+          </div>
+        </div>
+
+        <!-- Add Module button -->
+        <div class="row">
+          <div class="col-lg-4 col-md-5 col-sm-6">
+            <button class="btn btn-primary" data-bind="click: $parent.addModule">Add Module</button>
+          </div>
+        </div>
+    </div>
+  
 
 </div>
 
