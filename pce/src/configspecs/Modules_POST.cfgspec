@@ -1,0 +1,6 @@
+mod_id = integer()
+mod_name = string()
+
+[source_location]
+type = option(local)
+path = string()

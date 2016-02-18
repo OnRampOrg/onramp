@@ -7,12 +7,12 @@ This is a template curriculum module that lays out a framework for future curric
 
 The ```config``` directory contains a series of configuration files, described below. The syntax for these files is in Python [configobj](https://configobj.readthedocs.org/en/latest/#) format.
 
- * ```config/onramp_metadata.ini``` : Metadata information about your curriculum module (e.g., Author, Title, Description).
- * ```config/onramp.ini``` : Any setup/deployment requirements that OnRamp needs to be aware of when using your module.
- * ```config/onramp_uioptions.ini``` : User interaction configuration. This file describes how the end user will interact with your curriculum module.
+ * ```config/onramp_metadata.cfg``` : Metadata information about your curriculum module (e.g., Author, Title, Description).
+ * ```config/onramp.cfg``` : Any setup/deployment requirements that OnRamp needs to be aware of when using your module.
+ * ```config/onramp_uioptions.cfgspec``` : User interaction configuration. This file describes how the end user will interact with your curriculum module. Written in [configspec](https://configobj.readthedocs.org/en/latest/configobj.html#validation). Descriptions of the keys (if needed) can be listed in the ```config/onramp_metadata.cfg``` file.
   * List of files to make visible after the run (regular expressions allowed)
   * List of web form parameters (e.g., block size, number of steps) that change the behavior of the application run. Additional validation criteria should be specified (see the section on [configspec](https://configobj.readthedocs.org/en/latest/configobj.html#validation) in the ```configobj``` documentation)
-  	 * This will become a submission form on the web interface which will validate the input parameters before sending the resulting key/value pairs to the ```onramp_*``` scripts for this curriculum module.
+  	 * This will become a submission form on the web interface which will validate the input parameters before sending the resulting key/value pairs to the ```onramp_*``` scripts for this curriculum module. The file returned from the server will be a configobj file named ```onramp_runparams.cfg```.
 
 ---------------------
 ## Documentation
@@ -25,6 +25,26 @@ OnRamp will cache a copy of this subdirectory on the OnRamp server after module 
 ## Source
 
 The ```src``` directory contains all of the source code for your project. You have complete flexibility over the contents of this directory and its structure.
+
+---------------------
+## Reserved Directories/Files
+
+The following paths in the modules's root directory will be written to by the OnRamp PCE service and are, thus, reserved:
+
+ * ```output.txt``` :
+ Job output will be written here upon job completion.
+
+ * ```script.sh``` :
+ The PCE-generated batch script will be written here at launch.
+
+ * ```onramp_runparams.cfg``` :
+ User submitted values for config options defined in ```config/onramp_uioptions.cfgspec``` will be written here at launch.
+
+ * ```.onramp/``` :
+ Used by the PCE service to maintain state between HTTP requests.
+
+ * ```log/onramp*``` :
+ PCE-gernerated log files will be named as such. NOTE: The ```log/``` folder is available (and recommended) for any log files desired by the module-writer, but the names of those files cannot start with 'onramp'.
 
 ---------------------
 ## Required Supporting Scripts

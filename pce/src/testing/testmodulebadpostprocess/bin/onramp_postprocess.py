@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+#
+# Curriculum Module Preprocess Script
+# - Run once per run of the module by a user
+# - Run before job submission. So -not- in an allocation.
+# - onramp_run_params.cfg file is available in current working directory
+#
+import sys
+import time
+
+
+# No postprocessing required
+
+
+# Exit 0 if all is ok
+print "We're pretending like there was an error in this script."
+sys.stderr.write('This to stderr')
+sys.exit(-1)
+# Exit with a negative value if there was a problem
+#sys.exit(-1)

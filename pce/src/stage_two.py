@@ -9,6 +9,7 @@ import shutil
 from subprocess import call
 
 from PCE.tools import create_admin
+from PCEHelper import pce_root
 
 users_dir = 'users'
 make_new_users = True
@@ -26,3 +27,7 @@ if os.path.exists(users_dir):
 if make_new_users:
     os.makedirs(users_dir)
     create_admin(users_dir)
+
+ret_dir = os.getcwd()
+os.chdir(os.path.join(pce_root, 'docs'))
+call(['make', 'html'])
