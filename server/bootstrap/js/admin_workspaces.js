@@ -17,6 +17,7 @@ function Job(data){
 }
 
 function Workspace(data){
+	// need to edit this!!
 	var self = this;
 	self.wID = data['workspace_id'];
 	self.name = data['workspace_name'];
@@ -61,6 +62,80 @@ function Workspace(data){
 
 	};
 
+	self.editPCE = function () {
+		// get jobs for this PCE
+		if(self.id >= 0) {
+
+			$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/pces/" + self.id() + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+				//self.auth_data,
+				function (data){
+					// {"status": 0,
+					//  "status_message": "Success",
+					//  "users": {
+					//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+					//    "data": [2, "alice", "", "", 0, 1]}}
+					console.log(JSON.stringify(data));
+					for (var x = 0; x < data.pces.data.length; x++){
+						var raw = data.pces.data[x];
+						console.log(raw);
+						var conv_data = {};
+						for(var i = 0; i < data.pces.fields.length; i++){
+							console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
+							conv_data[data.pces.fields[i]] = raw[i];
+						}
+						self.Jobslist.push(new Job(conv_data));
+					}
+				}
+			);
+
+			// get modules for this user
+			$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/pces/" + self.id() + "/modules?apikey=" + JSON.parse(self.auth_data).apikey,
+				//self.auth_data,
+				function (data){
+					// {"status": 0,
+					//  "status_message": "Success",
+					//  "users": {
+					//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+					//    "data": [2, "alice", "", "", 0, 1]}}
+					console.log(JSON.stringify(data));
+					for (var x = 0; x < data.pces.data.length; x++){
+						var raw = data.pces.data[x];
+						console.log(raw);
+						var conv_data = {};
+						for(var i = 0; i < data.pces.fields.length; i++){
+							console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
+							conv_data[data.pces.fields[i]] = raw[i];
+						}
+						self.Modulelist.push(new Module(conv_data));
+					}
+				}
+			);
+
+			// get workspaces for this PCE
+			$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/pces/" + self.id() + "/workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
+				//self.auth_data,
+				function (data){
+					// {"status": 0,
+					//  "status_message": "Success",
+					//  "users": {
+					//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+					//    "data": [2, "alice", "", "", 0, 1]}}
+					console.log(JSON.stringify(data));
+					for (var x = 0; x < data.users.data.length; x++){
+						var raw = data.users.data[x];
+						console.log(raw);
+						var conv_data = {};
+						for(var i = 0; i < data.users.fields.length; i++){
+							console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
+							conv_data[data.users.fields[i]] = raw[i];
+						}
+						self.Workspacelist.push(new Workspace(conv_data));
+					}
+				}
+			);
+		}
+	}
+
 	self.updateServer = function () {
 		// this will push the user info to the server as a new user
 		$.ajax({
@@ -72,6 +147,10 @@ function Workspace(data){
 		  dataType: 'application/json',
 		  contentType: 'application/json'
 		} );
+	}
+
+	self.removeOnServer = function () {
+		alert("remove on server not implmented");
 	}
 
 }

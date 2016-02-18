@@ -39,23 +39,24 @@ function Workspace(data){
 function PCE (data) {
 	var self = this;
 
-	self.id = ko.observable(data["id"]);
-	self.name = ko.observable(data['name']);
+	self.id = ko.observable(data['pce_id']);
+	self.name = ko.observable(data['pce_name']);
 	self.status = ko.observable(data['state']);
 	self.description = ko.observable(data['description']);
 	self.location = ko.observable(data['location']);
-	self.contact_info = ko.observable(data["contact_info"]);
-	self.pce_password = ko.observable(data["pce_password"]);
-	self.pce_username = ko.observable(data["pce_username"]);
-	self.port = ko.observable(data["port"]);
-	self.url = ko.observable(data["url"]);
-	self.from_server = data["from_server"];
+	self.contact_info = ko.observable(data['contact_info']);
+	self.pce_password = ko.observable(data['pce_password']);
+	self.pce_username = ko.observable(data['pce_username']);
+	self.port = ko.observable(data['port']);
+	self.url = ko.observable(data['url']);
+	self.from_server = data['from_server'];
 
 	self.auth_data = sessionStorage['auth_data'];
 
 	self.Workspacelist = ko.observableArray();
 	self.Jobslist = ko.observableArray();
 	self.Moduleslist = ko.observableArray();
+	self.newModule = ko.observable();
 
 	self.viewPCE = function () {
 		// go to manage Workspaces page and show this job
@@ -78,9 +79,9 @@ function PCE (data) {
       console.log(data["responseText"]);
       console.log(data.status + 5);
       if(data.status == 200){
-		  self.id(data.pce.id);
-		  self.status(data.pce.state);
-		  alert("Success! New PCE id:" + self.id());
+		  //self.id(data.pce.id);
+		  //self.status(data.pce.state);
+		  alert("Success!");
       }
       else if(data.status == 401){
         alert("Incorrect login info.  Please try again, or contact the admin to create or reset your account.");
@@ -91,78 +92,173 @@ function PCE (data) {
 
     };
 
+	self.refreshModules = function (){
+		// get modules for this user
+		self.Moduleslist.removeAll();
+		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/pces/" + self.id() + "/modules?apikey=" + JSON.parse(self.auth_data).apikey,
+			//self.auth_data,
+			function (data){
+				// {"status": 0,
+				//  "status_message": "Success",
+				//  "users": {
+				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+				//    "data": [2, "alice", "", "", 0, 1]}}
+				console.log(JSON.stringify(data));
+				for (var x = 0; x < data.pces.data.length; x++){
+					var raw = data.pces.data[x];
+					console.log(raw);
+					var conv_data = {};
+					for(var i = 0; i < data.pces.fields.length; i++){
+						console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
+						conv_data[data.pces.fields[i]] = raw[i];
+					}
+					self.Moduleslist.push(new Module(conv_data));
+				}
+			}
+		);
+	}
+
+	self.refreshWorkspaces = function (){
+		self.Workspacelist.removeAll();
+		// get workspaces for this PCE
+		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/pces/" + self.id() + "/workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
+			//self.auth_data,
+			function (data){
+				// {"status": 0,
+				//  "status_message": "Success",
+				//  "users": {
+				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+				//    "data": [2, "alice", "", "", 0, 1]}}
+				console.log(JSON.stringify(data));
+				for (var x = 0; x < data.pces.data.length; x++){
+					var raw = data.pces.data[x];
+					console.log(raw);
+					var conv_data = {};
+					for(var i = 0; i < data.pces.fields.length; i++){
+						console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
+						conv_data[data.pces.fields[i]] = raw[i];
+					}
+					self.Workspacelist.push(new Workspace(conv_data));
+				}
+			}
+		);
+	}
+
+	self.refreshJobs = function () {
+		self.Jobslist.removeAll();
+		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/pces/" + self.id() + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+			//self.auth_data,
+			function (data){
+				// {"status": 0,
+				//  "status_message": "Success",
+				//  "users": {
+				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+				//    "data": [2, "alice", "", "", 0, 1]}}
+				console.log(JSON.stringify(data));
+				for (var x = 0; x < data.pces.data.length; x++){
+					var raw = data.pces.data[x];
+					console.log(raw);
+					var conv_data = {};
+					for(var i = 0; i < data.pces.fields.length; i++){
+						console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
+						conv_data[data.pces.fields[i]] = raw[i];
+					}
+					self.Jobslist.push(new Job(conv_data));
+				}
+			}
+		);
+	}
+
 	self.editPCE = function () {
-		// get jobs for this PCE
-		if(self.id >= 0) {
+		this.refreshJobs();
+		this.refreshModules();
+		this.refreshWorkspaces();
+	}
 
-			$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/pces/" + self.id() + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
-				//self.auth_data,
-				function (data){
-					// {"status": 0,
-					//  "status_message": "Success",
-					//  "users": {
-					//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-					//    "data": [2, "alice", "", "", 0, 1]}}
-					console.log(JSON.stringify(data));
-					for (var x = 0; x < data.pces.data.length; x++){
-						var raw = data.pces.data[x];
-						console.log(raw);
-						var conv_data = {};
-						for(var i = 0; i < data.pces.fields.length; i++){
-							console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
-							conv_data[data.pces.fields[i]] = raw[i];
-						}
-						self.Jobslist.push(new Job(conv_data));
-					}
-				}
-			);
+	self.addModule = function () {
+		// LEFT OFF HERE!!!!
+		//   todo: need to fix ajax call, and figure out what the paths need to be
+		// this will add a new module to the PCE
+		// POST .../admin/pces/:ID/modules/:MODULEID
+		console.log(self.newModule().name());
+		console.log(self.newModule().id());
+		self.newModule().id(self.Moduleslist().length + 1);
+		$.ajax({
+			type: 'POST',
+			url: 'http://flux.cs.uwlax.edu/onramp/api/admin/pce/' + self.id() + '/module/' + self.newModule().id() +'?apikey=' + JSON.parse(self.auth_data).apikey,
+			//	"auth": { ...}, // Removed for brevity
+    		//	"contact_info": "Someone else",
+    		//	"description": "Secret Compute Resource",
+    		//	"location": "Hidden Hallway",
+    		//	"name": "Flux",
+    		//	"pce_password": "fake123",
+    		//	"pce_username": "onramp",
+    		//	"port": 9071,
+    		//	"url": "127.0.0.1"
+			data: JSON.stringify({'auth': JSON.parse(self.auth_data),
+				'module_id':self.newModule().id(),
+				'module_name':self.newModule().name(),
+				'install_location':self.newModule().install_location(),
+				'src_location_type':self.newModule().src_location_type(),
+				'src_location_path':self.newModule().src_location_path()
+			}),
+			complete: self.complete_func,
+			dataType: 'application/json',
+			contentType: 'application/json'
+		} );
+	}
 
-			// get modules for this user
-			$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/pces/" + self.id() + "/modules?apikey=" + JSON.parse(self.auth_data).apikey,
-				//self.auth_data,
-				function (data){
-					// {"status": 0,
-					//  "status_message": "Success",
-					//  "users": {
-					//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-					//    "data": [2, "alice", "", "", 0, 1]}}
-					console.log(JSON.stringify(data));
-					for (var x = 0; x < data.pces.data.length; x++){
-						var raw = data.pces.data[x];
-						console.log(raw);
-						var conv_data = {};
-						for(var i = 0; i < data.pces.fields.length; i++){
-							console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
-							conv_data[data.pces.fields[i]] = raw[i];
-						}
-						self.Modulelist.push(new Module(conv_data));
-					}
+	self.checkModuleStatus = function (mod) {
+		// need to check
+		// this will check the status of a module (GET .../admin/pces/:ID/modules/:MODULEID)
+		// get workspaces for this PCE
+		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/admin/pce/" + self.id() + "/module/" + mod.id() + "?apikey=" + JSON.parse(self.auth_data).apikey,
+			//self.auth_data,
+			function (data){
+				// {"status": 0,
+				//  "status_message": "Success",
+				//  "users": {
+				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+				//    "data": [2, "alice", "", "", 0, 1]}}
+				console.log(JSON.stringify(data));
+				for (var x = 0; x < data.pces.data.length; x++){
+					var raw = data.pces.data[x];
+					console.log(raw);
+					//var conv_data = {};
+					console.log("updating " + mod.name() + ": " + data.users.fields["state_str"] + " = " + raw["state_str"]);
+					mod["state_str"](raw["state_str"]);
+					mod["state"](raw["state"]);
 				}
-			);
+			}
+		);
+	}
 
-			// get workspaces for this PCE
-			$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/pces/" + self.id() + "/workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
-				//self.auth_data,
-				function (data){
-					// {"status": 0,
-					//  "status_message": "Success",
-					//  "users": {
-					//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-					//    "data": [2, "alice", "", "", 0, 1]}}
-					console.log(JSON.stringify(data));
-					for (var x = 0; x < data.users.data.length; x++){
-						var raw = data.users.data[x];
-						console.log(raw);
-						var conv_data = {};
-						for(var i = 0; i < data.users.fields.length; i++){
-							console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
-							conv_data[data.users.fields[i]] = raw[i];
-						}
-						self.Workspacelist.push(new Workspace(conv_data));
-					}
-				}
-			);
-		}
+	self.deployModule = function (mod) {
+		// this will finish adding new module to the PCE
+		// POST .../admin/pces/:ID/modules/:MODULEID
+		$.ajax({
+			type: 'POST',
+			url: 'http://flux.cs.uwlax.edu/onramp/api/admin/pce/' + self.id() + '/module/' + mod.id() +'?apikey=' + JSON.parse(self.auth_data).apikey,
+			//	"auth": { ...}, // Removed for brevity
+    		//	"contact_info": "Someone else",
+    		//	"description": "Secret Compute Resource",
+    		//	"location": "Hidden Hallway",
+    		//	"name": "Flux",
+    		//	"pce_password": "fake123",
+    		//	"pce_username": "onramp",
+    		//	"port": 9071,
+    		//	"url": "127.0.0.1"
+			data: JSON.stringify({'auth': JSON.parse(self.auth_data),
+				'module_id':mod.id(),
+				'module_name':mod.name(),
+				'install_location':mod.install_location(),
+				'src_location_type':mod.src_location_type(),
+				'src_location_path':mod.src_location_path()
+			}),
+			complete: self.complete_func,
+			dataType: 'application/json',
+			contentType: 'application/json'
+		} );
 	}
 
 	self.updateServer = function () {
@@ -203,11 +299,18 @@ function PCE (data) {
 
 function Module(data){
 	var self = this;
-	self.id = data['module_id'];
-	self.name = data['module_name'];
-	self.desc = data['description'];
+	self.id = ko.observable(data['module_id']);
+	self.name = ko.observable(data['module_name']);
+	self.state = ko.observable(data['state']);
+	self.state_str = ko.observable(data['state_str']);
+	self.install_location = ko.observable(data['install_location']);
+	self.is_visible = ko.observable(data['is_visible']);
+	self.src_location_path = ko.observable(data['src_location_path']);
+	self.src_location_type = ko.observable(data['src_location_type']);
+	self.desc = ko.observable(data['description']);
 	self.formFields = ko.observableArray();
 	self.PCEs = ko.observableArray();
+
 
 	self.addDefaultFormFields = function () {
 		this.formFields.push({"field": "name", "value": "test"});
@@ -389,13 +492,17 @@ function AdminPCEViewModel() {
 	self.addPCE = function () {
 		// need to get user ID from the server, maybe not until data is populated?
 		self.selectedPCE(null);
-		self.newPCE(new PCE({"id":-1, "name":"name", "description":"description", "location":"location", "contact_info":"contact_info", "pce_username":"pce_username", "pce_password":"pce_password", "port":"port", "url":"url"}));
+		self.newPCE(new PCE({"pce_id":-1, "pce_name":"name", "description":"description", "location":"location", "contact_info":"contact_info", "pce_username":"pce_username", "pce_password":"pce_password", "port":"port", "url":"url"}));
 	}
 
 	self.updateServer = function () {
 		self.newPCE().updateServer();
 		self.PCElist.push(self.newPCE);
 		self.newPCE(null);
+	}
+
+	self.showNewModuleForm = function () {
+		self.selectedPCE().newModule(new Module({"module_id": -1, "module_name":"new module", "state":-1, "state_str":"Creation in progress.", "install_location":"", "src_location_path":"", "src_location_type":""}));
 	}
 
 	$(document).ready( function () {
