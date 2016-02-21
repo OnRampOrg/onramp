@@ -70,6 +70,11 @@ To be written...
 ## Contributing Developers
 
 To be written...
+ * Include information about debugging and testing
+ * Adding new PCE targets
+ * Working with Module and Job State
+ * Adding new bin/onramp_pce_service.py commands
+ * PCE.tools pydoc
 
 ### Currently Implemented REST Interface:
 | URL             | GET                                        | POST               | DELETE             |
@@ -92,147 +97,103 @@ To be written...
                              state or higher. Each module contains attrs identical to what's
                              returned in *GET modules/MOD_ID/*.
 
-### **GET modules/?state=Available**
-Return a list of all installed educational modules.
+    * **GET modules/?state=Available** - Return a list of all installed educational modules.
+        * Response Fields:
+            + **status_code**:
+                + *0*: Success
+            + **status_msg** - Indication of result/error
+            + **modules** - List of shipped modules on the system. Each module contains
+                            attrs identical to what's returned in *GET modules/MOD_ID/*
 
+    * **POST** - Clone/upload and deploy a new educational module.
+        * Required Request Fields:
+            + **mod_id**: Id to represent the new module
+            + **mod_name**: Human-readable repr of new module (used only for folder
+                structure)
+            + **source_location**: Dictionary with the following fields:
+                + **type**: Indication of URI type. Currently, must be 'local'
+                + **path**: URI path
+        * Response Fields:
+            + **status_code**:
+                + *0*: Success
+                + *-8*: Invalid request parameters
+                + *-9*: Inputspec file not found
+            + **status_msg** - Indication of result/error
 
-####Response Fields:
+ * **modules/*MOD_ID*/**
+    * **GET** - Return status of module corresponding to MOD_ID.
+        *Response Fields:
+            + **status_code**:
+                + *0*: Success
+            + **status_msg** - Indication of result/error
+            + **module** - Educational module attrs:
+                + *mod_id* - Module ID
+                + *mod_name* - Module name
+                + *installed_path* - Path module is checked out/installed to
+                + *state* - One of: 'Does not exist', 'Available', 'Checkout in progress',
+                                    'Checkout failed', 'Installed', 'Deploy in progress',
+                                    'Deploy failed', 'Module ready', 'Admin required'
+                + *error* - Detailed explanation of state if applicable/necessary
+                + *source_location* - Location module was checked out from
+                    + *type* - Currently must be 'local'
+                    + *path* - Path to resource at source location
+                + *uioptions* - Dict representation of module's config/onramp_uioptions.spec file
 
-+ **status_code**:
-    + *0*: Success
-+ **status_msg** - Indication of result/error
-+ **modules** - List of shipped modules on the system. Each module contains
-                attrs identical to what's returned in *GET modules/MOD_ID/*
+    * **POST** - Deploy the indicated module.
+        * Response Fields:
+            + **status_code**:
+                + *0*: Success
+                + *-2*: Module not installed
+                + *-8*: Invalid module ID
+            + **status_msg** - Indication of result/error
+    * **DELETE** - Delete the specified educational module.
+        * Response Fields:
+            + **status_code**:
+                + *0*: Success
+            + **status_msg** - Indication of result/error
 
-### **POST**
-Clone/upload and deploy a new educational module.
+ * **jobs/**
+    * **POST** - Launch a new job.
+        * Required Request Fields:
+            + **username**: Username of user submitting job
+            + **mod_id**: Id of module to be run
+            + **job_id**: Id to represent the new job
+            + **run_name**: Human-readable label for job run
+        * Response Fields:
+            + **status_code**:
+                + *0*: Job launched
+                + *-8*: Invalid request parameters
+                + *-9*: Inputspec file not found
+            + **status_msg** - Indication of result/error
 
+ * **jobs/*JOB_ID*/**
+    * **GET** - Get status/results/info about particular job.
+        * Response Fields:
+            + **status_code**:
+                + *0*: Success
+            + **status_msg** - Indication of result/error
+            + **job** - Job attrs:
+                + *job_id* - Id for job given by OnRamp
+                + *mod_id* - Id for module job is running
+                + *username* - Username of user launching job
+                + *run_name* - Human-readable identifier for job run
+                + *state* - One of: 'Setting up launch', 'Launch failed', 'Preprocessing',
+                                    'Preprocess failed', 'Schedule failed', 'Scheduled',
+                                    'Queued', 'Run failed', 'Running', 'Postprocessing',
+                                    'Done'
+                + *error* - Detailed indication of error when applicable/possible
+                + *scheduler_job_num* - Id for job given by scheduler
+                + *mod_status_output* - Output from bin/onramp_status.py
+                + *output* - Contents of output.txt
+                + *visible_files* - List of dictionaries corresponding to available visible files with the following fields:
+                     + name - Name of the file
+                     + size - Size, in bytes, of the file
+                     + URL - URL, relative to host:port of the PCE, that the file is available at
+    * **DELETE** - Cancel a particular job and/or remove job info.
+        * Response Fields:
+            + **status_code**:
+                + *0*: Success
+            + **status_msg** - Indication of result/error
 
-####Required Request Fields:
-
-+ **mod_id**: Id to represent the new module
-+ **mod_name**: Human-readable repr of new module (used only for folder
-    structure)
-+ **source_location**: Dictionary with the following fields:
-    + **type**: Indication of URI type. Currently, must be 'local'
-    + **path**: URI path
-
-####Response Fields:
-
-+ **status_code**:
-    + *0*: Success
-    + *-8*: Invalid request parameters
-    + *-9*: Inputspec file not found
-+ **status_msg** - Indication of result/error
-
-    * **modules/*MOD_ID*/** ----------------------------------------------
-
-### **GET**
-Return status of module corresponding to MOD_ID.
-
-
-####Response Fields:
-
-+ **status_code**:
-    + *0*: Success
-+ **status_msg** - Indication of result/error
-+ **module** - Educational module attrs:
-    + *mod_id* - Module ID
-    + *mod_name* - Module name
-    + *installed_path* - Path module is checked out/installed to
-    + *state* - One of: 'Does not exist', 'Available', 'Checkout in progress',
-                        'Checkout failed', 'Installed', 'Deploy in progress',
-                        'Deploy failed', 'Module ready', 'Admin required'
-    + *error* - Detailed explanation of state if applicable/necessary
-    + *source_location* - Location module was checked out from
-        + *type* - Currently must be 'local'
-        + *path* - Path to resource at source location
-    + *uioptions* - Dict representation of module's config/onramp_uioptions.spec file
-
-### **POST**
-Deploy the indicated module.
-
-
-####Response Fields:
-
-+ **status_code**:
-    + *0*: Success
-    + *-2*: Module not installed
-    + *-8*: Invalid module ID
-+ **status_msg** - Indication of result/error
-
-### **DELETE**
-Delete the specified educational module.
-
-**Status: Stub merged, functionality pull requested.**
-
-+ **status_code**:
-    + *0*: Success
-+ **status_msg** - Indication of result/error
-
-    * **jobs/**
-
-### **POST**
-Launch a new job.
-
-
-####Required Request Fields:
-+ **username**: Username of user submitting job
-+ **mod_id**: Id of module to be run
-+ **job_id**: Id to represent the new job
-+ **run_name**: Human-readable label for job run
-
-####Response Fields:
-+ **status_code**:
-    + *0*: Job launched
-    + *-8*: Invalid request parameters
-    + *-9*: Inputspec file not found
-+ **status_msg** - Indication of result/error
-
-    * **jobs/*JOB_ID*/**
-
-### **GET**
-Get status/results/info about particular job.
-
-
-+ **status_code**:
-    + *0*: Success
-+ **status_msg** - Indication of result/error
-+ **job** - Job attrs:
-    + *job_id* - Id for job given by OnRamp
-    + *mod_id* - Id for module job is running
-    + *username* - Username of user launching job
-    + *run_name* - Human-readable identifier for job run
-    + *state* - One of: 'Setting up launch', 'Launch failed', 'Preprocessing',
-                        'Preprocess failed', 'Schedule failed', 'Scheduled',
-                        'Queued', 'Run failed', 'Running', 'Postprocessing',
-                        'Done'
-    + *error* - Detailed indication of error when applicable/possible
-    + *scheduler_job_num* - Id for job given by scheduler
-    + *mod_status_output* - Output from bin/onramp_status.py
-    + *output* - Contents of output.txt
-    + *visible_files* - List of dictionaries corresponding to available visible files with the following fields:
-         + name - Name of the file
-         + size - Size, in bytes, of the file
-         + URL - URL, relative to host:port of the PCE, that the file is available at
-
-### **DELETE**
-Cancel a particular job and/or remove job info.
-
-
-+ **status_code**:
-    + *0*: Success
-+ **status_msg** - Indication of result/error
-
-    * **cluster/**
-
-### **GET**
-Get cluster attrs/status/etc.
-
-
-+ **status_code**:
-    + *0*: Success
-+ **status_msg** - Indication of result/error
-
-
- * Include information about debugging and testing
+ * **cluster/info**
+    * **GET** - Retrieve statically hosted cluster attrs/status/docs/etc.
