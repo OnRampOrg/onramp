@@ -81,16 +81,16 @@ To be written...
 | cluster/info    | Get cluster attrs/docs/etc.                |                    |                    |
 | api/            | Get enumeration of all endpoints           |                    |                    |
 
- * REST Interface Details:
-    * **modules/**
-        * **GET** - Return a list of all installed educational modules.
-            * Response Fields:
-                + **status_code**:
-                    + *0*: Success
-                + **status_msg** - Indication of result/error
-                + **modules** - List of modules on the system at the 'Checkout in progress'
-                                state or higher. Each module contains attrs identical to what's
-                                returned in *GET modules/MOD_ID/*.
+### REST Interface Details:
+ * **modules/**
+     * **GET** - Return a list of all installed educational modules.
+         * Response Fields:
+             + **status_code**:
+                 + *0*: Success
+             + **status_msg** - Indication of result/error
+             + **modules** - List of modules on the system at the 'Checkout in progress'
+                             state or higher. Each module contains attrs identical to what's
+                             returned in *GET modules/MOD_ID/*.
 
 ### **GET modules/?state=Available**
 Return a list of all installed educational modules.
