@@ -54,7 +54,7 @@ To be written...
             * Docstring and notes for `jobdelete`
             * Docstring and notes for `shell`
      * Adding additional static files
-     * _NOTE: All of the above will need to be updated when SSL/HTTPS implemented_
+     * __NOTE: Most of the above will need to be updated when SSL/HTTPS implemented__
 
  * Specific tips for 
 
