@@ -28,7 +28,7 @@ if __name__ == '__main__':
     tmpl_conf  = "bin/onramp_pce_config.cfg.tmpl"
     final_conf = "bin/onramp_pce_config.cfg"
     make_new_users = True
-    
+   
     # If the PCE service is already deployed/installed
     if os.path.exists(env_dir):
         print "=" * 70
@@ -121,8 +121,16 @@ if __name__ == '__main__':
 
     try:
         call(['lstopo', os.path.join(docs_dir, 'build', 'html', 'topo.pdf')])
+        print ("Single node topology info will be available at "
+               "cluster/info/topo.pdf. To serve alternative topology info "
+               "instead, replace the file %s with a file containing the "
+               "desired info."
+               % os.path.join(ret_dir, docs_dir, 'build', 'html', 'topo.pdf'))
     except:
         print 'Error calling "lstopo". Skipping topo.pdf generation.'
+        print ("To serve topology info, place a file containing the "
+               "desired info at %s."
+               % os.path.join(ret_dir, docs_dir, 'build', 'html', 'topo.pdf'))
 
     print "=" * 70
     print "Status: Setup Complete"
