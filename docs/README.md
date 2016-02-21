@@ -29,6 +29,32 @@ page where you can view the details of your job.
 ## Administrator User Role
 
 To be written...
+ * PCE
+     * Requirements:
+        * python2.7
+        * virtualenv
+     * Installation
+        * bin/onramp_pce_install.py
+            * Handling of reinstall
+            * Handling of `bin/onramp_pce_config.cfg`
+            * Handling of `topo.pdf`
+     * Configuration
+        * `bin/onramp_pce_config.cfg` fields/options
+     * Operation
+        * Quickstart on how to start/stop/restart PCE service
+        * `bin/onramp_pce_service.py`
+            * Docstring and notes for `start`
+            * Docstring and notes for `stop`
+            * Docstring and notes for `restart`
+            * Docstring and notes for `modtest`
+            * Docstring and notes for `modinstall`
+            * Docstring and notes for `modready`
+            * Docstring and notes for `moddelete`
+            * Docstring and notes for `joblaunch`
+            * Docstring and notes for `jobdelete`
+            * Docstring and notes for `shell`
+     * Adding additional static files
+     * _NOTE: All of the above will need to be updated when SSL/HTTPS implemented_
 
  * Specific tips for 
 
