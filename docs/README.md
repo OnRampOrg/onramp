@@ -77,14 +77,15 @@ To be written...
  * PCE.tools pydoc
 
 ### Currently Implemented REST Interface:
-| URL             | GET                                        | POST               | DELETE             |
-|-----------------|--------------------------------------------|--------------------|--------------------|
-| modules/        | Get list of modules                        | Install new module |                    |
-| modules/MOD_ID/ | Get info/status about particular module    | Deploy module      | Remove module      |
-| jobs/           |                                            | Launch new job     |                    |
-| jobs/JOB_ID     | Get status/results for particular job      |                    | Remove job/results |
-| cluster/info    | Get cluster attrs/docs/etc.                |                    |                    |
-| api/            | Get enumeration of all endpoints           |                    |                    |
+| URL                       | GET                                        | POST               | DELETE             |
+|---------------------------|--------------------------------------------|--------------------|--------------------|
+| modules/                  | Get list of modules                        | Install new module |                    |
+| modules/?state=Available  | Get list of packaged modules               | Install new module |                    |
+| modules/MOD_ID/           | Get info/status about particular module    | Deploy module      | Remove module      |
+| jobs/                     |                                            | Launch new job     |                    |
+| jobs/JOB_ID               | Get status/results for particular job      |                    | Remove job/results |
+| cluster/info              | Get cluster attrs/docs/etc.                |                    |                    |
+| api/                      | Get enumeration of all endpoints           |                    |                    |
 
 ### REST Interface Details:
  * **modules/**
