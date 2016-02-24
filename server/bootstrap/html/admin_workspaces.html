@@ -74,8 +74,6 @@
   </div>
 </div>
 
-
-<div class="container" data-bind="ifnot: newWorkspace()">
 <div class="container" data-bind="with: selectedWorkspace()">
   <div class="row">
     <h3>Workspace Info: <span data-bind="text:name"></span> (Workspace ID: <span data-bind="text: id"></span>)</h3>
@@ -171,7 +169,7 @@
   </div>
  -->
 
-  <!-- list of modules -->
+  <!-- list of pce-module pairs -->
   <div class="row">
     <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
       <h4>PCE-Module Pairs (<span data-bind="text: PCEModlist().length"></span>)</h4>
@@ -194,43 +192,53 @@
       </table>
     </div>
   </div>
-  </div>
 
-
-  <!-- Adding a workspace form -->
-  <div class="container" data-bind="if: newWorkspace()">
-      <div class="container" data-bind="with: newWorkspace()">
-      <div class="row">
-        <h3>Workspace Info: <span data-bind="text:name"></span></h3>
-      </div>
-      <div class="row">
-        <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
-          <p>Name</p>
-        </div>
-        <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
-          <p data-bind="text: name"></p>
-        </div>
-        <div class="col-lg-2 col-md-3 col-sm-4">
-          <input data-bind="value: name"/>
-        </div>
-      </div>
-      <!-- Add PCE button -->
-      <div class="row">
-        <div class="col-lg-4 col-md-5 col-sm-6">
-          <button class="btn btn-primary" data-bind="click: createWorkspace">Create Workspace</button>
-        </div>
-      </div>
-  </div>
-  </div>
-  <!-- Save Changes button -->
-  <!--
+  <!-- list current users -->
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6">
-      <button class="btn" data-bind="click: updateServer">Save Changes</button>
+    <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
+      <h4>Current Users (<span data-bind="text: Userslist().length"></span>)</h4>
+
+      <table class="table table-striped">
+        <thead>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Remove from Workspace</th>
+          <th>View Users</th>
+        </thead>
+        <tbody data-bind="foreach: Userslist">
+          <tr>
+            <td data-bind="text: id"></td>
+            <td data-bind="text: username"></td>
+            <td><button class="btn btn-danger" data-bind="click: $parent.removeUser">Remove</button></td>
+            <td><button class="btn" data-bind="click: viewUser">Details</button></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
-  -->
-</div>
+  <!-- add users -->
+  <div class="row">
+    <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
+      <h4>Edit Users (<span data-bind="text: $parent.AllUsers().length"></span>)</h4>
+
+      <table class="table table-striped">
+        <thead>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Add to Workspace</th>
+          <th>View Users</th>
+        </thead>
+        <tbody data-bind="foreach: $parent.AllUsers()">
+          <tr>
+            <td data-bind="text: id"></td>
+            <td data-bind="text: username"></td>
+            <td><button class="btn btn-primary" data-bind="click: $parent.addUser">Add</button></td>
+            <td><button class="btn" data-bind="click: viewUser">Details</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
 <!-- footer -->
 <footer class="footer">

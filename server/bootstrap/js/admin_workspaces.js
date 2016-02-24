@@ -183,6 +183,33 @@ function Workspace(data){
 	  	} );
 	};
 
+	self.addUser = function () {
+		// should check if user is already a member of the workspace
+		$.ajax({
+	      type: 'POST',
+	      url: 'http://flux.cs.uwlax.edu/onramp/api/admin/workspace/' + self.id() + '/user/' + this.id() + '?apikey=' + JSON.parse(self.auth_data).apikey,
+	      //data: JSON.stringify({'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
+		  data: JSON.stringify({'auth': JSON.parse(self.auth_data)}),
+	      complete: self.complete_func,
+	      dataType: 'application/json',
+	      contentType: 'application/json'
+	  	} );
+	}
+
+	self.removeUser = function () {
+		alert("Not implemented");
+		/*
+		$.ajax({
+		  type: 'DELETE',
+		  url: 'http://flux.cs.uwlax.edu/onramp/api/admin/workspace/' + self.id() + '/user/' + this.id() + '?apikey=' + JSON.parse(self.auth_data).apikey,
+		  //data: JSON.stringify({'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
+		  data: JSON.stringify({'auth': JSON.parse(self.auth_data)}),
+		  complete: self.complete_func,
+		  dataType: 'application/json',
+		  contentType: 'application/json'
+		} );
+		*/
+	}
 }
 
 function PCE (data) {
@@ -614,6 +641,9 @@ function AdminWorkspaceViewModel() {
 		self.selectedWorkspace = ko.observable();
 		self.newWorkspace = ko.observable();
 		self.Workspacelist = ko.observableArray();
+		self.AllUsers = ko.observableArray();
+
+
 
 		self.changeWorkspace = function () {
 			self.selectedWorkspace(null);
@@ -721,6 +751,28 @@ function AdminWorkspaceViewModel() {
 									conv_data[data.workspaces.fields[i]] = raw[i];
 								}
 								self.Workspacelist.push(new Workspace(conv_data));
+							}
+						}
+			);
+
+			$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/users?apikey=" + JSON.parse(self.auth_data).apikey,
+						//self.auth_data,
+						function (data){
+						// {"status": 0,
+						//  "status_message": "Success",
+						//  "users": {
+						//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+						//    "data": [2, "alice", "", "", 0, 1]}}
+							console.log(JSON.stringify(data));
+							for (var x = 0; x < data.users.data.length; x++){
+								var raw = data.users.data[x];
+								console.log(raw);
+								var conv_data = {};
+								for(var i = 0; i < data.users.fields.length; i++){
+									console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
+									conv_data[data.users.fields[i]] = raw[i];
+								}
+								self.AllUsers.push(new UserProfile(conv_data));
 							}
 						}
 			);
