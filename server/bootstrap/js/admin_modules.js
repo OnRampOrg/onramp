@@ -183,9 +183,9 @@ function UserProfile(data) {
 		// this will push the user info to the server as a new user
 		$.ajax({
 	      type: 'POST',
-	      url: 'http://flux.cs.uwlax.edu/onramp/api/admin/user?apikey=' + JSON.parse(this.auth_data).apikey,
+	      url: 'http://flux.cs.uwlax.edu/onramp/api/admin/module?apikey=' + JSON.parse(this.auth_data).apikey,
 	      //data: JSON.stringify({'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
-		  data: JSON.stringify({'auth': JSON.parse(self.auth_data), 'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
+		  data: JSON.stringify({'auth': JSON.parse(self.auth_data), 'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_visible':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
 	      complete: self.complete_func,
 	      dataType: 'application/json',
 	      contentType: 'application/json'

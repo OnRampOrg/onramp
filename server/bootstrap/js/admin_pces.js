@@ -456,7 +456,7 @@ function UserProfile(data) {
 
 	}
 
-	}
+}
 
 
 
@@ -507,7 +507,7 @@ function AdminPCEViewModel() {
 
 	$(document).ready( function () {
 		// reinitialize values
-		self.PCElist([]);
+		self.PCElist.removeAll();
 		// get data from server
 		// some hard coded data for now...
 		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/pces?apikey=" + JSON.parse(self.auth_data).apikey,
