@@ -8,6 +8,10 @@ function Job(data){
 	self.name = data['job_name'];
 	self.status = data['state'];
 	self.time = "0:00";  // not implemented yet
+
+	self.gotoJobDetails = function () {
+		window.location.href = "job_details.html";
+	}
 }
 
 function Workspace(data){
