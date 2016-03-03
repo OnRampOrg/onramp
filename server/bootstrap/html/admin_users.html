@@ -46,7 +46,7 @@
 <div class="container">
   <div class="row">
     <h2>User Info (<span data-bind="text: Userslist().length"></span>)</h2>
-    <p>This is a list of all users associated with this OnRamp server instance.</p>
+    <p>This is a list of all users associated with this OnRamp server instance.  Current functionality allows you to add and delete users.</p>
   </div>
 
   <div class="row">
@@ -105,10 +105,26 @@
   </div>
   <div class="row">
     <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p data-bind="text: password"></p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <input data-bind="value: password"/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
       <p>Admin? (<span data-bind="text: isAdmin"></span>)</p>
     </div>
     <div class="col-lg-4 col-md-5 col-sm-6">
       <input data-bind="checked: isAdmin" type="checkbox" />
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p>Enabled? (<span data-bind="text: isEnabled"></span>)</p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <input data-bind="checked: isEnabled" type="checkbox" />
     </div>
   </div>
 
@@ -124,7 +140,7 @@
           <th>Name</th>
           <th>Description</th>
           <th>View/Edit</th>
-          <th>Remove</th>
+          <!-- <th>Remove</th> -->
         </thead>
         <tbody data-bind="foreach: Workspacelist">
           <tr>
@@ -132,7 +148,7 @@
             <td data-bind="text: name"></td>
             <td data-bind="text: desc"></td>
             <td><a data-bind="click: viewWorkspace">View</a></td>
-            <td><a data-bind="click: $parent.removeFromWorkspace">Remove</a></td>
+            <!--<td><a data-bind="click: $parent.removeFromWorkspace">Remove</a></td> -->
           </tr>
         </tbody>
       </table>
@@ -155,7 +171,7 @@
           <th>Status</th>
           <th>Runtime</th>
           <th>View/Edit</th>
-          <th>Delete</th>
+          <!-- <th>Delete</th> -->
         </thead>
         <tbody data-bind="foreach: Jobslist">
           <tr>
@@ -168,14 +184,16 @@
             <td data-bind="text: status"></td>
             <td data-bind="text: time"></td>
             <td><a data-bind="click: viewJob">View</a></td>
-            <td><a data-bind="click: $parent.deleteJob">Remove</a></td>
+            <!-- <td><a data-bind="click: $parent.deleteJob">Remove</a></td> -->
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 
+
   <!-- list of modules -->
+    <!-- don't really want to show modules and PCEs
   <div class="row">
     <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
       <h4>Modules (<span data-bind="text: Moduleslist().length"></span>)</h4>
@@ -198,8 +216,11 @@
       </table>
     </div>
   </div>
+  -->
+
 
   <!-- list of PCEs -->
+  <!-- don't really want to show modules and PCEs
   <div class="row">
     <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
       <h4>PCEs (<span data-bind="text: PCEslist().length"></span>)</h4>
@@ -230,6 +251,7 @@
       </table>
     </div>
   </div>
+-->
 
   <!-- Save Changes button -->
   <div class="row">

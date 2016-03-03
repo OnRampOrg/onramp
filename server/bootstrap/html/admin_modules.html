@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>OnRamp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Bootstrap -->
+  <link href="../css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body role="document">
+<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+<script src="../js/sammy.js"></script>
+<!-- Fixed navbar -->
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="start.html">OnRamp</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="admin_dashboard.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="myprofile.html">Profile</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="#help">Help</a></li>
+        <li data-bind="click: logout">Logout</li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<br>
+<div class="container">
+  <div class="jumbotron">
+    <h1>Modules Admin Dashboard</h1>
+  </div>
+</div>
+
+<!-- User info -->
+<div class="container">
+    <div class="row">
+        <h3>Warning!  This page is not fully operational.  Remember the Death Star?</h3>
+    </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <h2>Module Info (<span data-bind="text: Modulelist().length"></span>)</h2>
+    <p>This is a list of all modules associated with this OnRamp server instance.  Current functionality allows you to add and delete modules.</p>
+  </div>
+
+  <div class="row">
+    <button class="btn btn-primary" data-bind="click: addUser">Add New Module</button>
+  </div>
+
+  <div class="row">
+    <table class="table table-striped">
+      <thead >
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Admin?</th>
+        <th>Delete</th>
+      </thead>
+      <tbody data-bind="foreach: Modulelist()">
+        <tr data-bind="click: $parent.selectModule">
+          <td data-bind="text: id"></td>
+          <td data-bind="text: username"></td>
+          <td data-bind="text: fullName"></td>
+          <td data-bind="text: isAdmin"></td>
+          <td><button class="btn btn-danger" data-bind="click: $parent.deleteModule">Delete</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="container" data-bind="with: selectedModule">
+  <div class="row">
+    <h3>Module Info: <span data-bind="text:name"></span> (Module ID: <span data-bind="text: id"></span>)</h3>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p data-bind="text: name"></p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <input data-bind="value: name"/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p data-bind="text: fullName"></p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <input data-bind="value: fullName"/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p data-bind="text: email"></p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <input data-bind="value: email"/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p data-bind="text: password"></p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <input data-bind="value: password"/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p>Admin? (<span data-bind="text: isAdmin"></span>)</p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <input data-bind="checked: isAdmin" type="checkbox" />
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+      <p>Enabled? (<span data-bind="text: isEnabled"></span>)</p>
+    </div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <input data-bind="checked: isEnabled" type="checkbox" />
+    </div>
+  </div>
+
+
+  <!-- Save Changes button -->
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <button class="btn" data-bind="click: updateServer">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- footer -->
+<footer class="footer">
+  <div class="container">
+    <p>Something in the footer....</p>
+  </div>
+</footer>
+
+<!-- put all scripty scripts below this line -->
+<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+<script src="../js/bootstrap.min.js"></script>
+<script src="../js/knockout-3.3.0.js"></script>
+<script src="../js/admin_users.js"></script>
+</body>
+</html>

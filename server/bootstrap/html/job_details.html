@@ -65,8 +65,10 @@
     <div class="row">
       <div class="col-sm-6">
         <h2>My Jobs</h2>
-        <p>This is a list of the n most recent jobs.</p>
         <!-- check out this website for a cool way to display a table of data: http://bootstrapmaster.com/live/genius/table.html -->
+      </div>
+      <div class="col-sm-6">
+        <button class="btn" data-bind="click: refreshJobs">Refresh</button>
       </div>
     </div>
     <div class="row">
@@ -79,7 +81,6 @@
             <th class="col-sm-1">Module</th>
             <th class="col-sm-1">Run Name</th>
             <th class="col-sm-1">Status</th>
-            <th class="col-sm-1">Runtime</th>
             <th class="col-sm-1">View Details</th>
             <th class="col-sm-1">Cancel/Delete</th>
           </thead>
@@ -90,8 +91,7 @@
               <td data-bind="text: pce"></td>
               <td data-bind="text: mod"></td>
               <td data-bind="text: name"></td>
-              <td data-bind="text: status"></td>
-              <td data-bind="text: time"></td>
+              <td data-bind="text: $parent.jobStates[parseInt(status)]"></td>
               <td><button class="btn-info" data-bind="click: $parent.selectJob">View Details</button></td>
               <td><button class="btn-danger">Cancel/Delete</button></td>
             </tr>
@@ -100,6 +100,7 @@
       </div>
     </div>
   </div>
+
 
   <div class="container" data-bind="if: selectedJob()">
       <div class="row" data-bind="with:selectedJob()">
@@ -122,7 +123,7 @@
                   <td data-bind="text: pce"></td>
                   <td data-bind="text: mod"></td>
                   <td data-bind="text: name"></td>
-                  <td data-bind="text: status"></td>
+                  <td data-bind="text: $parent.jobStates[parseInt(status)]"></td>
                   <td data-bind="text: time"></td>
                   <td><button class="danger">Cancel/Delete</button></td>
                 </tr>
@@ -131,7 +132,8 @@
           </div>
       </div>
       <div class="row" data-bind="with:selectedJob()">
-          <h3>Data:</h3>
+          <h4>Data:</h4>
+          <p data-bind="text: output"></p>
           <div class="col-md-2">
               <ul data-bind="foreach: data_files">
                   <li data-bind="text: $data" data-bind = "click: $parent.selectFile"></li>
@@ -152,7 +154,7 @@
   </footer>
 
   <!-- put all scripty scripts below this line -->
-  <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+  <script src="http://code.jquery.com/jquery-1.12.0.js"></script>
   <script src="../js/bootstrap.min.js"></script>
   <!-- knockout script -->
   <script src="../js/knockout-3.3.0.js"></script>
