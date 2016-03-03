@@ -39,6 +39,71 @@ function Module(data){
 		this.formFields.push({"field": "nodes", "value": 1});
 		this.formFields.push({"field": "processes", "value": 4});
 	}
+
+
+	self.getRealFormFields = function (pce_id) {
+		self.formFields.removeAll();
+		//self.formFields.push({"field":"job_name","value":"new job"});
+		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/pces/" + pce_id + "/module/" + self.id + "?apikey=" + JSON.parse(sessionStorage['auth_data']).apikey,
+			function (data){
+				// {"status": 0,
+				//  "status_message": "Success",
+				//  "users": {
+				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+				//    "data": [2, "alice", "", "", 0, 1]}}
+				var raw = data.pces.uioptions;
+				console.log(raw);
+
+				var raw = data.pces.uioptions.onramp;
+				console.log(raw);
+				if(self.name == "mpi-ring"){
+					var raw = data.pces.uioptions["ring"];
+					console.log(raw);
+				}
+				else {
+					var raw = data.pces.uioptions[self.name];
+					console.log(raw);
+				}
+
+
+
+				/*
+				var onramp_fields = [{"field":"job_name", "value":""}];
+				data.pces.uioptions.onramp.forEach(function (item, index, array){
+					onramp_fields.push({"field":item, "value":""});
+					});
+				self.formFields.push({"onramp":onramp_fields});
+
+				var my_fields = [];
+				data.pces.uioptions[self.name].forEach(function (item, index, array){
+					my_fields.push({"field":item, "value":""});
+				});
+				var name = self.name.toString();
+				self.formFields().push({name : my_fields});
+				self.formFields().forEach(function (item, index, array) {"* " + console.log(item);});
+				*/
+
+				self.formFields.push({field:"job_name", data:""});
+				data.pces.uioptions.onramp.forEach(function (item, index, array){
+					self.formFields.push({field:"onramp " + item, data:""});
+				});
+
+				if(self.name == "mpi-ring"){
+					data.pces.uioptions["ring"].forEach(function (item, index, array){
+						self.formFields.push({field:"ring " + item, data:""});
+					});
+				}
+				else {
+					data.pces.uioptions[self.name].forEach(function (item, index, array){
+						self.formFields.push({field:self.name + " " + item, data:""});
+					});
+				}
+
+				console.log("added fields!");
+				console.log(self.formFields());
+			}
+		);
+	}
 }
 
 
@@ -82,6 +147,7 @@ function OnrampWorkspaceViewModel () {
 
 	self.selectedPCE = ko.observable();
 	self.selectedModule = ko.observable();
+
 
 	$(document).ready( function () {
 		// get data from server
@@ -175,7 +241,7 @@ function OnrampWorkspaceViewModel () {
 								}
 							}
 							// need to replace with real form fields
-							newmod.addDefaultFormFields();
+							//newmod.addDefaultFormFields();
 							self.allModules.push(newmod);
 							self.Modulelist.push(newmod);
 						}
@@ -205,19 +271,29 @@ function OnrampWorkspaceViewModel () {
 				}
 			}
 		}
+		else {
+			// module and pce selected
+			console.log("<<<getting form fields>>>");
+			self.selectedModule().getRealFormFields(PCE.id);
+		}
 		self.selectedPCE(PCE);
 	}
 
 	self.selectModule = function (m) {
 		self.selectedModule(m);
-		console.log("Selected Module: " + m.name);
-		console.log(" (" + m.PCEs().length + ")");
+		console.log("Selected Module: " + self.selectedModule().name);
+		console.log(" (" + self.selectedModule().PCEs().length + ")");
 		if(! self.selectedPCE()){
 			self.PCElist.removeAll();
-			for(var i = 0; i < m.PCEs().length; i++){
-				console.log("Adding pce id " + m.PCEs()[i] );
-				self.PCElist.push(self.findById(self.allPCEs, m.PCEs()[i]));
+			for(var i = 0; i < self.selectedModule().PCEs().length; i++){
+				console.log("Adding pce id " + self.selectedModule().PCEs()[i] );
+				self.PCElist.push(self.findById(self.allPCEs, self.selectedModule().PCEs()[i]));
 			}
+		}
+		else {
+			// module and pce selected
+			console.log("????getting form fields???");
+			m.getRealFormFields(self.selectedPCE().id);
 		}
 		self.selectedModule(m);
 	}
@@ -273,17 +349,71 @@ function OnrampWorkspaceViewModel () {
 
 
 	this.launchJob = function (formData){
-		var data_packet =
-							JSON.stringify({"auth": JSON.parse(self.auth_data),
-								"info": {
-									"workspace_id": self.workspaceID,
-									"module_id" : self.selectedModule().id,
-									"pce_id" : self.selectedPCE().id,
-									"user_id" : parseInt(self.userID),
-									"job_name" : formData.formFields()[0].value}});
-		for(var i = 0; i < formData.formFields().length; i++){
-			console.log(formData.formFields()[i].field + " : " + formData.formFields()[i].value);
+// 		{
+//     "auth": {
+//         ... // Removed for brevity
+//     },
+//     "info": {
+//         "job_name": "Run Alpha 2",
+//         "module_id": 1,
+//         "pce_id": 1,
+//         "user_id": 2,
+//         "workspace_id": 1
+//     },
+//     "uioptions": {
+//         "onramp": {
+//             "nodes": 1,
+//             "np": 2
+//         },
+//         "ring": {
+//             "iters": 5,
+//             "work": 1
+//         }
+//     }
+// }
+		// construct uioptions
+		var opts = {"onramp":{}};
+		var mod_name = self.selectedModule().name;
+		if(self.selectedModule().name == "mpi-ring"){
+			mod_name = "ring";
 		}
+		else if (self.selectedModule().name == "template"){
+			mod_name = "hello";
+		}
+		opts[mod_name] = {};
+		formData.formFields().forEach( function(item, index, array){
+			if(item.field != "job_name"){
+				if(item.field.search("onramp") >= 0){
+					// get onramp fields
+					console.log(item.field.slice(7));
+					opts["onramp"][item.field.slice(7)] = item.data;
+				}
+				else if(item.field.search(mod_name) >= 0){
+					console.log(item.field.slice(mod_name.length + 1));
+					opts[mod_name][item.field.slice(mod_name.length + 1)] = item.data;
+				}
+				else {
+					console.log("badness!!!");
+				}
+			}
+			else {
+				console.log(index + ") " + item.field + " : " + item.data);
+			}
+		});
+		console.log(formData.formFields()[0].data);
+
+		var data_packet = JSON.stringify({
+			"auth": JSON.parse(self.auth_data),
+			"info": {
+				"workspace_id": parseInt(self.workspaceID),
+				"module_id" : self.selectedModule().id,
+				"pce_id" : self.selectedPCE().id,
+				"user_id" : parseInt(self.userID),
+				"job_name" : formData.formFields()[0].data
+			},
+			"uioptions" : opts
+		});
+
 		// POST to jobs
 		$.ajax({
 			type: "POST",
