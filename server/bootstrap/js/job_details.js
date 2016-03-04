@@ -15,15 +15,16 @@ function Job(data){
 
 function JobDetailsViewModel() {
 	var self = this;
-	self.username = ko.observable("test");  // want to get this from the cookie/session/server
 	self.userID = sessionStorage['UserID'];
 	self.auth_data = sessionStorage['auth_data'];
+	self.username = JSON.parse(self.auth_data).username;  // want to get this from the cookie/session/server
+
 	self.selectedJob = ko.observable();
 	self.Jobslist = ko.observableArray();
 
 	self.jobStates = [];
 
-	self.welcome =   "Welcome " + self.username();
+	self.welcome =   "Welcome " + self.username;
 	self.selectedFile = ko.observable("test.txt");
 
 	self.refreshJobs = function () {

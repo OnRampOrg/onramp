@@ -42,7 +42,7 @@
           <li><a href="myprofile.html">Profile</a></li>
           <li><a href="contact.html">Contact</a></li>
           <li><a href="#help">Help</a></li>
-          <li data-bind="click: logout">Logout</li>
+          <li><a data-bind="click: logout">Logout</a></li>
         </ul>
       </div>
     </div>
@@ -91,7 +91,7 @@
               <td data-bind="text: pce"></td>
               <td data-bind="text: mod"></td>
               <td data-bind="text: name"></td>
-              <td data-bind="text: $parent.jobStates[parseInt(status)]"></td>
+              <td data-bind="text: status"></td>
               <td><button class="btn-info" data-bind="click: $parent.selectJob">View Details</button></td>
               <td><button class="btn-danger">Cancel/Delete</button></td>
             </tr>
@@ -132,24 +132,27 @@
           </div>
       </div>
       <div class="row" data-bind="with:selectedJob()">
-          <h4>Data:</h4>
+          <h4>Data: (Coming soon!)</h4>
+          <!--
           <p data-bind="text: output"></p>
           <div class="col-md-2">
               <ul data-bind="foreach: data_files">
-                  <li data-bind="text: $data" data-bind = "click: $parent.selectFile"></li>
+                  <li data-bind="text: $data"></li>
               </ul>
           </div>
+            -->
           <div class="col-md-8 col-md-offset-2">
               <h5 data-bind="text: $root.selectedFile()"></h5>
               <object data-bind="attr:{ data: $root.selectedFile() }" border=5 type="text/plain" width="100%" height="100%">alt text</object>
           </div>
+
       </div>
   </div>
 
   <!-- footer -->
   <footer class="footer">
-    <div class="container">
-      <p>OnRamp to Parallel and Distributed Computing -- 2015</p>
+    <div class="container" class="footer">
+      <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
     </div>
   </footer>
 

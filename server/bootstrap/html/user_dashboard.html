@@ -42,7 +42,7 @@
           <li><a href="myprofile.html">Profile</a></li>
           <li><a href="contact.html">Contact</a></li>
           <li><a href="#help">Help</a></li>
-          <li data-bind="click: logout">Logout</li>
+          <li><a data-bind="click: logout">Logout</a></li>
         </ul>
       </div>
     </div>
@@ -141,7 +141,7 @@
               <td data-bind="text: name"></td>
               <td data-bind="text: status"></td>
               <td data-bind="text: time"></td>
-              <td><button class="info">View Details</button></td>
+              <td><button class="info" data-bind="click: gotoJobDetails">View Details</button></td>
               <td><button class="danger">Cancel/Delete</button></td>
             </tr>
           </tbody>
@@ -152,8 +152,8 @@
 
   <!-- footer -->
   <footer class="footer">
-    <div class="container">
-      <p>OnRamp to Parallel and Distributed Computing -- 2015</p>
+    <div class="container" class="footer">
+      <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
     </div>
   </footer>
 
