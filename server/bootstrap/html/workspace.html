@@ -51,7 +51,7 @@
                     <li><a href="myprofile.html">Profile</a></li>
                     <li><a href="contact.html">Contact</a></li>
                     <li><a href="#help">Help</a></li>
-                    <li data-bind="click: logout">Logout</li>
+          <li><a data-bind="click: logout">Logout</a></li>
                 </ul>
             </div>
         </div>
@@ -64,8 +64,11 @@
     </div>
 
     <div class="container">
-        <div class="row">
+        <div class="row" data-bind="if: workspaceInfo.desc">
             <p data-bind="text: workspaceInfo.desc"></p>
+        </div>
+        <div class="row" data-bind="ifnot: workspaceInfo.desc">
+            <p>Description of workspace...</p>
         </div>
     </div>
 
@@ -178,7 +181,12 @@
     <div class="row">
         <div class="col-lg-8" data-bind="with: selectedModule()">
             <h4 data-bind="text: name"></h4>
-            <p data-bind="text: desc"></p>
+            <div data-bind="if: desc">
+                <p data-bind="text: desc"></p>
+            </div>
+            <div data-bind="ifnot: desc">
+                <p>Description of module...</p>
+            </div>
             <form class="form" data-bind="if: $parent.selectedPCE()">
                 <div data-bind="foreach: formFields()">
                     <div class="col-lg-6">
@@ -207,9 +215,9 @@
 -->
 <!-- footer -->
 <footer class="footer">
-    <div class="container">
-        <p>OnRamp to Parallel and Distributed Computing -- 2015</p>
-    </div>
+  <div class="container" class="footer">
+    <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
+  </div>
 </footer>
 
 

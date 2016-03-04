@@ -60,6 +60,10 @@ function Module(data){
 					var raw = data.pces.uioptions["ring"];
 					console.log(raw);
 				}
+				if(self.name == "template"){
+					var raw = data.pces.uioptions["hello"];
+					console.log(raw);
+				}
 				else {
 					var raw = data.pces.uioptions[self.name];
 					console.log(raw);
@@ -91,6 +95,11 @@ function Module(data){
 				if(self.name == "mpi-ring"){
 					data.pces.uioptions["ring"].forEach(function (item, index, array){
 						self.formFields.push({field:"ring " + item, data:""});
+					});
+				}
+				if(self.name == "template"){
+					data.pces.uioptions["hello"].forEach(function (item, index, array){
+						self.formFields.push({field:"hello " + item, data:""});
 					});
 				}
 				else {
