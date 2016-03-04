@@ -60,7 +60,7 @@ function Module(data){
 					var raw = data.pces.uioptions["ring"];
 					console.log(raw);
 				}
-				if(self.name == "template"){
+				else if(self.name == "template"){
 					var raw = data.pces.uioptions["hello"];
 					console.log(raw);
 				}
@@ -97,7 +97,7 @@ function Module(data){
 						self.formFields.push({field:"ring " + item, data:""});
 					});
 				}
-				if(self.name == "template"){
+				else if(self.name == "template"){
 					data.pces.uioptions["hello"].forEach(function (item, index, array){
 						self.formFields.push({field:"hello " + item, data:""});
 					});
