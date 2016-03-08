@@ -8,12 +8,15 @@
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/bootstrap-horizon.css" rel="stylesheet">
     <link href="http://code.cloudcms.com/alpaca/1.5.11/bootstrap/alpaca.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+	<link href="../css/workspaceStyle.css" rel="stylesheet">
 
     <!-- put all scripty scripts below this line -->
     <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
     <script src="../js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../js/handlebars-v3.0.3.js"></script>
     <script type="text/javascript" src="http://code.cloudcms.com/alpaca/1.5.11/bootstrap/alpaca.min.js"></script>
+	<script src="../js/all_global.js"></script>
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media
     queries -->
@@ -75,7 +78,7 @@
     <!-- PCE selection -->
     <div class="container" data-bind="ifnot: selectedPCE()" >
         <div class="row">
-            <h4>I want to pick a PCE...</h4>
+            <h4>I want to pick a <a href="#" data-toggle="tooltip" class = "myTooltip" title="definition of a PCE!">PCE</a>...</h4>
             <p></p>
         </div>
 
@@ -107,7 +110,7 @@
             </div>
             <!-- change selected PCE -->
             <div class="col-lg-3 col-md-4 col-sm-5 col-xs-6">
-                <button class="btn btn-primary" data-bind="click: changePCE">Pick a different PCE</button>
+                <button id = "changePCE" class="btn btn-primary" data-bind="click: changePCE">Pick a different PCE</button>
             </div>
         </div>
         <div class="row">
@@ -175,7 +178,7 @@
         </div>
         <!-- change selected Module -->
         <div class="col-lg-3 col-md-4 col-sm-5 col-xs-6">
-            <button class="btn btn-primary" data-bind="click: changeModule">Pick a different Module</button>
+            <button id = "changeMod" class="btn btn-primary" data-bind="click: changeModule">Pick a different Module</button>
         </div>
     </div>
     <div class="row">

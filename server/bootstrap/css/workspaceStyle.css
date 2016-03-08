@@ -1,0 +1,44 @@
+body{
+	background-color: Lavender;
+}
+.jumbotron{
+	background-color: Lavender;
+}
+
+
+#myspan:hover{ 
+	cursor: pointer; font-style: italic;
+}
+.panel {
+  min-height: 5;
+  max-height: 5;
+  overflow-y: scroll;
+  position: absolute;
+  right: 85%;
+  top: 100px;
+}
+#changePCE{
+	position: absolute;
+	left: 10px;
+}
+#changeMod{
+	position: absolute;
+	left: 10px;
+}
+.container {
+	margin-left: 250px;
+}
+.footer{
+	margin-top: 50px;
+	background-color: white;
+    border: 1px solid gray;	
+}
+abbr{
+	position: relative;
+}
+.myTooltip{
+	color: grey;
+}
+.myTooltip:hover{
+	font-style: italic;
+}
