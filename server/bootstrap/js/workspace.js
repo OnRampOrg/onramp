@@ -136,7 +136,6 @@ function Workspace(data){
 function OnrampWorkspaceViewModel () {
 	// Data
 	var self = this;
-	self.username = sessionStorage['UserName'];  // want to get this from the cookie/session/server
 	self.userID = sessionStorage['UserID'];
 	self.auth_data = sessionStorage['auth_data'];
 	self.workspaceID = sessionStorage['WorkspaceID'];
@@ -144,6 +143,8 @@ function OnrampWorkspaceViewModel () {
 	//self.workspaceInfo(new Workspace({'WorkspaceID': 1,
 	//'WorkspaceName': 'default',
 	//'Description':'My personal workspace'}));
+
+	self.username = JSON.parse(self.auth_data).username;
 
 	self.PCElist = ko.observableArray();
 	self.Jobslist = ko.observableArray();

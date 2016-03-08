@@ -51,7 +51,7 @@ function PCE (data) {
 
 	self.viewPCE = function () {
 		// go to manage Workspaces page and show this job
-		window.location.href = "admin_PCEs.html";
+		window.location.href = "admin_pces.html";
 	};
 }
 
@@ -85,7 +85,7 @@ function UserProfile(data) {
 	self.email = ko.observable(data['email']);
 	self.isAdmin = ko.observable(data['is_admin']);
 	self.isEnabled = ko.observable(data['is_enabled']);
-	self.password = ko.observable('dummyPassword');
+	self.password = ko.observable('**********');
 
 	self.auth_data = sessionStorage['auth_data'];
 
@@ -249,7 +249,7 @@ function UserProfile(data) {
 
 		self.addUser = function () {
 			// need to get user ID from the server, maybe not until data is populated?
-			var newUser = new UserProfile({'id':-1, 'username': 'username', 'fullName' : 'fullName', 'email':'email', 'isAdmin': false});
+			var newUser = new UserProfile({'id':-1, 'username': 'username', 'full_name' : 'fullName', 'email':'email', 'isAdmin': false});
 			self.Userslist.push(newUser);
 			self.selectedUser(newUser);
 		}

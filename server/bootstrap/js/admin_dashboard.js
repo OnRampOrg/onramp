@@ -51,7 +51,7 @@ function PCE (data) {
 
 	self.viewPCE = function () {
 		// go to manage Workspaces page and show this job
-		window.location.href = "admin_PCEs.html";
+		window.location.href = "admin_pces.html";
 	};
 }
 
@@ -126,11 +126,11 @@ function AdminDashboardViewModel() {
 	};
 
 	self.managePCEs = function () {
-		window.location.href = "admin_PCEs.html";
+		window.location.href = "admin_pces.html";
 	};
 
 	self.manageModules = function () {
-		window.location.href = "admin_Modules.html";
+		window.location.href = "admin_modules.html";
 	};
 
 	$(document).ready( function () {
