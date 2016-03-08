@@ -8,7 +8,6 @@
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/bootstrap-horizon.css" rel="stylesheet">
     <link href="http://code.cloudcms.com/alpaca/1.5.11/bootstrap/alpaca.min.css" rel="stylesheet">
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 	<link href="../css/workspaceStyle.css" rel="stylesheet">
 
     <!-- put all scripty scripts below this line -->
@@ -190,12 +189,12 @@
             <div data-bind="ifnot: desc">
                 <p>Description of module...</p>
             </div>
-            <form class="form" data-bind="if: $parent.selectedPCE()">
-                <div data-bind="foreach: formFields()">
-                    <div class="col-lg-6">
-                        <span data-bind="text: field"></span>
+            <form class="form-horizontal" data-bind="if: $parent.selectedPCE()">
+                <div class = "form-group" data-bind="foreach: formFields()">
+                    <div class="col-sm-4">
+					<label for="parameter" data-bind="text: field"></label>
                     </div>
-                    <div class="col-lg-6">
+                    <div class="col-sm-6">
                         <input type="text" id="launch-field" data-bind="value: data"/>
                     </div>
                 </div>

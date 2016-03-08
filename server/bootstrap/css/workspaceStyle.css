@@ -42,3 +42,15 @@ abbr{
 .myTooltip:hover{
 	font-style: italic;
 }
+.form-group label:hover{
+	cursor: pointer;
+	font-style: italic;
+}
+.form-group input{
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+
+#launch-field:focus{
+	box-shadow: 5px 5px 5px 5px LightBlue;
+}
