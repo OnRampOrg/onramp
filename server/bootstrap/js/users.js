@@ -89,20 +89,6 @@ function DummyLoginViewModel() {
     console.log("after ajax...");
   };
 
-  self.logout = function (){
-      // send post to server
-      $.ajax({
-        type: 'POST',
-        url: 'http://flux.cs.uwlax.edu/onramp/api/logout',
-        data: self.auth_data,
-        complete: function () {
-            window.location.href = "start.html";
-        },
-        dataType: 'application/json',
-        contentType: 'application/json'
-      } );
-
-  }
 
 
 }

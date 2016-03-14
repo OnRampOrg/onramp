@@ -1,20 +1,3 @@
-function Job(data){
-	var self = this;
-	self.jID = data['job_id'];
-	self.user = data['user_id'];
-	self.ws = data['workspace_id'];
-	self.pce = data['pce_id'];
-	self.mod = data['module_id'];
-	self.name = data['job_name'];
-	self.status = data['state'];
-	self.time = "0:00";  // not implemented yet
-
-
-	self.viewJob = function () {
-		// go to manage Jobs page and show this job
-		window.location.href = "admin_jobs.html";
-	};
-}
 
 function PCEMod(data){
 	var self = this;
@@ -30,7 +13,7 @@ function PCEMod(data){
 	self.mod_name = ko.observable(data['module_name']);
 }
 
-function Workspace(data){
+function adminWorkspace(data){
 	var self = this;
 	self.id = ko.observable(data['workspace_id']);
 	self.name = ko.observable(data['workspace_name']);
@@ -99,7 +82,7 @@ function Workspace(data){
 						console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
 						conv_data[data.workspaces.fields[i]] = raw[i];
 					}
-					self.Jobslist.push(new Job(conv_data));
+					self.Jobslist.push(new Job(conv_data, true, false));
 				}
 			}
 		);
@@ -236,7 +219,7 @@ function PCE (data) {
 
 	self.viewPCE = function () {
 		// go to manage Workspaces page and show this job
-		window.location.href = "admin_PCEs.html";
+		window.location.href = "admin_pces.html";
 	};
 
 	self.complete_func = function (data){
@@ -314,7 +297,7 @@ function PCE (data) {
 						console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
 						conv_data[data.pces.fields[i]] = raw[i];
 					}
-					self.Workspacelist.push(new Workspace(conv_data));
+					self.Workspacelist.push(new adminWorkspace(conv_data));
 				}
 			}
 		);
@@ -339,7 +322,7 @@ function PCE (data) {
 						console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
 						conv_data[data.pces.fields[i]] = raw[i];
 					}
-					self.Jobslist.push(new Job(conv_data));
+					self.Jobslist.push(new Job(conv_data, true, false));
 				}
 			}
 		);
@@ -538,7 +521,7 @@ function UserProfile(data) {
 						console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
 						conv_data[data.users.fields[i]] = raw[i];
 					}
-					self.Jobslist.push(new Job(conv_data));
+					self.Jobslist.push(new Job(conv_data, true, false));
 				}
 			}
 		);
@@ -561,7 +544,7 @@ function UserProfile(data) {
 						console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
 						conv_data[data.users.fields[i]] = raw[i];
 					}
-					self.Workspacelist.push(new Workspace(conv_data));
+					self.Workspacelist.push(new adminWorkspace(conv_data));
 				}
 			}
 		);
@@ -720,7 +703,7 @@ function AdminWorkspaceViewModel() {
 									console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
 									conv_data[data.workspaces.fields[i]] = raw[i];
 								}
-								self.Workspacelist.push(new Workspace(conv_data));
+								self.Workspacelist.push(new adminWorkspace(conv_data));
 							}
 						}
 			);
@@ -750,7 +733,7 @@ function AdminWorkspaceViewModel() {
 									console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
 									conv_data[data.workspaces.fields[i]] = raw[i];
 								}
-								self.Workspacelist.push(new Workspace(conv_data));
+								self.Workspacelist.push(new adminWorkspace(conv_data));
 							}
 						}
 			);
@@ -778,20 +761,6 @@ function AdminWorkspaceViewModel() {
 			);
 		});
 
-		self.logout = function (){
-			// send post to server
-			$.ajax({
-			  type: 'POST',
-			  url: 'http://flux.cs.uwlax.edu/onramp/api/logout',
-			  data: self.auth_data,
-			  complete: function () {
-				  window.location.href = "start.html";
-			  },
-			  dataType: 'application/json',
-			  contentType: 'application/json'
-			} );
-
-		};
 
 	}
 

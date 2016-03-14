@@ -8,12 +8,15 @@
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/bootstrap-horizon.css" rel="stylesheet">
     <link href="http://code.cloudcms.com/alpaca/1.5.11/bootstrap/alpaca.min.css" rel="stylesheet">
+	<link href="../css/workspaceStyle.css" rel="stylesheet">
+	<link href="../css/global_style.css" rel="stylesheet">
 
     <!-- put all scripty scripts below this line -->
     <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
     <script src="../js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../js/handlebars-v3.0.3.js"></script>
     <script type="text/javascript" src="http://code.cloudcms.com/alpaca/1.5.11/bootstrap/alpaca.min.js"></script>
+	<script src="../js/all_global.js"></script>
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media
     queries -->
@@ -34,7 +37,7 @@
     <!-- Fixed navbar -->
 
     <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
+        <div class="NavContainer">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
                     <span class="sr-only">Toggle navigation</span>
@@ -42,16 +45,20 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="start.html">OnRamp</a>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
+                <a class="navbar-brand" href="start.html">OnRamp</a>
+				<ul class="nav navbar-nav navbar-left">
                     <li class="active"><a href="user_dashboard.html">Home</a></li>
                     <li><a href="about.html">About</a></li>
                     <li><a href="myprofile.html">Profile</a></li>
                     <li><a href="contact.html">Contact</a></li>
                     <li><a href="#help">Help</a></li>
-          <li><a data-bind="click: logout">Logout</a></li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li>
+						<button type="button" class="btn btn-default" onclick = logout()>Logout</button>
+					</li>
                 </ul>
             </div>
         </div>
@@ -75,7 +82,7 @@
     <!-- PCE selection -->
     <div class="container" data-bind="ifnot: selectedPCE()" >
         <div class="row">
-            <h4>I want to pick a PCE...</h4>
+            <h4>I want to pick a <a href="#" data-toggle="tooltip" class = "myTooltip" title="definition of a PCE!">PCE</a>...</h4>
             <p></p>
         </div>
 
@@ -107,7 +114,7 @@
             </div>
             <!-- change selected PCE -->
             <div class="col-lg-3 col-md-4 col-sm-5 col-xs-6">
-                <button class="btn btn-primary" data-bind="click: changePCE">Pick a different PCE</button>
+                <button id = "changePCE" class="btn btn-primary" data-bind="click: changePCE">Pick a different PCE</button>
             </div>
         </div>
         <div class="row">
@@ -175,7 +182,7 @@
         </div>
         <!-- change selected Module -->
         <div class="col-lg-3 col-md-4 col-sm-5 col-xs-6">
-            <button class="btn btn-primary" data-bind="click: changeModule">Pick a different Module</button>
+            <button id = "changeMod" class="btn btn-primary" data-bind="click: changeModule">Pick a different Module</button>
         </div>
     </div>
     <div class="row">
@@ -187,12 +194,12 @@
             <div data-bind="ifnot: desc">
                 <p>Description of module...</p>
             </div>
-            <form class="form" data-bind="if: $parent.selectedPCE()">
-                <div data-bind="foreach: formFields()">
-                    <div class="col-lg-6">
-                        <span data-bind="text: field"></span>
+            <form class="form-horizontal" data-bind="if: $parent.selectedPCE()">
+                <div class = "form-group" data-bind="foreach: formFields()">
+                    <div class="col-sm-4">
+					<label for="parameter" data-bind="text: field"></label>
                     </div>
-                    <div class="col-lg-6">
+                    <div class="col-sm-6">
                         <input type="text" id="launch-field" data-bind="value: data"/>
                     </div>
                 </div>
