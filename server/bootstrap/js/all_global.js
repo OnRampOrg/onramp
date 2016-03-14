@@ -14,6 +14,7 @@ function PCE(data, view){
 		self.viewPCE = function () {
 			// go to manage Workspaces page and show this job
 			window.location.href = "admin_pces.html";
+		}
 	}
 }
 
