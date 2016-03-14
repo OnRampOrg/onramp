@@ -1,8 +1,8 @@
 /*
  * Interface for admin to do things to jobs is not implemented on server
  */
-
-function Job(data){
+//too different
+function myJob(data){
 	var self = this;
 	self.jID = data['JobID'];
 	self.user = data['User'];
@@ -68,27 +68,13 @@ function AdminJobsViewModel() {
 											console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
 											conv_data[data.users.fields[i]] = raw[i];
 										}
-										self.Jobslist.push(new Job(conv_data));
+										self.Jobslist.push(new myJob(conv_data));
 									}
 								}
 							);
 
 	});
 
-	self.logout = function (){
-		// send post to server
-		$.ajax({
-		  type: 'POST',
-		  url: 'http://flux.cs.uwlax.edu/onramp/api/logout',
-		  data: self.auth_data,
-		  complete: function () {
-			  window.location.href = "start.html";
-		  },
-		  dataType: 'application/json',
-		  contentType: 'application/json'
-		} );
-
-	}
 
 }
 

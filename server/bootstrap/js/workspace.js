@@ -1,32 +1,8 @@
-function PCE (data) {
-	var self = this;
-
-	self.id = data['pce_id'];
-	self.name = data['pce_name'];
-	self.status = data['state'];
-	//self.nodes = data['nodes'];
-	//self.corespernode = data['corespernode'];
-	//self.mempernode = data['mempernode'];
-	self.description = data['description'];
-	self.location = data['location'];
-	self.modules = ko.observableArray();
+// Select all elements with data-toggle="tooltips" in the document
+$('[data-toggle="tooltip"]').tooltip();
 
 
-}
-
-function Job(data){
-	var self = this;
-	self.id = data['job_id'];
-	self.user = data['user_id'];
-	self.ws = data['workspace_id'];
-	self.pce = data['pce_id'];
-	self.mod = data['module_id'];
-	self.name = data['job_name'];
-	self.status = data['state'];
-	self.time = "0:00";  // not implemented yet
-}
-
-function Module(data){
+function workspaceModule(data){
 	var self = this;
 	self.id = data['module_id'];
 	self.name = data['module_name'];
@@ -116,7 +92,7 @@ function Module(data){
 }
 
 
-function Workspace(data){
+function myWorkspace(data){
 	var self = this;
 	self.id = data['workspace_id'];
 	self.name = data['workspace_name'];
@@ -175,7 +151,7 @@ function OnrampWorkspaceViewModel () {
 					console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
 					conv_data[data.workspaces.fields[i]] = raw[i];
 				}
-				self.workspaceInfo(new Workspace(conv_data));
+				self.workspaceInfo(new myWorkspace(conv_data));
 				self.welcome1(self.username + "'s " + self.workspaceInfo().name + " workspace");
 			}
 		);
@@ -217,7 +193,7 @@ function OnrampWorkspaceViewModel () {
 								console.log("adding: " + data.pces.fields[j] + " = " + raw[j] + " (" + (raw[j] + 1 ) + ")");
 								conv_data[data.pces.fields[j]] = raw[j];
 							}
-							var newpce = new PCE(conv_data);
+							var newpce = new PCE(conv_data, false);
 							for(var j = 0; j < pairs.length; j++){
 								var p = pairs[j][0];
 								var m = pairs[j][2];
@@ -242,7 +218,7 @@ function OnrampWorkspaceViewModel () {
 								console.log("adding: " + data.modules.fields[j] + " = " + raw[j]);
 								conv_data[data.modules.fields[j]] = raw[j];
 							}
-							var newmod = new Module(conv_data);
+							var newmod = new workspaceModule(conv_data);
 							for(var j = 0; j < pairs.length; j++){
 								var p = pairs[j][0];
 								var m = pairs[j][2];
@@ -358,7 +334,8 @@ function OnrampWorkspaceViewModel () {
 	}
 
 
-	this.launchJob = function (formData){
+	this.launchJob = function(formData){
+		console.log("launching job");
 // 		{
 //     "auth": {
 //         ... // Removed for brevity
@@ -411,6 +388,7 @@ function OnrampWorkspaceViewModel () {
 			}
 		});
 		console.log(formData.formFields()[0].data);
+		
 
 		var data_packet = JSON.stringify({
 			"auth": JSON.parse(self.auth_data),
@@ -526,20 +504,7 @@ self.findById = function (thisList, id){
 	return null;
 }
 
-self.logout = function (){
-	// send post to server
-	$.ajax({
-	  type: 'POST',
-	  url: 'http://flux.cs.uwlax.edu/onramp/api/logout',
-	  data: self.auth_data,
-	  complete: function () {
-		  window.location.href = "start.html";
-	  },
-	  dataType: 'application/json',
-	  contentType: 'application/json'
-	} );
 
-}
 
 }
 

@@ -1,0 +1,12 @@
+.navbar-collapse{
+	position: absolute;
+    width: 100%;
+    left: 0;
+    text-align: center;
+    margin: auto;
+}
+
+.navbar-right{
+	margin-right: 30px;
+	margin-top: 15px;
+}

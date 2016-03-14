@@ -1,33 +1,3 @@
-function Job(data){
-	var self = this;
-	self.jID = data['job_id'];
-	self.user = data['user_id'];
-	self.ws = data['workspace_id'];
-	self.pce = data['pce_id'];
-	self.mod = data['module_id'];
-	self.name = data['job_name'];
-	self.status = data['state'];
-	self.time = "0:00";  // not implemented yet
-
-	self.gotoJobDetails = function () {
-		window.location.href = "job_details.html";
-	}
-}
-
-function Workspace(data){
-	var self = this;
-	self.wID = data['workspace_id'];
-	self.name = data['workspace_name'];
-	self.desc = data['description'];
-
-
-	this.captureWSID = function () {
-		sessionStorage.setItem("WorkspaceID", this.wID);
-		//alert("workspace " + localStorage.getItem('WorkspaceID'));
-		window.location.href = "workspace.html";
-	}
-
-}
 
 
 function UserDashboardViewModel() {
@@ -69,7 +39,7 @@ function UserDashboardViewModel() {
 											console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
 											conv_data[data.users.fields[i]] = raw[i];
 										}
-										self.Jobslist.push(new Job(conv_data));
+										self.Jobslist.push(new Job(conv_data, false, true));
 									}
 								}
 							);
@@ -91,8 +61,9 @@ function UserDashboardViewModel() {
 										for(var i = 0; i < data.users.fields.length; i++){
 											console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
 											conv_data[data.users.fields[i]] = raw[i];
+											console.log("christa");
 										}
-										self.Workspacelist.push(new Workspace(conv_data));
+										self.Workspacelist.push(new Workspace(conv_data, false));
 									}
 								}
 							);
@@ -104,21 +75,6 @@ function UserDashboardViewModel() {
 	});
 
 
-
-	self.logout = function (){
-		// send post to server
-		$.ajax({
-		  type: 'POST',
-		  url: 'http://flux.cs.uwlax.edu/onramp/api/logout',
-		  data: self.auth_data,
-		  complete: function () {
-			  window.location.href = "start.html";
-		  },
-		  dataType: 'application/json',
-		  contentType: 'application/json'
-		} );
-
-	}
 
 
 
