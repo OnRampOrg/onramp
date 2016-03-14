@@ -1,5 +1,6 @@
 /*
  * Interface for admin to do things to jobs is not implemented on server
+ * comments
  */
 //too different
 function myJob(data){

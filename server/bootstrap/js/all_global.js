@@ -14,7 +14,6 @@ function PCE(data, view){
 		self.viewPCE = function () {
 			// go to manage Workspaces page and show this job
 			window.location.href = "admin_pces.html";
-		};
 	}
 }
 
@@ -89,15 +88,7 @@ function Workspace(data, view){
 }
 
 self.logout = function (){
-	console.log("logging out!");
-	
-	  var start = new Date().getTime();
-	  for (var i = 0; i < 1e7; i++) {
-		if ((new Date().getTime() - start) > 3000){
-		  break;
-		}
-	  }
-	
+
 	// send post to server
 	$.ajax({
 	  type: 'POST',
@@ -109,12 +100,5 @@ self.logout = function (){
 	  dataType: 'application/json',
 	  contentType: 'application/json'
 	} );
-	
-	var start = new Date().getTime();
-	  for (var i = 0; i < 1e7; i++) {
-		if ((new Date().getTime() - start) > 5000){
-		  break;
-		}
-	  }
 
 }
