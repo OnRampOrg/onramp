@@ -1,4 +1,4 @@
-// Program: pi-hybrid
+// Program: AUC-hybrid
 // Author: Jason Regina
 // Date: 12 November 2015
 // Description: This program approximates pi using the Riemann Sum method
