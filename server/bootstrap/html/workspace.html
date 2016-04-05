@@ -187,20 +187,51 @@
     </div>
     <div class="row">
         <div class="col-lg-8" data-bind="with: selectedModule()">
-            <h4 data-bind="text: name"></h4>
-            <div data-bind="if: desc">
-                <p data-bind="text: desc"></p>
+           <!-- <span style = "float:left; padding-right: 15px;" data-bind="text: name"></span>-->
+            <div  style= "display:inline;" id = "modalWrapper" data-bind="if: desc">
+                <!--<p data-bind="text: desc"></p>-->
+				<!--<button type = "button" class = "btn btn-default" data-bind="click: openModal">View description</button>-->
+				<button type = "button" class = "btn btn-default" data-bind="click: openModal"><span data-bind="text: name + ' module'"></span></button>
+				<div class="modal fade" id="moduleModal" tabindex="-1" role="dialog">
+				  <div class="modal-dialog">
+					<div class="modal-content">
+					  <div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" data-bind="text: name"></h4>
+					  </div>
+					  <div class="modal-body">
+						<p data-bind="text: desc"></p>
+					  </div>
+					</div><!-- /.modal-content -->
+				  </div><!-- /.modal-dialog -->
+				</div><!-- /.modal -->
             </div>
-            <div data-bind="ifnot: desc">
-                <p>Description of module...</p>
+            <div id = "modalWrapper" data-bind="ifnot: desc">
+               <!-- <p>Description of module...</p>-->
+			   <!--<button type = "button" class = "btn btn-default" data-bind="click: openModal">View description</button>-->
+			   <button type = "button" class = "btn btn-default" data-bind="click: openModal" ><span data-bind="text: name + ' module'"> ?</span></button>
+				<div class="modal fade" id="moduleModal" tabindex="-1" role="dialog">
+				  <div class="modal-dialog">
+					<div class="modal-content">
+					  <div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" data-bind="text: name"></h4>
+					  </div>
+					  <div class="modal-body">
+						<p>Module description</p>
+					  </div>
+					</div><!-- /.modal-content -->
+				  </div><!-- /.modal-dialog -->
+				</div><!-- /.modal -->
             </div>
-            <form class="form-horizontal" data-bind="if: $parent.selectedPCE()">
+				<form class="form-horizontal" data-bind="if: $parent.selectedPCE()">
                 <div class = "form-group" data-bind="foreach: formFields()">
                     <div class="col-sm-4">
-					<label for="parameter" data-bind="text: field"></label>
+						<!--<label for="launch-field" data-bind="text: field"></label>-->
+						<label class = "formLabel" for="launch-field" data-bind="text: field"></label>
                     </div>
                     <div class="col-sm-6">
-                        <input type="text" id="launch-field" data-bind="value: data"/>
+                        <input type="text" id="launch-field" data-bind="value: data">
                     </div>
                 </div>
                 <button class="btn btn-primary" type="submit" data-bind="click: $root.launchJob">Launch Job!</button>

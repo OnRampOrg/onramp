@@ -121,6 +121,7 @@
       <div class="col-sm-6">
         <h2>My Jobs</h2>
         <p>This is a list of the n most recent jobs.</p>
+		<!--<button type = button class="btn-info" data-bind="click: gotoJobDetails">View Details</button>-->
         <!-- check out this website for a cool way to display a table of data: http://bootstrapmaster.com/live/genius/table.html -->
       </div>
     </div>
@@ -135,8 +136,8 @@
             <th class="col-sm-1">Run Name</th>
             <th class="col-sm-1">Status</th>
             <th class="col-sm-1">Runtime</th>
-            <th class="col-sm-1">View Details</th>
-            <th class="col-sm-1">Cancel/Delete</th>
+           <!-- <th class="col-sm-1">View Details</th>
+            <th class="col-sm-1">Cancel/Delete</th>-->
           </thead>
           <tbody data-bind="foreach: Jobslist">
             <tr>
@@ -147,12 +148,13 @@
               <td data-bind="text: name"></td>
               <td data-bind="text: status"></td>
               <td data-bind="text: time"></td>
-              <td><button class="info" data-bind="click: gotoJobDetails">View Details</button></td>
-              <td><button class="danger">Cancel/Delete</button></td>
+             <!-- <td><button class="btn-info" data-bind="click: gotoJobDetails">View Details</button></td>
+              <td><button class="btn-danger">Cancel/Delete</button></td>-->
             </tr>
           </tbody>
         </table>
       </div>
+	  <button type = button class="btn-info" data-bind="click: gotoJobDetails">View Job Details</button>
     </div>
   </div>
 

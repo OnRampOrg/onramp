@@ -42,10 +42,6 @@ abbr{
 .myTooltip:hover{
 	font-style: italic;
 }
-.form-group label:hover{
-	cursor: pointer;
-	font-style: italic;
-}
 .form-group input{
 	margin-top: 3px;
 	margin-bottom: 3px;
@@ -53,4 +49,28 @@ abbr{
 
 #launch-field:focus{
 	box-shadow: 5px 5px 5px 5px LightBlue;
+}​
+
+.form-group label{
+	position: relative;
 }
+.notActive{
+	display: none;
+}
+.isActive{
+	display: block;
+	position: absolute;
+	background-color: lightBlue;
+	box-shadow: 0 0 5px 2px rgba(0,0,0,.35);
+	color: black;
+	padding: 10px;
+	border-radius: 4px;
+	z-index: 999;
+}
+
+.form-group label:hover{
+	cursor: pointer;
+	font-style: italic;
+}
+
+

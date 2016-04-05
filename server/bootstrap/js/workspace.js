@@ -1,7 +1,6 @@
 // Select all elements with data-toggle="tooltips" in the document
 $('[data-toggle="tooltip"]').tooltip();
 
-
 function workspaceModule(data){
 	var self = this;
 	self.id = data['module_id'];
@@ -9,6 +8,8 @@ function workspaceModule(data){
 	self.desc = data['description'];
 	self.formFields = ko.observableArray();
 	self.PCEs = ko.observableArray();
+	self.formInfo = ko.observableArray();
+	console.log("CHRISTA DESC: " + self.desc);
 
 	self.addDefaultFormFields = function () {
 		this.formFields.push({"field": "name", "value": "test"});
@@ -66,43 +67,130 @@ function workspaceModule(data){
 				self.formFields.push({field:"job_name", data:""});
 				data.pces.uioptions.onramp.forEach(function (item, index, array){
 					self.formFields.push({field:"onramp " + item, data:""});
+					self.formInfo.push({formid: item});
 				});
 
 				if(self.name == "mpi-ring"){
 					data.pces.uioptions["ring"].forEach(function (item, index, array){
 						self.formFields.push({field:"ring " + item, data:""});
+						self.formInfo.push({formid: item});
+						console.log("christa"+ item);
 					});
 				}
 				else if(self.name == "template"){
 					data.pces.uioptions["hello"].forEach(function (item, index, array){
 						self.formFields.push({field:"hello " + item, data:""});
+						self.formInfo.push({formid: item});
+						console.log("christa"+ item);
 					});
 				}
 				else {
 					data.pces.uioptions[self.name].forEach(function (item, index, array){
 						self.formFields.push({field:self.name + " " + item, data:""});
+						self.formInfo.push({formid: item});
+						console.log("christa"+ item);
 					});
 				}
 
 				console.log("added fields!");
 				console.log(self.formFields());
+				//call method to set the ids of each label
+				setFormId(self.formInfo());
 			}
 		);
 	}
 }
 
+//forEach(instance in objects)
+//use this to create a pop up somehow
+var setFormId = function(formInfo){
+	var formID = "";
+	var labels = document.getElementsByTagName("label");
+		for(var i = 1; i < labels.length; i++){
+			formID = formInfo[i-1].formid;
+		   labels[i].setAttribute("id", formID);
+		   var myDescription = getDescription(formID);
+		   //labels[i].setAttribute("title", myDescription); //may need as a default option
+		   //labels[i].setAttribute("onclick", "openModal(this)");
+	
+		   //http://stackoverflow.com/questions/22044106/display-tooltip-on-labels-hover
+		   //create the popup look at this: http://stackoverflow.com/questions/3559467/description-box-on-mouseover
+			if( myDescription !== "none"){
+			   var div = document.createElement("div");
+			   div.setAttribute("class", "formTip notActive");
+			   var myDescription = getDescription(formID);
+			   var description = document.createTextNode(myDescription);
+			   div.appendChild(description);
+			   $(div).insertAfter(labels[i]);
+			}
+			
+			//check for form label click
+			$(document).ready(function () {
+			   $('.formLabel').click(function(e) {
+				   var id = $(e.target).attr("id");;
+				   var self = e.target;
+				   console.log("myid: "+id);
+				$(".formTip").removeClass("isActive"); //make 
+				$(".formTip").addClass("notActive");
+				$(self).next().removeClass('notActive');
+					
+				$(self).next().addClass('isActive');
+				
+			   });
+			});
+			//check for white space click
+			$(document).mouseup(function (e){
+				var container = $(".formLabel");
+
+				if (!container.is(e.target) // if the target of the click isn't the container...
+					&& container.has(e.target).length === 0) // ... nor a descendant of the container
+				{
+					$(".formTip").removeClass("isActive"); //make 
+					$(".formTip").addClass("notActive");
+				}
+			});
+
+		}
+}
+
+//In admin mode, in the UI have them enter the descriptions but that won't work'
+//because it's a different html file. Can you edit a different html file?
+//in admin_worksapce.html using admin_workspace.js, can I edit workspace.html
+//from admin_workspace.js even though that's not the current html file displayed?
+//***Utilize AUC.pdf in docs for more definitions!! good stuff***
+var getDescription = function( formID ){
+	var description = "";
+	if(formID === "rectangles"){
+		description = "Specify the number of rectangles in the Riemann Sum";
+	}
+	else if(formID === "threads"){
+		description = "Specify the number of OpenMP threads";
+	}
+	else if(formID === "mode"){
+		description = "Specify which version of pi";
+	}
+	else{
+		description = "none";
+	}
+	return description;
+}
+
+var openModal = function(){
+	$('#moduleModal').modal('show');
+}
 
 function myWorkspace(data){
 	var self = this;
 	self.id = data['workspace_id'];
 	self.name = data['workspace_name'];
 	self.desc = data['description'];
+	console.log("CHRISTA DESC: " + self.desc);
 
 
 	self.captureWSID = function () {
 
-		localStorage.setItem("WorkspaceID", self.wID);
-		alert("workspace " + localStorage.getItem('WorkspaceID'));
+		localStorage.setItem("WorkspaceID", self.id);
+		alert("workspa e " + localStorage.getItem('WorkspaceID'));
 		window.location.href = "workspace.html";
 		return;
 	}
@@ -369,6 +457,7 @@ function OnrampWorkspaceViewModel () {
 		}
 		opts[mod_name] = {};
 		formData.formFields().forEach( function(item, index, array){
+			
 			if(item.field != "job_name"){
 				if(item.field.search("onramp") >= 0){
 					// get onramp fields
@@ -376,7 +465,7 @@ function OnrampWorkspaceViewModel () {
 					opts["onramp"][item.field.slice(7)] = item.data;
 				}
 				else if(item.field.search(mod_name) >= 0){
-					console.log(item.field.slice(mod_name.length + 1));
+					console.log(item.field.slice("CHRISTA: "+mod_name.length + 1));
 					opts[mod_name][item.field.slice(mod_name.length + 1)] = item.data;
 				}
 				else {
@@ -492,7 +581,6 @@ $.alpaca({
 // load data from server
 
 
-
 // helper functions
 self.findById = function (thisList, id){
 	for(var i = 0; i < thisList.length; i++){
@@ -509,4 +597,4 @@ self.findById = function (thisList, id){
 }
 
 
-ko.applyBindings(new OnrampWorkspaceViewModel());
+ko.applyBindings(new OnrampWorkspaceViewModel());
