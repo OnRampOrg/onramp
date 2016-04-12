@@ -44,18 +44,24 @@ function Module(data){
 	self.getRealFormFields = function (pce_id) {
 		self.formFields.removeAll();
 		//self.formFields.push({"field":"job_name","value":"new job"});
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/pces/" + pce_id + "/module/" + self.id + "?apikey=" + JSON.parse(sessionStorage['auth_data']).apikey,
+		$.getJSON( sessionStorage.server + "/pces/" + pce_id + "/module/" + self.id + "?apikey=" + JSON.parse(sessionStorage['auth_data']).apikey,
 			function (data){
 				// {"status": 0,
 				//  "status_message": "Success",
 				//  "users": {
 				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
 				//    "data": [2, "alice", "", "", 0, 1]}}
+			       var raw = data.pces;
+			       console.log("stuff from pce mod: ");
+			       console.log(raw);
+
 				var raw = data.pces.uioptions;
-				console.log(raw);
+				//console.log(raw);
 
 				var raw = data.pces.uioptions.onramp;
-				console.log(raw);
+				//console.log(raw);
+				
+				/*
 				if(self.name == "mpi-ring"){
 					var raw = data.pces.uioptions["ring"];
 					console.log(raw);
@@ -68,7 +74,7 @@ function Module(data){
 					var raw = data.pces.uioptions[self.name];
 					console.log(raw);
 				}
-
+				*/
 
 
 				/*
@@ -161,7 +167,7 @@ function OnrampWorkspaceViewModel () {
 
 	$(document).ready( function () {
 		// get data from server
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/workspaces/" + self.workspaceID + "?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON( sessionStorage.server + "/workspaces/" + self.workspaceID + "?apikey=" + JSON.parse(self.auth_data).apikey,
 			function (data){
 				// {"status": 0,
 				//  "status_message": "Success",
@@ -180,7 +186,7 @@ function OnrampWorkspaceViewModel () {
 			}
 		);
 
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/workspaces/" + self.workspaceID + "/pcemodulepairs?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON( sessionStorage.server + "/workspaces/" + self.workspaceID + "/pcemodulepairs?apikey=" + JSON.parse(self.auth_data).apikey,
 		//self.auth_data,
 			function (data){
 				// {"status": 0,
@@ -208,7 +214,7 @@ function OnrampWorkspaceViewModel () {
 
 				// get data for the set of PCEs
 				for(var i = 0; i < setOfPCEIDs.length; i++){
-					$.getJSON("http://flux.cs.uwlax.edu/onramp/api/pces/" + setOfPCEIDs[i] + "?apikey=" + JSON.parse(self.auth_data).apikey,
+					$.getJSON(sessionStorage.server + "/pces/" + setOfPCEIDs[i] + "?apikey=" + JSON.parse(self.auth_data).apikey,
 						function(data){
 							var raw = data.pces.data;
 							console.log(raw);
@@ -233,7 +239,7 @@ function OnrampWorkspaceViewModel () {
 
 				// get data for the set of Modules
 				for(var i = 0; i < setOfModIDs.length; i++){
-					$.getJSON("http://flux.cs.uwlax.edu/onramp/api/modules/" + setOfModIDs[i] + "?apikey=" + JSON.parse(self.auth_data).apikey,
+					$.getJSON(sessionStorage.server + "/modules/" + setOfModIDs[i] + "?apikey=" + JSON.parse(self.auth_data).apikey,
 						function(data){
 							var raw = data.modules.data;
 							console.log(raw);
@@ -427,7 +433,7 @@ function OnrampWorkspaceViewModel () {
 		// POST to jobs
 		$.ajax({
 			type: "POST",
-			url: "http://flux.cs.uwlax.edu/onramp/api/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+			url: sessionStorage.server + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
 			data: data_packet,
 			complete: function (data){
 				// create confirm with job id info
@@ -530,7 +536,7 @@ self.logout = function (){
 	// send post to server
 	$.ajax({
 	  type: 'POST',
-	  url: 'http://flux.cs.uwlax.edu/onramp/api/logout',
+	  url: sessionStorage.server + '/logout',
 	  data: self.auth_data,
 	  complete: function () {
 		  window.location.href = "start.html";

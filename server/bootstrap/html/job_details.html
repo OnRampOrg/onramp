@@ -132,10 +132,11 @@
           </div>
       </div>
       <div class="row" data-bind="with:selectedJob()">
-          <h4>Data: (Coming soon!)</h4>
+          <h4>Data:</h4>
+          
+          <p data-bind="text: output_str()"></p>
           <!--
-          <p data-bind="text: output"></p>
-          <div class="col-md-2">
+	  <div class="col-md-2">
               <ul data-bind="foreach: data_files">
                   <li data-bind="text: $data"></li>
               </ul>

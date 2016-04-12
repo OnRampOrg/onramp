@@ -952,7 +952,7 @@ class Jobs(_ServerResourceBase):
             #
             # Process keys
             #
-            allowed_search = ["apikey", "user", "workspace", "pce", "module", "state"]
+            allowed_search = ["apikey", "user", "workspace", "pce", "module", "state", "output_file"]
             ids = {}
             debug = ""
             for key, value in kwargs.iteritems():
@@ -1020,15 +1020,52 @@ class Jobs(_ServerResourceBase):
         # /jobs/:ID/data
         #
         elif level is not None and level == "data":
-            prefix = prefix[:-1] + "/"+str(job_id)+"/"+level+"]"
+            prefix = prefix[:-1] + "/"+str(job_id)+"]"
             self.logger.debug(prefix + " Processing...")
 
-            job_info = self._db.job_get_data(job_id)
-            if job_info is None:
+            #                                                                                                                    
+            # Get PCE associated with this job                                                                                   
+            #                                                                                                                    
+            info = self._db.job_get_info(job_id)
+            if info is None:
                 self.logger.error(prefix + " Error no data found")
+                raise cherrypy.HTTPError(400)
+
+            job_info = dict( zip( info["fields"], info["data"] ) )
+            pce_id = int( job_info["pce_id"] )
+
+            self.logger.info(prefix + " Job ID " + str(job_id) + " running on PCE ID " + str(pce_id))
+
+            #                                                                                                                    
+            # Ask that PCE to update the job state                                                                               
+            #                                                                                                                    
+            if self._db.is_valid_pce_id(pce_id) is False:
+                self.logger.info(prefix + " Invalid PCE ID " + str(pce_id))
+                raise cherrypy.HTTPError(400)
+
+            if pce_id in self._pces:
+                self._pces[pce_id].check_connection()
             else:
-                self.logger.debug(prefix + " Package info for " + str(len(job_info)-1) + " data")
-                rtn['jobs'] = job_info
+                self._pces[pce_id] = onramppce.PCEAccess(self.logger, self._db, pce_id, self._tmp_dir)
+                self._pces[pce_id].check_connection()
+
+            # Ask the PCE                                                                                                        
+            job_info = self._pces[pce_id].get_job_output(job_id)
+
+            rtn['jobs'] = job_info
+
+            
+            #prefix = prefix[:-1] + "/"+str(job_id)+"/"+level+"]"
+            #self.logger.debug(prefix + " Processing...")
+
+
+            
+            #job_info = self._db.job_get_data(job_id)
+            #if job_info is None:
+            #    self.logger.error(prefix + " Error no data found")
+            #else:
+            #    self.logger.debug(prefix + " Package info for " + str(len(job_info)-1) + " data")
+            #    rtn['jobs'] = job_info
 
         #
         # Unknown

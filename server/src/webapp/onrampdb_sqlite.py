@@ -849,7 +849,7 @@ class Database_sqlite(onrampdb.Database):
             return self._find_jobs_by('job_id', job_id, search_params)
 
         args = ()
-        fields = ("job_id", "user_id", "workspace_id", "pce_id", "module_id", "job_name", "state")
+        fields = ("job_id", "user_id", "workspace_id", "pce_id", "module_id", "job_name", "state", "output_file")
 
         sql  = "SELECT " + (', '.join(fields))
         sql += " FROM job"
@@ -896,9 +896,59 @@ class Database_sqlite(onrampdb.Database):
         return {"fields" : fields, "data": all_rows }
 
     def get_job_data(self, job_id):
-        self._logger.debug(self._name + "get_job_doc(" + str(job_id)+")")
+        self._logger.debug(self._name + "get_job_data(" + str(job_id)+")")
+        with_out_job_id = True
+        if job_id is not None:
+            with_out_job_id = False
+            return self._find_jobs_by('job_id', job_id, search_params)
 
-        return {"fields": None, "data": None }
+        args = ()
+        fields = ("output_file")
+
+        sql  = "SELECT " + (', '.join(fields))
+        sql += " FROM job"
+
+        wsql = ""
+        largs = []
+
+        for key, value in search_params.iteritems():
+            self._logger.debug(self._name + "DEBUG Key = " + key)
+
+            if len(largs) > 0:
+                wsql += " AND "
+
+            if type(value) is list:
+                self._logger.debug(self._name + " Found a list value for the key " + key)
+
+                wsql += "("
+                for i in range(len(value)):
+                    wsql += " " + key + "= ? "
+                    largs.append(value[i])
+                    if i != len(value)-1:
+                        wsql += "OR"
+
+                wsql += ")"
+            else:
+                wsql +=  key + " = ?"
+                largs.append(value)
+
+        if len(largs) > 0:
+            sql += " WHERE " + wsql
+
+        args = tuple(largs)
+
+        self._logger.debug(self._name + " " + sql)
+        
+        self._connect()
+        self._cursor.execute(sql, args )
+        if with_out_job_id is False:
+            all_rows = self._cursor.fetchone()
+        else:
+            all_rows = self._cursor.fetchall()
+        self._disconnect()
+
+        return {"fields" : fields, "data": all_rows }
+
 
     def update_job_state(self, job_id, state):
         self._logger.debug(self._name + "update_job_state (" + str(job_id) +" in " + str(state) + ")")

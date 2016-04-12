@@ -51,7 +51,7 @@ function AdminJobsViewModel() {
 
 		// get data from server
 		// get jobs for this user
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON( sessionStorage.server + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
 								//self.auth_data,
 								function (data){
 									// {"status": 0,
@@ -79,7 +79,7 @@ function AdminJobsViewModel() {
 		// send post to server
 		$.ajax({
 		  type: 'POST',
-		  url: 'http://flux.cs.uwlax.edu/onramp/api/logout',
+		  url: sessionStorage.server + '/logout',
 		  data: self.auth_data,
 		  complete: function () {
 			  window.location.href = "start.html";

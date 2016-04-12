@@ -141,10 +141,10 @@ function AdminDashboardViewModel() {
 		self.PCEslist([]);
 		self.Moduleslist([]);
 
-
+		console.log("server is: " + sessionStorage["server"]);
 
 		// get data from server
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/users/" + self.userID + "?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON( sessionStorage["server"] + "/users/" + self.userID + "?apikey=" + JSON.parse(self.auth_data).apikey,
 					function (data){
 					// {"status": 0,
 					//  "status_message": "Success",
@@ -157,7 +157,7 @@ function AdminDashboardViewModel() {
 				}
 		);
 
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/users?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON(  sessionStorage["server"] + "users?apikey=" + JSON.parse(self.auth_data).apikey,
 					//self.auth_data,
 					function (data){
 					// {"status": 0,
@@ -180,7 +180,7 @@ function AdminDashboardViewModel() {
 		);
 
 
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON(  sessionStorage["server"] + "jobs?apikey=" + JSON.parse(self.auth_data).apikey,
 								//self.auth_data,
 								function (data){
 									// {"status": 0,
@@ -203,7 +203,7 @@ function AdminDashboardViewModel() {
 							);
 
 		// get workspaces for this user
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON(  sessionStorage["server"] + "workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
 								//self.auth_data,
 								function (data){
 									// {"status": 0,
@@ -225,7 +225,7 @@ function AdminDashboardViewModel() {
 								}
 							);
 
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/pces?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON(  sessionStorage["server"] + "pces?apikey=" + JSON.parse(self.auth_data).apikey,
 								//self.auth_data,
 								function (data){
 									// {"status": 0,
@@ -274,7 +274,7 @@ function AdminDashboardViewModel() {
 			// send post to server
 			$.ajax({
 			  type: 'POST',
-			  url: 'http://flux.cs.uwlax.edu/onramp/api/logout',
+			  url:  sessionStorage["server"] + 'logout',
 			  data: self.auth_data,
 			  complete: function () {
 				  window.location.href = "start.html";

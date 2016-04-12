@@ -52,7 +52,7 @@ function UserDashboardViewModel() {
 		console.log(JSON.parse(self.auth_data).username);
 
 		// get jobs for this user
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/users/" + self.userID + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON( sessionStorage.server + "/users/" + self.userID + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
 								//self.auth_data,
 								function (data){
 									// {"status": 0,
@@ -75,7 +75,7 @@ function UserDashboardViewModel() {
 							);
 
 		// get workspaces for this user
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/users/" + self.userID + "/workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON( sessionStorage.server + "/users/" + self.userID + "/workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
 								//self.auth_data,
 								function (data){
 									// {"status": 0,
@@ -109,7 +109,7 @@ function UserDashboardViewModel() {
 		// send post to server
 		$.ajax({
 		  type: 'POST',
-		  url: 'http://flux.cs.uwlax.edu/onramp/api/logout',
+		  url: sessionStorage.server + '/logout',
 		  data: self.auth_data,
 		  complete: function () {
 			  window.location.href = "start.html";

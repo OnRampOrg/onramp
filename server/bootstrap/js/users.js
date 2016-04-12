@@ -7,6 +7,8 @@ function DummyLoginViewModel() {
   this.password = ko.observable("");
   sessionStorage["UserID"] = -999;
   sessionStorage["isAdmin"] = false;
+  // find a better way to do this!!
+  sessionStorage["server"] = "http://flux.cs.uwlax.edu/~ssfoley/server/api";
 
   this.welcome = ko.computed( function() { return "Welcome " + this.username + "!";});
 
@@ -79,7 +81,8 @@ function DummyLoginViewModel() {
     */
     $.ajax({
       type: 'POST',
-      url: 'http://flux.cs.uwlax.edu/onramp/api/login',
+		//
+      url: sessionStorage["server"] + '/login',
       data: JSON.stringify({'password':this.password(), 'username':this.username()}),
       complete: self.complete_func,
       dataType: 'application/json',
@@ -93,7 +96,7 @@ function DummyLoginViewModel() {
       // send post to server
       $.ajax({
         type: 'POST',
-        url: 'http://flux.cs.uwlax.edu/onramp/api/logout',
+        url: sessionStorage["server"] + 'logout',
         data: self.auth_data,
         complete: function () {
             window.location.href = "start.html";

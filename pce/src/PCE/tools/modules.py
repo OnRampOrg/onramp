@@ -342,6 +342,11 @@ def get_modules(mod_id=None):
                         mod['uioptions'] = ui.dict()
                     else:
                         mod['uioptions'] = None
+                    metadatafile = os.path.join(mod_state['installed_path'],
+                                            'config/onramp_metadata.cfgspec')
+                    if os.path.isfile(metadatafile):
+                        metadata = ConfigObj(metadatafile)
+                        mod['metadata'] = metadata.dict()
                 return _clean_mod(mod)
         _logger.debug('Mod (%s) does not exist at: %s' % (str(mod_id), time.time()))
         return {

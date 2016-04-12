@@ -466,6 +466,23 @@ class PCEAccess():
 
         return True
 
+    def _save_metadata(self, module_id, module_metadata):
+        prefix = ("%ssave_metadata(%s)" % (self._name, str(module_id)))
+        self._logger.debug("%s Updating Metadata: %s" % (prefix, str(module_metadata)))
+
+        module_dir = self._pce_module_dir + "/" + str(module_id) + "/"
+
+        if not os.path.exists(module_dir):
+            os.makedirs(module_dir)
+
+        # Write it out to a file
+        metadata_file = module_dir + "metadata.json"
+        with open(metadata_file, 'w') as f:
+            json.dump( module_metadata, f)
+
+        return True
+
+
     def get_module_uioptions(self, module_id, fields_only=False):
         prefix = ("%sget_module_uioptions(%s)" % (self._name, str(module_id)))
         self._logger.debug("%s Loading UI Options for module %s" % (prefix, str(module_id)))
@@ -514,6 +531,9 @@ class PCEAccess():
 
         if 'uioptions' in module and module["uioptions"] is not None:
             self._save_uioptions(module_id, module["uioptions"])
+
+        if 'metadata' in module and module["metadata"] is not None:
+            self._save_metadata(module_id, module["metadata"])
 
         pair_info = self._db.pce_add_module(self._pce_id, module_id,
                                             module['source_location']['type'],

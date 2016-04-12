@@ -9,7 +9,8 @@ function Job(data){
 	self.status = data['state'];
 	self.time = "0:00";  // not implemented yet
 	self.data_files = ko.observableArray(["test.out", "out.txt", "other"]);
-	self.output = data['output'];
+	self.output = data['output_file'];
+	self.output_str = ko.observable("test");
 	self.state_str = data['state_str'];
 }
 
@@ -30,7 +31,7 @@ function JobDetailsViewModel() {
 	self.refreshJobs = function () {
 		self.selectedJob(null);
 		self.Jobslist.removeAll();
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/users/" + self.userID + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON( sessionStorage.server + "/users/" + self.userID + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
 			//self.auth_data,
 			function (data){
 				// {"status": 0,
@@ -56,7 +57,7 @@ function JobDetailsViewModel() {
 	$(document).ready( function () {
 		self.Jobslist.removeAll();
 		// get jobs for this user
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/users/" + self.userID + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON( sessionStorage.server + "/users/" + self.userID + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
 			//self.auth_data,
 			function (data){
 				// {"status": 0,
@@ -79,7 +80,7 @@ function JobDetailsViewModel() {
 		);
 
 		// get job states
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/states/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON( sessionStorage.server + "/states/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
 			//self.auth_data,
 			function (data){
 				self.jobStates = data.jobs;
@@ -95,20 +96,29 @@ function JobDetailsViewModel() {
 	}
 
 	self.selectJob = function (){
-		$.getJSON("http://flux.cs.uwlax.edu/onramp/api/jobs/" + this.jID + "?apikey=" + JSON.parse(self.auth_data).apikey,
+	    self.selectedJob(this);
+		$.getJSON(sessionStorage.server + "/jobs/" + this.jID + "?apikey=" + JSON.parse(self.auth_data).apikey,
 			function (data) {
 				this.output = data.jobs.output;
 				this.state_str = data.jobs.state_str;
 			}
 		);
-		self.selectedJob(this);
+		$.getJSON(sessionStorage.server + "/jobs/" + this.jID + "/data?apikey=" + JSON.parse(self.auth_data).apikey,
+			function (data) {
+			      console.log(data.jobs);
+			      //this.output_str = data.jobs;
+			      self.selectedJob().output_str(data.jobs);
+			      
+			}
+		);
+	    //self.selectedJob(this);
 	}
 
 	self.logout = function (){
 		// send post to server
 		$.ajax({
 		  type: 'POST',
-		  url: 'http://flux.cs.uwlax.edu/onramp/api/logout',
+		  url: sessionStorage.server + '/logout',
 		  data: self.auth_data,
 		  complete: function () {
 			  window.location.href = "start.html";

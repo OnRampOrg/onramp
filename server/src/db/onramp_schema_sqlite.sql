@@ -87,6 +87,7 @@ CREATE TABLE job (
     job_name text not null,
 
     state integer DEFAULT 0, -- See onrampdb.py for state values
+    output_file text DEFAULT '',
 
     -- TODO: Run parameters (JSON)
     -- TODO: Files

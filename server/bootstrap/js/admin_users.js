@@ -106,7 +106,7 @@ function UserProfile(data) {
 
 
 		// get jobs for this user
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/users/" + self.id() + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON( sessionStorage.server + "/users/" + self.id() + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
 								//self.auth_data,
 								function (data){
 									// {"status": 0,
@@ -129,7 +129,7 @@ function UserProfile(data) {
 							);
 
 		// get workspaces for this user
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/users/" + self.id() + "/workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON( sessionStorage.server + "/users/" + self.id() + "/workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
 								//self.auth_data,
 								function (data){
 									// {"status": 0,
@@ -183,7 +183,7 @@ function UserProfile(data) {
 		// this will push the user info to the server as a new user
 		$.ajax({
 	      type: 'POST',
-	      url: 'http://flux.cs.uwlax.edu/onramp/api/admin/user?apikey=' + JSON.parse(this.auth_data).apikey,
+	      url: sessionStorage.server + '/admin/user?apikey=' + JSON.parse(this.auth_data).apikey,
 	      //data: JSON.stringify({'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
 		  data: JSON.stringify({'auth': JSON.parse(self.auth_data), 'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
 	      complete: self.complete_func,
@@ -260,7 +260,7 @@ function UserProfile(data) {
 
 			// get data from server
 			// some hard coded data for now...
-			$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/users?apikey=" + JSON.parse(self.auth_data).apikey,
+			$.getJSON( sessionStorage.server + "/users?apikey=" + JSON.parse(self.auth_data).apikey,
 						//self.auth_data,
 						function (data){
 						// {"status": 0,
@@ -287,7 +287,7 @@ function UserProfile(data) {
 			// send post to server
 			$.ajax({
 			  type: 'POST',
-			  url: 'http://flux.cs.uwlax.edu/onramp/api/logout',
+			  url: sessionStorage.server + '/logout',
 			  data: self.auth_data,
 			  complete: function () {
 				  window.location.href = "start.html";
