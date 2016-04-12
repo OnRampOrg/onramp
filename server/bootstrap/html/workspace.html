@@ -118,29 +118,30 @@
             </div>
         </div>
         <div class="row">
+		
+		<!--
+			<h4>I want to pick a <a href="#" data-toggle="tooltip" class = "myTooltip" title="definition of a PCE!">PCE</a>...</h4>
+			http://blog.pardahlman.se/2012/10/tooltip-from-twitter-bootstrap-with-knockout-js-observable/ 
+			TRY AND MAKE A TOOLTIP work so we can use it in the future when there is more info from the server!!!!!!!
+			Since we get a description back for the PCE, use this as an example of using data-bind with a tooltip
+		-->
             <div class="col-lg-8" data-bind="with: selectedPCE()">
-                <h4 data-bind="text: name"></h4>
-                <p data-bind="text: description"></p>
-                <!--
-                <table class="table">
-                <thead>
-                <td>Attribute</td>
-                <td>Value</td>
-            </thead>
-            <tbody>
-            <tr>
-            <td>Nodes</td>
-            <td data-bind="text: nodes"></td>
-        </tr>
-        <tr>
-        <td>Cores</td>
-        <td data-bind="text: corespernode"></td>
-    </tr>
-</tbody>
-</table>
--->
-</div>
-</div>
+				<button type = "button" class = "btn btn-default" data-bind="click: openPCEModal"><span data-bind="text: name"></span></button>
+				<div class="modal fade" id="PCEModal" tabindex="-1" role="dialog">
+				  <div class="modal-dialog">
+					<div class="modal-content">
+					  <div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" data-bind="text: name"></h4>
+					  </div>
+					  <div class="modal-body">
+						<p data-bind="text: description"></p>
+					  </div>
+					</div><!-- /.modal-content -->
+				  </div><!-- /.modal-dialog -->
+				</div><!-- /.modal -->
+		</div>
+	</div>
 </div>
 
 
@@ -176,69 +177,71 @@
 
 <!-- display selected Module -->
 <div class="container" data-bind="if: selectedModule()">
-    <div class="row">
-        <div class="col-lg-9 col-md-8 col-sm-7 col-xs-6">
-            <h4>Module Selected:</h4>
-        </div>
-        <!-- change selected Module -->
-        <div class="col-lg-3 col-md-4 col-sm-5 col-xs-6">
-            <button id = "changeMod" class="btn btn-primary" data-bind="click: changeModule">Pick a different Module</button>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-lg-8" data-bind="with: selectedModule()">
-           <!-- <span style = "float:left; padding-right: 15px;" data-bind="text: name"></span>-->
-            <div  style= "display:inline;" id = "modalWrapper" data-bind="if: desc">
-                <!--<p data-bind="text: desc"></p>-->
-				<!--<button type = "button" class = "btn btn-default" data-bind="click: openModal">View description</button>-->
-				<button type = "button" class = "btn btn-default" data-bind="click: openModal"><span data-bind="text: name + ' module'"></span></button>
-				<div class="modal fade" id="moduleModal" tabindex="-1" role="dialog">
-				  <div class="modal-dialog">
-					<div class="modal-content">
-					  <div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-						<h4 class="modal-title" data-bind="text: name"></h4>
-					  </div>
-					  <div class="modal-body">
-						<p data-bind="text: desc"></p>
-					  </div>
-					</div><!-- /.modal-content -->
-				  </div><!-- /.modal-dialog -->
-				</div><!-- /.modal -->
-            </div>
-            <div id = "modalWrapper" data-bind="ifnot: desc">
-               <!-- <p>Description of module...</p>-->
-			   <!--<button type = "button" class = "btn btn-default" data-bind="click: openModal">View description</button>-->
-			   <button type = "button" class = "btn btn-default" data-bind="click: openModal" ><span data-bind="text: name + ' module'"> ?</span></button>
-				<div class="modal fade" id="moduleModal" tabindex="-1" role="dialog">
-				  <div class="modal-dialog">
-					<div class="modal-content">
-					  <div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-						<h4 class="modal-title" data-bind="text: name"></h4>
-					  </div>
-					  <div class="modal-body">
-						<p>Module description</p>
-					  </div>
-					</div><!-- /.modal-content -->
-				  </div><!-- /.modal-dialog -->
-				</div><!-- /.modal -->
-            </div>
-				<form class="form-horizontal" data-bind="if: $parent.selectedPCE()">
-                <div class = "form-group" data-bind="foreach: formFields()">
-                    <div class="col-sm-4">
-						<!--<label for="launch-field" data-bind="text: field"></label>-->
-						<label class = "formLabel" for="launch-field" data-bind="text: field"></label>
-                    </div>
-                    <div class="col-sm-6">
-                        <input type="text" id="launch-field" data-bind="value: data">
-                    </div>
-                </div>
-                <button class="btn btn-primary" type="submit" data-bind="click: $root.launchJob">Launch Job!</button>
-            </form>
+	<div id = "module-well" class = "well">
+		<div class="row">
+			<div class="col-sm-1">
+				<!--<button id = "changeMod" class="btn btn-primary" data-bind="click: changeModule">Pick a different Module</button>-->
+				<button id = "changeMod" type="button" class="btn btn-xs btn-primary" data-bind="click: changeModule">
+					<span class="glyphicon glyphicon-arrow-left"></span>
+				</button>
+			</div>
+			<div class="col-lg-8 col-md-8 col-sm-7 col-xs-6">
+				<h4>Module Selected:</h4>
+			</div>
+			<!-- see description....for some reason cant get name of module -->
+			<button type = "button" class = "btn btn-default" data-bind="click: openModuleModal"><span data-bind="text: name + ' module'"></span></button>
+		</div>
+		<div class="row">
+			<!--<div class="col-lg-8" data-bind="with: selectedModule()">-->
+			<div class = "col-sm-8" data-bind="with: selectedModule()">
+				<div style= "display:inline;" id = "modalWrapper" data-bind="if: desc">
+					<!--<button type = "button" class = "btn btn-default" data-bind="click: openModuleModal"><span data-bind="text: name + ' module'"></span></button>-->
+					<div class="modal fade" id="moduleModal" tabindex="-1" role="dialog">
+					  <div class="modal-dialog">
+						<div class="modal-content">
+						  <div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title" data-bind="text: name"></h4>
+						  </div>
+						  <div class="modal-body">
+							<p data-bind="text: desc"></p>
+						  </div>
+						</div><!-- /.modal-content -->
+					  </div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->
+				</div>
+				<div id = "modalWrapper" data-bind="ifnot: desc">
+				   <!--<button type = "button" class = "btn btn-default" data-bind="click: openModuleModal" ><span data-bind="text: name + ' module'"> ?</span></button>-->
+					<div class="modal fade" id="moduleModal" tabindex="-1" role="dialog">
+					  <div class="modal-dialog">
+						<div class="modal-content">
+						  <div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title" data-bind="text: name"></h4>
+						  </div>
+						  <div class="modal-body">
+							<p>Module description</p>
+						  </div>
+						</div><!-- /.modal-content -->
+					  </div><!-- /.modal-dialog -->
+					</div><!-- /.modal -->
+				</div>
+					<form class="form-horizontal" data-bind="if: $parent.selectedPCE()">
+					<div class = "form-group" data-bind="foreach: formFields()">
+						<div class="col-sm-4">
+							<!--<label for="launch-field" data-bind="text: field"></label>-->
+							<label class = "formLabel" for="launch-field" data-bind="text: field"></label>
+						</div>
+						<div class="col-sm-6">
+							<input type="text" id="launch-field" data-bind="value: data">
+						</div>
+					</div>
+					<button class="btn btn-primary" type="submit" data-bind="click: $root.launchJob">Launch Job!</button>
+				</form>
 
-        </div>
-    </div>
+			</div>
+		</div>
+	</div>
 </div>
 
 

@@ -25,7 +25,7 @@ config    = ConfigObj(conf_file)
 os.chdir('src')
 
 # Retrive mode
-mode = config['pi']['mode']
+mode = config['AUC']['mode']
 
 # Call functions
 def default_case():
@@ -34,20 +34,20 @@ def default_case():
 
 # May change commented lines for time -p ("portable" time output)
 def serial():
-	call(['time', 'mpirun', '-np', '1', 'pi-serial', '-n', config['pi']['rectangles']])	
-	#call(['time', '-p', 'mpirun', '-np', '1', 'pi-serial', '-n', config['pi']['rectangles']])
+	call(['time', 'mpirun', '-np', '1', 'AUC-serial', '-n', config['AUC']['rectangles']])	
+	#call(['time', '-p', 'mpirun', '-np', '1', 'AUC-serial', '-n', config['AUC']['rectangles']])
 
 def openmp():
-	call(['time', 'mpirun', '-np', '1', 'pi-openmp', '-n', config['pi']['rectangles'], '-t', config['pi']['threads']])	
-	#call(['time', '-p', 'mpirun', '-np', '1', 'pi-openmp', '-n', config['pi']['rectangles'], '-t', config['pi']['threads']])
+	call(['time', 'mpirun', '-np', '1', 'AUC-openmp', '-n', config['AUC']['rectangles'], '-t', config['AUC']['threads']])	
+	#call(['time', '-p', 'mpirun', '-np', '1', 'AUC-openmp', '-n', config['AUC']['rectangles'], '-t', config['AUC']['threads']])
 
 def mpi():
-	call(['time', 'mpirun', '-np', config['onramp']['np'], 'pi-mpi', '-n', config['pi']['rectangles']])
-	#call(['time', '-p', 'mpirun', '-np', config['onramp']['np'], 'pi-mpi', '-n', config['pi']['rectangles']])
+	call(['time', 'mpirun', '-np', config['onramp']['np'], 'AUC-mpi', '-n', config['AUC']['rectangles']])
+	#call(['time', '-p', 'mpirun', '-np', config['onramp']['np'], 'AUC-mpi', '-n', config['AUC']['rectangles']])
 
 def hybrid():
-	call(['time', 'mpirun', '-np', config['onramp']['np'], 'pi-hybrid', '-n', config['pi']['rectangles'], '-t', config['pi']['threads']])
-	#call(['time', '-p', 'mpirun', '-np', config['onramp']['np'], 'pi-hybrid', '-n', config['pi']['rectangles'], '-t', config['pi']['threads']])
+	call(['time', 'mpirun', '-np', config['onramp']['np'], 'AUC-hybrid', '-n', config['AUC']['rectangles'], '-t', config['AUC']['threads']])
+	#call(['time', '-p', 'mpirun', '-np', config['onramp']['np'], 'AUC-hybrid', '-n', config['AUC']['rectangles'], '-t', config['AUC']['threads']])
 
 # Set options
 executables = { 's' : serial, 'o' : openmp, 'm' : mpi, 'h' : hybrid }

@@ -13,3 +13,9 @@
 .footer{
 	margin-top: 20px;
 }
+
+#user_db_table{
+	height: 300px;
+	width: 100%;
+	overflow-y: scroll;
+}

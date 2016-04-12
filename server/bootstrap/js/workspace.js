@@ -175,8 +175,12 @@ var getDescription = function( formID ){
 	return description;
 }
 
-var openModal = function(){
+var openModuleModal = function(){
 	$('#moduleModal').modal('show');
+}
+
+var openPCEModal = function(){
+	$('#PCEModal').modal('show');
 }
 
 function myWorkspace(data){

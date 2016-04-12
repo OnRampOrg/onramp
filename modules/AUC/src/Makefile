@@ -1,9 +1,9 @@
-# DESCRIPTION: Makefile for pi program
+# DESCRIPTION: Makefile for AUC program
 # AUTHOR: Jason Regina
 # REVISION: 12 November 2015
 #
 # Code Prefix
-PREFIX=pi-
+PREFIX=AUC-
 
 # Compilers and Flags
 CC=gcc

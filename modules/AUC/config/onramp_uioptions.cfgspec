@@ -30,7 +30,7 @@ np =
 #
 nodes =
 
-[pi]
+[AUC]
 mode = string(max=2,default="s")
 rectangles = string(max=32,default="100000000")
 threads = string(max=32,default="1")

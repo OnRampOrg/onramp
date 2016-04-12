@@ -1,4 +1,7 @@
 
+self.JobDetails = function () {
+	window.location.href = "job_details.html";
+}
 
 function UserDashboardViewModel() {
 	var self = this;
