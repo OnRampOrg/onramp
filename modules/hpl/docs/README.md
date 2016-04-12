@@ -1,1 +1,1 @@
-# OnRamp Curriculum Module: Area Under a Curve
+# OnRamp Curriculum Module: HPL
