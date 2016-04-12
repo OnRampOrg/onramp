@@ -1,0 +1,15 @@
+\begin{thebibliography}{1}
+
+\bibitem{website:top}
+\url{top500.org/project/introduction}.
+
+\bibitem{website:faq}
+\url{netlib.org/utk/people/JackDongarra/faq-linpack.html}.
+
+\bibitem{website:paper}
+\url{netlib.org/utk/people/JackDongarra/PAPERS/hplpaper.pdf}.
+
+\bibitem{website:tuning}
+\url{netlib.org/benchmark/hpl/tuning.html}.
+
+\end{thebibliography}
