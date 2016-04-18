@@ -110,8 +110,6 @@ var setFormId = function(formInfo){
 			formID = formInfo[i-1].formid;
 		   labels[i].setAttribute("id", formID);
 		   var myDescription = getDescription(formID);
-		   //labels[i].setAttribute("title", myDescription); //may need as a default option
-		   //labels[i].setAttribute("onclick", "openModal(this)");
 	
 		   //http://stackoverflow.com/questions/22044106/display-tooltip-on-labels-hover
 		   //create the popup look at this: http://stackoverflow.com/questions/3559467/description-box-on-mouseover
@@ -127,7 +125,7 @@ var setFormId = function(formInfo){
 			//check for form label click
 			$(document).ready(function () {
 			   $('.formLabel').click(function(e) {
-				   var id = $(e.target).attr("id");;
+				   var id = $(e.target).attr("id");
 				   var self = e.target;
 				   console.log("myid: "+id);
 				$(".formTip").removeClass("isActive"); //make 
@@ -153,11 +151,6 @@ var setFormId = function(formInfo){
 		}
 }
 
-//In admin mode, in the UI have them enter the descriptions but that won't work'
-//because it's a different html file. Can you edit a different html file?
-//in admin_worksapce.html using admin_workspace.js, can I edit workspace.html
-//from admin_workspace.js even though that's not the current html file displayed?
-//***Utilize AUC.pdf in docs for more definitions!! good stuff***
 var getDescription = function( formID ){
 	var description = "";
 	if(formID === "rectangles"){
@@ -182,6 +175,33 @@ var openModuleModal = function(){
 var openPCEModal = function(){
 	$('#PCEModal').modal('show');
 }
+
+//forEach(instance in objects)
+//use this to create a pop up somehow
+var displayConcepts = function(btn){
+	
+	//FIGURE OUT HOW TO CLOSE THE DIV BY CLICKING ON THE BUTTON AGAIN. COULD DO A COUNT? BASICALLY A 1 OR 0 THAN SWITCHES
+	var childClass = $(btn).next().className;
+	console.log("christa childClass = " + childClass);
+	
+	//because of the button calling this method you can't click the button to make the concepts div disapper because it will hit the below two lines
+	$(".info-div").removeClass("info-notActive"); //make 
+	$(".info-div").addClass("info-isActive");
+		
+	//check for white space click
+	$(document).mouseup(function (e){
+		var container = $(".info-div");
+
+		if (!container.is(e.target) // if the target of the click isn't the container...
+			) // ... nor a descendant of the container
+		{
+			$(".info-div").removeClass("info-isActive"); //make 
+			$(".info-div").addClass("info-notActive");
+		}
+	});
+
+}
+
 
 function myWorkspace(data){
 	var self = this;

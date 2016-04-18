@@ -47,7 +47,7 @@
                 </button>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
-                <a class="navbar-brand" href="start.html">OnRamp</a>
+                <a class="navbar-brand" id="brand" href="start.html">OnRamp</a>
 				<ul class="nav navbar-nav navbar-left">
                     <li class="active"><a href="user_dashboard.html">Home</a></li>
                     <li><a href="about.html">About</a></li>
@@ -57,27 +57,42 @@
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li>
-						<button type="button" class="btn btn-default" onclick = logout()>Logout</button>
+						<button id = "logout" type="button" class="btn btn-default hover" onclick = logout()>Logout</button>
 					</li>
                 </ul>
             </div>
         </div>
     </nav>
     <br>
-    <div class="container">
-        <div class="jumbotron">
+	
+	<!-- <div class="jumbotron jumbotron-fluid">
+  <div class="container">
+    <h1 class="display-3">Fluid jumbotron</h1>
+    <p class="lead">This is a modified jumbotron that occupies the entire horizontal space of its parent.</p>
+  </div>
+</div>-->
+    
+    <div class="jumbotron jumbotron-fluid">
+		<div class="container">
             <h1 data-bind="text: welcome1"></h1>
+			<hr style = "border-width: 5px; margin-right: 300px;">
+			<div data-bind="if: workspaceInfo.desc">
+				<p data-bind="text: workspaceInfo.desc"></p>
+			</div>
+			<div data-bind="ifnot: workspaceInfo.desc">
+				<p>Description of workspace...</p>
+			</div>
         </div>
     </div>
 
-    <div class="container">
+    <!--<div class="container">
         <div class="row" data-bind="if: workspaceInfo.desc">
             <p data-bind="text: workspaceInfo.desc"></p>
         </div>
         <div class="row" data-bind="ifnot: workspaceInfo.desc">
             <p>Description of workspace...</p>
         </div>
-    </div>
+    </div>-->
 
     <!-- PCE selection -->
     <div class="container" data-bind="ifnot: selectedPCE()" >
@@ -105,33 +120,46 @@
 
         </div>
     </div>
+	
+	<!--display the concepts -->
+		<div class="col-md-2">
+			<div style = "position: relative">
+				<button id = "concepts-btn" type = "button" class = "btn btn-default hover" onclick = displayConcepts(this)>Explore PDC Concepts</button>
+			
+				<div class="info-div info-notActive">
+					<p>Amdahl's law - more threads in parallel eventually will not help you</p>
+					<p>Amdahl's law - more threads in parallel eventually will not help you</p>
+					<p>Amdahl's law - more threads in parallel eventually will not help you</p>
+					<p>Amdahl's law - more threads in parallel eventually will not help you</p>
+				</div>
+			</div>
+		</div>
 
+	
     <!-- display selected PCE -->
     <div class="container" data-bind="if: selectedPCE()">
-        <div class="row">
-            <div class="col-lg-9 col-md-8 col-sm-7 col-xs-6">
-                <h4>Running on: </h4>
-            </div>
-            <!-- change selected PCE -->
-            <div class="col-lg-3 col-md-4 col-sm-5 col-xs-6">
-                <button id = "changePCE" class="btn btn-primary" data-bind="click: changePCE">Pick a different PCE</button>
-            </div>
-        </div>
-        <div class="row">
-		
-		<!--
-			<h4>I want to pick a <a href="#" data-toggle="tooltip" class = "myTooltip" title="definition of a PCE!">PCE</a>...</h4>
-			http://blog.pardahlman.se/2012/10/tooltip-from-twitter-bootstrap-with-knockout-js-observable/ 
-			TRY AND MAKE A TOOLTIP work so we can use it in the future when there is more info from the server!!!!!!!
-			Since we get a description back for the PCE, use this as an example of using data-bind with a tooltip
-		-->
-            <div class="col-lg-8" data-bind="with: selectedPCE()">
-				<button type = "button" class = "btn btn-default" data-bind="click: openPCEModal"><span data-bind="text: name"></span></button>
+		<div id = "pce-well" class = "well">
+			<div class="row">
+				<div class="col-sm-1">
+					<button id = "changePCE" class="btn btn-xs btn-primary" data-bind="click: changePCE">
+							<span class="glyphicon glyphicon-arrow-left"></span>
+					</button>
+				</div>
+				<div class="col-lg-8 col-md-8 col-sm-7 col-xs-6">
+					<p style = "display: inline; font-size: 175%">Running on: </p>
+					<div style = "display: inline; float:right" class = "col-lg-4" data-bind="with: selectedPCE()">
+						<button id="PCEModal-button" type="button" class = "btn btn-default hover" data-bind="click: openPCEModal"><span data-bind="text: name"></span></button>
+					</div>
+				</div>
+			</div>
+		<div class="row">
+            <div class="col-sm-8" data-bind="with: selectedPCE()">
+				<!--<button id="PCEModal-button" type="button" class = "btn btn-default hover" data-bind="click: openPCEModal"><span data-bind="text: name"></span></button>-->
 				<div class="modal fade" id="PCEModal" tabindex="-1" role="dialog">
 				  <div class="modal-dialog">
 					<div class="modal-content">
 					  <div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<button style = "float: right" class="btn btn-xs btn-danger" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 						<h4 class="modal-title" data-bind="text: name"></h4>
 					  </div>
 					  <div class="modal-body">
@@ -140,6 +168,7 @@
 					</div><!-- /.modal-content -->
 				  </div><!-- /.modal-dialog -->
 				</div><!-- /.modal -->
+			</div>
 		</div>
 	</div>
 </div>
@@ -186,21 +215,20 @@
 				</button>
 			</div>
 			<div class="col-lg-8 col-md-8 col-sm-7 col-xs-6">
-				<h4>Module Selected:</h4>
+				<p style = "display: inline; font-size: 175%">Module Selected:</p>
+				<div style = "display: inline; float:right" class = "col-lg-4" data-bind="with: selectedModule()">
+						<button type = "button" class = "btn btn-default hover" data-bind="click: openModuleModal"><span data-bind="text: name + ' module'"></span></button>
+				</div>
 			</div>
-			<!-- see description....for some reason cant get name of module -->
-			<button type = "button" class = "btn btn-default" data-bind="click: openModuleModal"><span data-bind="text: name + ' module'"></span></button>
 		</div>
-		<div class="row">
-			<!--<div class="col-lg-8" data-bind="with: selectedModule()">-->
+		<div style = "padding-top: 25px" class = "row">
 			<div class = "col-sm-8" data-bind="with: selectedModule()">
 				<div style= "display:inline;" id = "modalWrapper" data-bind="if: desc">
-					<!--<button type = "button" class = "btn btn-default" data-bind="click: openModuleModal"><span data-bind="text: name + ' module'"></span></button>-->
 					<div class="modal fade" id="moduleModal" tabindex="-1" role="dialog">
 					  <div class="modal-dialog">
 						<div class="modal-content">
 						  <div class="modal-header">
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<button style = "float: right" class="btn btn-xs btn-danger" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 							<h4 class="modal-title" data-bind="text: name"></h4>
 						  </div>
 						  <div class="modal-body">
@@ -216,7 +244,7 @@
 					  <div class="modal-dialog">
 						<div class="modal-content">
 						  <div class="modal-header">
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<button style = "float: right" class="btn btn-xs btn-danger" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 							<h4 class="modal-title" data-bind="text: name"></h4>
 						  </div>
 						  <div class="modal-body">
@@ -227,22 +255,23 @@
 					</div><!-- /.modal -->
 				</div>
 					<form class="form-horizontal" data-bind="if: $parent.selectedPCE()">
-					<div class = "form-group" data-bind="foreach: formFields()">
-						<div class="col-sm-4">
-							<!--<label for="launch-field" data-bind="text: field"></label>-->
-							<label class = "formLabel" for="launch-field" data-bind="text: field"></label>
+						<div class = "form-group" data-bind="foreach: formFields()">
+							<div class="col-sm-4">
+								<!--<label for="launch-field" data-bind="text: field"></label>-->
+								<label class = "formLabel" for="launch-field" data-bind="text: field"></label>
+							</div>
+							<div class="col-sm-6">
+								<input type="text" id="launch-field" data-bind="value: data">
+							</div>
 						</div>
-						<div class="col-sm-6">
-							<input type="text" id="launch-field" data-bind="value: data">
-						</div>
-					</div>
-					<button class="btn btn-primary" type="submit" data-bind="click: $root.launchJob">Launch Job!</button>
-				</form>
+						<button class="btn btn-primary" type="submit" data-bind="click: $root.launchJob">Launch Job!</button>
+					</form>
 
+				</div><!--end col-sm-8 -->
 			</div>
-		</div>
-	</div>
-</div>
+		</div> <!--end row -->
+	</div><!--end well -->
+<!--</div>-->
 
 
 <!-- Alpaca is cool, but we will look at it later.
@@ -256,9 +285,7 @@
 -->
 <!-- footer -->
 <footer class="footer">
-  <div class="container" class="footer">
     <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
-  </div>
 </footer>
 
 
