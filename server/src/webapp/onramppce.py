@@ -468,13 +468,13 @@ class PCEAccess():
         prefix = ("%ssave_metadata(%s)" % (self._name, str(module_id)))
         self._logger.debug("%s Updating Metadata: %s" % (prefix, str(module_metadata)))
 
-        module_dir = self._pce_module_dir + "/" + str(module_id) + "/"
+        module_dir = os.path.join(self._pce_module_dir, str(module_id))
 
         if not os.path.exists(module_dir):
             os.makedirs(module_dir)
 
         # Write it out to a file
-        metadata_file = module_dir + "metadata.json"
+        metadata_file = os.path.join(module_dir, "metadata.json")
         with open(metadata_file, 'w') as f:
             json.dump( module_metadata, f)
 
@@ -511,17 +511,24 @@ class PCEAccess():
         return module_options
 
 
+    
     def get_module_metadata(self, module_id, fields_only=False):
+        """NOT FULLY FUNCTIONAL YET
+        TODO: need to set up module to communicate necessary data and make sure file is written before trying to read it.
+        """
         prefix = ("%sget_module_metadata(%s)" % (self._name, str(module_id)))
         self._logger.debug("%s Loading Metadata for module %s" % (prefix, str(module_id)))
 
-        module_dir = self._pce_module_dir + "/" + str(module_id) + "/"
+        module_dir = os.path.join(self._pce_module_dir, str(module_id))
 
         if not os.path.exists(module_dir):
             return None
 
         # Read the JSON from a file
-        metadata_file = module_dir + "metadata.json"
+        metadata_file = os.path.join(module_dir, "metadata.json")
+        if not os.path.exists(metadata_file):
+            return None
+
         module_metadata = None
         with open(metadata_file, 'r') as f:
             module_metadata = json.load(f)
