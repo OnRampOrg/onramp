@@ -1,7 +1,7 @@
 %*****************************************
 % Justin Ragatz
 %
-% 3 December 2015
+% 19 April 2016
 %
 % OnRamp Module for Monte Carlo Methods
 %*****************************************
@@ -29,7 +29,6 @@
 	\vspace{20pt}
 
 	{\large\@author}
-	\\\@date
 	\end{flushright}
 }
 \makeatother
@@ -62,9 +61,7 @@
 \usepackage{listings}
 \usepackage{color}
 
-%
 % Set title
-%
 \title{\textbf{Introduction to HPL}}
 \author{\textsc{Justin Ragatz}}
 \date{4 April 2016}
@@ -91,15 +88,15 @@
 
 \begin{document}
 
-%
 % Insert title
-%
 \maketitle
 \bigskip
 
+% Introduction
 \section{Introduction}
 One of the major hurdles to getting started with HPL is finding easily digestible documentation and resources. The primary resource for this module is the official HPL website (netlib.org/benchmark/hpl). From this vast collection of information the most essential and digestible components were identified. The purpose of this module is to achieve a working proficiency level with HPL, culminating with a performance and efficiency exercise. This module is not intended for students who have prior experience using HPL. These students would be better served by directly viewing the referencing used in this module in their full detail.
 
+% The TOP500
 \section{The TOP500}
 
 Statistics on high-performance computers are of major interest to manufacturers, users, and potential users. These people wish to know not only the number of systems installed, but also the location of the various supercomputers within the high-performance computing community and the applications for which a computer system is being used.\cite{website:top} \\
@@ -108,12 +105,14 @@ Since 1993 the TOP500 project has ranked and detailed the 500 most powerful comp
 
 The main objective of the TOP500 list is to provide a ranked list of general purpose systems that are in common use for high end applications. Any system designed specifically to solve the LINPACK Benchmark problem or have as its major purpose the goal of a high TOP500 ranking is not eligible.
 
+% Linpack
 \section{The LINPACK Benchmarks}
 
 The Linpack package is a collection of Fortran subroutines for solving various systems of linear equations. In the 1979 User's Guide the first LINPACK Benchmark appeared. The original intention was nothing more than to give users an estimate for how long it would take to solve certain matrix problems. Although it was originally included only as a minor feature, the importance of the benchmark has grown every year since its introduction.\cite{website:faq}\\
 
 Today there are four versions of the LINPACK Benchmark: LINPACK 100, LINPACK 1000, LINPACK Parallel, and HPLinpack. HPL is a portable implementation of the HPLinpack benchmark. Unlike the other versions, HPL allows the user to scale the problem size and optimize the software in order to achieve the best performance possible. Additionally, unlike LINPACK 100 or 1000, HPL is appropriate for distributed-memory computers.
 
+% Introduction to HPL
 \section{Introduction to HPL}
 
 HPL is a software package that generates, solves, checks and times the solution process of a random dense linear system of equations on distributed-memory computers. The package uses 64-bit floating point arithmetic and portable routines for linear algebra operations and message passing. The outline of HPL's driver code is shown below.\cite{website:paper}
@@ -140,6 +139,7 @@ MPI_Reduce(...); /* Obtain the maximum wall-clock time. */
 
 The goal of the benchmark is to completely fill RAM and to maximize processor use for the duration of the test. To achieve this goal, HPL includes a configuration file that the user may customize to find the ideal parameters for their specific platform.
 
+% HPL Algorithm
 \section{HPL Algorithm}
 
 \subsection{Main Algorithm}
@@ -191,6 +191,7 @@ The final step is to verify that the results obtained are correct. The solution 
 
 \pagebreak
 
+% Tuning
 \section{HPL Tuning}
 To achieve the best performance possible HPL allows users to edit the input file HPL.dat. The file is 31 lines long and contains the settings for all of the parameters that may affect the programs performance. 
 
@@ -278,6 +279,7 @@ HPL comes with a default input that is useful for a first time run, but not for 
 \subsection{Getting Started}
 Tuning HPL to achieve peak performance can be a tedious and time intensive task. One of the best ways to get started is to use one of the well respected HPL.dat file calculators available online (www.advancedclustering.com/act-kb/tune-hpl-dat-file). The calculator performs the tedious calculations used to approximate the best parameters for a given architecture and allows the user to skip to the fine tuning stage.
 
+% Explanation of output
 \section{HPL Output}
 
 HPL outputs data in a table with the following headers.
@@ -322,14 +324,9 @@ R & $\rightarrow$ & Use right-looking factorization after reaching the threshold
 
 Correctly identifying variants is vital when multiple trials with different parameter settings are used during a single run of HPL.
 
-%----------------------------------------------------------------------------------------
-%	BIBLIOGRAPHY
-%----------------------------------------------------------------------------------------
-
+% References
 \bibliographystyle{ieeetr}
 
 \bibliography{hpl_bib}
-
-%----------------------------------------------------------------------------------------
 
 \end{document}
