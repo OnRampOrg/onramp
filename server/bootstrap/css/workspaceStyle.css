@@ -67,6 +67,7 @@ abbr{
 	padding: 10px;
 	border-radius: 4px;
 	z-index: 999;
+	width: 250px;;
 }
 
 .form-group label:hover{
@@ -75,12 +76,14 @@ abbr{
 }
 
 #module-well{
-	margin-right: 35%;
+	margin-right: 20%;
 	margin-top: 35px;
+	margin-left: 20%
 }
 #pce-well{
-	margin-right: 35%;
+	margin-right: 20%;
 	margin-top: 35px;
+	margin-left: 20%
 }
 
 .info-notActive{
@@ -101,5 +104,12 @@ abbr{
 }
 
 #concepts-btn{
-	margin-left: 24px;
+	margin-left: 125px;
+}
+.modal-title::first-letter{
+	text-transform: uppercase;
+}
+	
+#pick-PCE, #pick-module{
+	margin-left: 20%
 }

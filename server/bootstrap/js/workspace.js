@@ -128,7 +128,7 @@ var setFormId = function(formInfo){
 				   var id = $(e.target).attr("id");
 				   var self = e.target;
 				   console.log("myid: "+id);
-				$(".formTip").removeClass("isActive"); //make 
+				$(".formTip").removeClass("isActive"); 
 				$(".formTip").addClass("notActive");
 				$(self).next().removeClass('notActive');
 					
@@ -143,24 +143,31 @@ var setFormId = function(formInfo){
 				if (!container.is(e.target) // if the target of the click isn't the container...
 					&& container.has(e.target).length === 0) // ... nor a descendant of the container
 				{
-					$(".formTip").removeClass("isActive"); //make 
+					$(".formTip").removeClass("isActive"); 
 					$(".formTip").addClass("notActive");
 				}
 			});
 
 		}
 }
+/*maybe put in placeholder for the default*/
 
 var getDescription = function( formID ){
 	var description = "";
 	if(formID === "rectangles"){
-		description = "Specify the number of rectangles in the Riemann Sum";
+		description = "Number of rectangles for the Riemann Sum. Default = 100000000";
 	}
 	else if(formID === "threads"){
-		description = "Specify the number of OpenMP threads";
+		description = "Number of OpenMP threads to use for each process. Default = 1";
 	}
 	else if(formID === "mode"){
-		description = "Specify which version of pi";
+		description = "Character indicating which version of pi program to run ('s' -> serial, 'o' -> openmp, 'm' -> mpi, 'h' -> hybrid). Default = s";
+	}
+	else if(formID === "np"){
+		description = "Number of processes";
+	}
+	else if(formID === "nodes"){
+		description = "Number of nodes";
 	}
 	else{
 		description = "none";
