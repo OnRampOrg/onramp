@@ -108,7 +108,8 @@ function JobDetailsViewModel() {
 			      console.log(data.jobs);
 			      //this.output_str = data.jobs;
 			      self.selectedJob().output_str(data.jobs);
-			      
+			      //self.selectedFile(self.selectedJob().output_str());
+			      self.selectedFile(sessionStorage["server"] + "/../" + self.selectedJob().output_str());
 			}
 		);
 	    //self.selectedJob(this);

@@ -602,6 +602,7 @@ class PCEs(_ServerResourceBase):
                 self.logger.debug(prefix + " Package info for 1 module")
                 rtn['pces'] = pce_info
                 rtn['pces']['uioptions'] = self._pces[pce_id].get_module_uioptions(level_id, True)
+                rtn['pces']['metadata'] = self._pces[pce_id].get_module_metadata(level_id, True)
         #
         # /pces/:ID/modules
         #
