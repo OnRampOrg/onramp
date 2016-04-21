@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2013.9.10)  12 APR 2016 11:27
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2013.9.10)  19 APR 2016 10:02
 entering extended mode
 **hpl.tex
 (C:\Users\Justin\Documents\OnRamp_module\hpl.tex
@@ -99,7 +99,7 @@ Package: helvet 2005/04/12 PSNFSS-v9.2a (WaS)
 ("C:\Program Files\MiKTeX 2.9\tex\latex\psnfss\courier.sty"
 Package: courier 2005/04/12 PSNFSS-v9.2a (WaS) 
 )
-LaTeX Font Info:    Try loading font information for OT1+ppl on input line 55.
+LaTeX Font Info:    Try loading font information for OT1+ppl on input line 54.
 
 ("C:\Program Files\MiKTeX 2.9\tex\latex\psnfss\ot1ppl.fd"
 File: ot1ppl.fd 2001/06/04 font definitions for OT1/ppl.
@@ -209,18 +209,18 @@ File: lstlang1.sty 2015/06/04 1.6 listings language file
 File: lstmisc.sty 2015/06/04 1.6 (Carsten Heinz)
 )
 (C:\Users\Justin\Documents\OnRamp_module\hpl.aux)
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 92.
-LaTeX Font Info:    ... okay on input line 92.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 92.
-LaTeX Font Info:    ... okay on input line 92.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 92.
-LaTeX Font Info:    ... okay on input line 92.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 92.
-LaTeX Font Info:    ... okay on input line 92.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 92.
-LaTeX Font Info:    ... okay on input line 92.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 92.
-LaTeX Font Info:    ... okay on input line 92.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 89.
+LaTeX Font Info:    ... okay on input line 89.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 89.
+LaTeX Font Info:    ... okay on input line 89.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 89.
+LaTeX Font Info:    ... okay on input line 89.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 89.
+LaTeX Font Info:    ... okay on input line 89.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 89.
+LaTeX Font Info:    ... okay on input line 89.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 89.
+LaTeX Font Info:    ... okay on input line 89.
 
 ("C:\Program Files\MiKTeX 2.9\tex\context\base\supp-pdf.mkii"
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -237,7 +237,7 @@ LaTeX Font Info:    ... okay on input line 92.
 \everyMPtoPDFconversion=\toks22
 )
 \big@size=\dimen114
-LaTeX Info: Redefining \microtypecontext on input line 92.
+LaTeX Info: Redefining \microtypecontext on input line 89.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
@@ -252,28 +252,28 @@ File: mt-ppl.cfg 2005/11/16 v1.6 microtype config. file: Palatino (RS)
 )
 \c@lstlisting=\count114
 LaTeX Font Info:    Font shape `T1/ppl/bx/n' in size <17.28> not available
-(Font)              Font shape `T1/ppl/b/n' tried instead on input line 97.
+(Font)              Font shape `T1/ppl/b/n' tried instead on input line 92.
 LaTeX Font Info:    Font shape `T1/ppl/bx/n' in size <14.4> not available
-(Font)              Font shape `T1/ppl/b/n' tried instead on input line 100.
+(Font)              Font shape `T1/ppl/b/n' tried instead on input line 96.
 
-Underfull \hbox (badness 10000) in paragraph at lines 105--106
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 107--108
+Underfull \hbox (badness 10000) in paragraph at lines 102--103
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 113--114
+Underfull \hbox (badness 10000) in paragraph at lines 104--105
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 111--112
 
  []
 
 [1{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}
 
 ]
-LaTeX Font Info:    Try loading font information for T1+pcr on input line 123.
+LaTeX Font Info:    Try loading font information for T1+pcr on input line 122.
 
 ("C:\Program Files\MiKTeX 2.9\tex\latex\psnfss\t1pcr.fd"
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
@@ -283,7 +283,7 @@ Package microtype Info: Loading generic settings for font family
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <9> not available
-(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 124.
+(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 123.
 LaTeX Font Info:    Font shape `T1/ppl/bx/n' in size <12> not available
 (Font)              Font shape `T1/ppl/b/n' tried instead on input line 145.
 
@@ -331,107 +331,107 @@ Package microtype Info: Loading generic settings for font family
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
  [3] [4] [5]
-Overfull \hbox (7.86452pt too wide) in paragraph at lines 202--237
+Overfull \hbox (7.86452pt too wide) in paragraph at lines 203--238
 [][] 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 240--241
+Underfull \hbox (badness 10000) in paragraph at lines 241--242
 
  []
 
 [6]
-Underfull \hbox (badness 10000) in paragraph at lines 242--243
+Underfull \hbox (badness 10000) in paragraph at lines 243--244
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 244--245
+Underfull \hbox (badness 10000) in paragraph at lines 245--246
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 246--247
+Underfull \hbox (badness 10000) in paragraph at lines 247--248
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 248--249
+Underfull \hbox (badness 10000) in paragraph at lines 249--250
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 250--251
+Underfull \hbox (badness 10000) in paragraph at lines 251--252
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 252--253
+Underfull \hbox (badness 10000) in paragraph at lines 253--254
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 254--255
+Underfull \hbox (badness 10000) in paragraph at lines 255--256
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 256--257
+Underfull \hbox (badness 10000) in paragraph at lines 257--258
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 258--259
+Underfull \hbox (badness 10000) in paragraph at lines 259--260
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 260--261
+Underfull \hbox (badness 10000) in paragraph at lines 261--262
 
  []
 
 [7]
-Underfull \hbox (badness 10000) in paragraph at lines 262--263
+Underfull \hbox (badness 10000) in paragraph at lines 263--264
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 264--265
+Underfull \hbox (badness 10000) in paragraph at lines 265--266
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 266--267
+Underfull \hbox (badness 10000) in paragraph at lines 267--268
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 268--269
+Underfull \hbox (badness 10000) in paragraph at lines 269--270
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 270--271
+Underfull \hbox (badness 10000) in paragraph at lines 271--272
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 272--273
+Underfull \hbox (badness 10000) in paragraph at lines 273--274
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 274--275
+Underfull \hbox (badness 10000) in paragraph at lines 275--276
 
  []
 
 [8]
-Overfull \hbox (1.96904pt too wide) in paragraph at lines 299--304
+Overfull \hbox (1.96904pt too wide) in paragraph at lines 301--306
 [][] 
  []
 
 
-Overfull \hbox (10.72145pt too wide) in paragraph at lines 311--320
+Overfull \hbox (10.72145pt too wide) in paragraph at lines 313--322
 [][] 
  []
 
@@ -440,11 +440,11 @@ Overfull \hbox (10.72145pt too wide) in paragraph at lines 311--320
 Here is how much of TeX's memory you used:
  5354 strings out of 493921
  78838 string characters out of 3147279
- 227143 words of memory out of 3000000
+ 227141 words of memory out of 3000000
  8424 multiletter control sequences out of 15000+200000
  37735 words of font info for 152 fonts, out of 3000000 for 9000
  841 hyphenation exceptions out of 8191
- 33i,12n,56p,971b,1099s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 34i,12n,56p,971b,1099s stack positions out of 5000i,500n,10000p,200000b,50000s
 {C:/Program Files/MiKTeX 2.9
 /fonts/enc/dvips/fontname/8r.enc}<C:/Program Files/MiKTeX 2.9/fonts/type1/publi
 c/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfont
@@ -453,7 +453,7 @@ s/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/urw/courier/ucrr8a.pfb
 iles/MiKTeX 2.9/fonts/type1/urw/palatino/uplb8a.pfb><C:/Program Files/MiKTeX 2.
 9/fonts/type1/urw/palatino/uplr8a.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/
 urw/palatino/uplri8a.pfb>
-Output written on hpl.pdf (9 pages, 120728 bytes).
+Output written on hpl.pdf (9 pages, 120723 bytes).
 PDF statistics:
  61 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
