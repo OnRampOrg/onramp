@@ -102,7 +102,8 @@ function workspaceModule(data){
 	}
 }
 
-//forEach(<instance> in <objects>)
+//forEach(instance in objects)
+//use this to create a pop up somehow
 var setFormId = function(formInfo){
 	var formID = "";
 	var labels = document.getElementsByTagName("label");
@@ -113,19 +114,40 @@ var setFormId = function(formInfo){
 	
 		   //http://stackoverflow.com/questions/22044106/display-tooltip-on-labels-hover
 		   //create the popup look at this: http://stackoverflow.com/questions/3559467/description-box-on-mouseover
-		   
-		   //<span id="helpBlock" class="help-block">A block of help text that breaks onto a new line and may extend beyond one line.</span>
 			if( myDescription !== "none"){
-			   /*var span = document.createElement("span");
-			   span.setAttribute("class", "help-block");
+			   var div = document.createElement("div");
+			   div.setAttribute("class", "formTip notActive");
 			   var myDescription = getDescription(formID);
 			   var description = document.createTextNode(myDescription);
-			   span.appendChild(description);
-			   $(span).insertAfter(labels[i]);
-			   $(footdiv).append("<button type=\"button\" class=\"btn btn-primary\" onclick= newGame()>New Game</button>");*/
-			    var myDescription = getDescription(formID);
-			   $(labels[i]).append("<span style = \"display:block;font-size:80%\" class = \"help-block\"><span class = \"glyphicon glyphicon-info-sign\"></span> "+myDescription+"</span>");
+			   div.appendChild(description);
+			   $(div).insertAfter(labels[i]);
 			}
+			
+			//check for form label click
+			$(document).ready(function () {
+			   $('.formLabel').click(function(e) {
+				   var id = $(e.target).attr("id");
+				   var self = e.target;
+				   console.log("myid: "+id);
+				$(".formTip").removeClass("isActive"); 
+				$(".formTip").addClass("notActive");
+				$(self).next().removeClass('notActive');
+					
+				$(self).next().addClass('isActive');
+				
+			   });
+			});
+			//check for white space click
+			$(document).mouseup(function (e){
+				var container = $(".formLabel");
+
+				if (!container.is(e.target) // if the target of the click isn't the container...
+					&& container.has(e.target).length === 0) // ... nor a descendant of the container
+				{
+					$(".formTip").removeClass("isActive"); 
+					$(".formTip").addClass("notActive");
+				}
+			});
 
 		}
 }
@@ -140,7 +162,7 @@ var getDescription = function( formID ){
 		description = "Number of OpenMP threads to use for each process. Default = 1";
 	}
 	else if(formID === "mode"){
-		description = "Version of program to run ('s' -> serial, 'o' -> openmp, 'm' -> mpi, 'h' -> hybrid). Default = s";
+		description = "Character indicating which version of pi program to run ('s' -> serial, 'o' -> openmp, 'm' -> mpi, 'h' -> hybrid). Default = s";
 	}
 	else if(formID === "np"){
 		description = "Number of processes";
@@ -164,7 +186,7 @@ var openPCEModal = function(){
 
 //forEach(instance in objects)
 //use this to create a pop up somehow
-/*var displayConcepts = function(btn){
+var displayConcepts = function(btn){
 	
 	//FIGURE OUT HOW TO CLOSE THE DIV BY CLICKING ON THE BUTTON AGAIN. COULD DO A COUNT? BASICALLY A 1 OR 0 THAN SWITCHES
 	var childClass = $(btn).next().className;
@@ -186,7 +208,7 @@ var openPCEModal = function(){
 		}
 	});
 
-}*/
+}
 
 
 function myWorkspace(data){
