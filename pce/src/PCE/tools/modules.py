@@ -61,41 +61,47 @@ class ModState(dict):
         """
         if mod_state_file is None:
             mod_state_file = os.path.join(_mod_state_dir, str(id))
+
         self.mod_id = id
+        self._lock_filename = os.path.join(_mod_state_dir, '%s.lock' % str(id))
+        self._mod_state_filename = mod_state_file
+
+        while(True):
+            try:
+                # Raises OSError if file cannot be opened in create mode.
+                os.open(self._lock_filename,
+                        os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                break
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+                time.sleep(.001)
 
         try:
-            # Raises OSError if file cannot be opened in create mode. If no
-            # error, lock the file descriptor when opened.
-            fd = os.open(mod_state_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-            fcntl.flock(fd, fcntl.LOCK_EX)
-            self._state_file = os.fdopen(fd, 'w')
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
-            # File already exists. Open and lock it.
             self._state_file = open(mod_state_file, 'r+')
-            fcntl.lockf(self._state_file, fcntl.LOCK_EX)
-            file_contents = self._state_file.read()
-            _logger.debug('File contents for %s:' % mod_state_file)
-            _logger.debug(file_contents)
-
-            try:
-                data = json.loads(file_contents)
-                # Valid json. Load it into self.
-                self.update(data)
-            except ValueError:
-                # Invalid json. Ignore (will be overwritten by _close().
-                pass
-
+            data = json.load(self._state_file)
+            self.update(data)
             self._state_file.seek(0)
+        except IOError as e1:
+            if e1.errno != errno.ENOENT:
+                raise
+            self._state_file = open(mod_state_file, 'w')
+        except ValueError as e2:
+            #_logger.debug('BAD JSON: %s' % file_contents)
+            # Invalid json. Ignore (will be overwritten by _close().
+            pass
 
     def __enter__(self):
         """Provide entry for use in 'with' statements."""
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, e_type, e_value, e_traceback):
         """Provide exit for use in 'with' statements."""
+        _logger.debug('In ModState.__exit__().')
         self._close()
+
+        if e_type:
+            return False
 
     def _close(self):
         """Serialize and store state parameters.
@@ -105,15 +111,20 @@ class ModState(dict):
         if 'state' in self.keys() and self['state'] != 'Does not exist':
             self._state_file.write(json.dumps(self))
             self._state_file.truncate()
+            self._state_file.close()
         else:
-            mod_state_file = os.path.join(_mod_state_dir, str(self.mod_id))
             try:
-                os.remove(mod_state_file)
+                self._state_file.close()
+                os.remove(self._mod_state_filename)
             except OSError as e:
-                if e.errno != 2:
-                    # 2 => No such file or directory (which is no prob).
+                if e.errno != errno.ENOENT:
                     raise e
-        self._state_file.close()
+
+        try:
+            os.remove(self._lock_filename)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise e
 
 
 def _local_checkout(source_path, install_path):
@@ -308,7 +319,7 @@ def _clean_mod(mod):
     underscore.
 
     Args:
-        mod (ModState): The job to clean.
+        mod (ModState): The mod to clean.
 
     Returns:
         ModState with all underscore-prefixed keys removed.
