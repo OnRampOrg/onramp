@@ -30,5 +30,5 @@ np =
 #
 nodes = 
 
-[hello]
-name = string(max=32,default="World")
+[monte_carlo]
+version = string(max=32,default="coin_flip_seq")

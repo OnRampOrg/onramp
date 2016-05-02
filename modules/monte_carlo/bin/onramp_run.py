@@ -23,7 +23,7 @@ config    = ConfigObj(conf_file)
 # Run my program
 #
 os.chdir('src')
-call(['mpirun', '-np', config['onramp']['np'], 'hello', config['hello']['name']])
+call(['mpirun', '-np', config['onramp']['np'], config['monte_carlo']['version']])
 
 
 # Exit 0 if all is ok
