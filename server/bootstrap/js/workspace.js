@@ -10,6 +10,7 @@ function PCE (data) {
 	self.description = data['description'];
 	self.location = data['location'];
 	self.modules = ko.observableArray();
+	self.link = "http://flux.cs.uwlax.edu/";
 
 
 }
@@ -103,7 +104,7 @@ function Module(data){
 						self.formFields.push({field:"ring " + item, data:""});
 					});
 				}
-				else if(self.name == "template"){
+				else if(self.name == "template" || self.name == "monte-carlo"){
 					data.pces.uioptions["hello"].forEach(function (item, index, array){
 						self.formFields.push({field:"hello " + item, data:""});
 					});

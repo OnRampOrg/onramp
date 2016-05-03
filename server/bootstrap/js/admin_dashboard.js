@@ -247,7 +247,7 @@ function AdminDashboardViewModel() {
 								}
 							);
 
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/modules?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON( sessionStorage["server"] + "modules?apikey=" + JSON.parse(self.auth_data).apikey,
 								//self.auth_data,
 								function (data){
 									// {"status": 0,
