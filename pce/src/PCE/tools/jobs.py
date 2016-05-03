@@ -61,41 +61,47 @@ class JobState(dict):
         """
         if job_state_file is None:
             job_state_file = os.path.join(_job_state_dir, str(id))
+
         self.job_id = id
+        self._lock_filename = os.path.join(_job_state_dir, '%s.lock' % str(id))
+        self._job_state_filename = job_state_file
+
+        while(True):
+            try:
+                # Raises OSError if file cannot be opened in create mode.
+                os.open(self._lock_filename,
+                        os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                break
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+                time.sleep(.001)
 
         try:
-            # Raises OSError if file cannot be opened in create mode. If no
-            # error, lock the file descriptor when opened.
-            fd = os.open(job_state_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-            fcntl.flock(fd, fcntl.LOCK_EX)
-            self._state_file = os.fdopen(fd, 'w')
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
-            # File already exists. Open and lock it.
             self._state_file = open(job_state_file, 'r+')
-            fcntl.lockf(self._state_file, fcntl.LOCK_EX)
-            file_contents = self._state_file.read()
-            _logger.debug('File contents for %s:' % job_state_file)
-            _logger.debug(file_contents)
-
-            try:
-                data = json.loads(file_contents)
-                # Valid json. Load it into self.
-                self.update(data)
-            except ValueError:
-                # Invalid json. Ignore (will be overwritten by _close().
-                pass
-
+            data = json.load(self._state_file)
+            self.update(data)
             self._state_file.seek(0)
+        except IOError as e1:
+            if e1.errno != errno.ENOENT:
+                raise
+            self._state_file = open(job_state_file, 'w')
+        except ValueError as e2:
+            #_logger.debug('BAD JSON: %s' % file_contents)
+            # Invalid json. Ignore (will be overwritten by _close().
+            pass
 
     def __enter__(self):
         """Provide entry for use in 'with' statements."""
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, e_type, e_value, e_traceback):
         """Provide exit for use in 'with' statements."""
+        _logger.debug('In JobState.__exit__()')
         self._close()
+
+        if e_type:
+            return False
 
     def _close(self):
         """Serialize and store state parameters.
@@ -103,17 +109,24 @@ class JobState(dict):
         If stored state exists, overwrite it with current instance keys/vals.
         """
         if 'state' in self.keys() and self['state'] != 'Does not exist':
-            self._state_file.write(json.dumps(self))
+            json.dump(self, self._state_file)
             self._state_file.truncate()
+            self._state_file.close()
         else:
-            job_state_file = os.path.join(_job_state_dir, str(self.job_id))
+            _logger.debug("REMOVING STATE FILE with state: %s" % str(self))
             try:
-                os.remove(job_state_file)
+                self._state_file.close()
+                os.remove(self._job_state_filename)
             except OSError as e:
-                if e.errno != 2:
-                    # 2 => No such file or directory (which is no prob).
+                if e.errno != errno.ENOENT:
                     raise e
-        self._state_file.close()
+
+        try:
+            os.remove(self._lock_filename)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise e
+
 
 def launch_job(job_id, mod_id, username, run_name, run_params):
     """Schedule job launch using system batch scheduler as configured in
@@ -133,6 +146,7 @@ def launch_job(job_id, mod_id, username, run_name, run_params):
     _logger.debug('PCE.tools.launch_job() called')
 
     # Initialize job state.
+    _logger.debug('Check if state exists and if so if accepted')
     with JobState(job_id) as job_state:
         if ('state' in job_state.keys()
             and job_state['state'] not in accepted_states):
@@ -153,7 +167,10 @@ def job_init_state(job_id, mod_id, username, run_name, run_params,
                    job_state_file=None, mod_state_file=None,
                    run_dir=None):
 
+    _logger.debug('Want JobState (init) at: %s' % time.time())
     with JobState(job_id, job_state_file) as job_state:
+        _logger.debug('In JobState (init) at: %s' % time.time())
+        _logger.debug('init PID: %d' % os.getpid())
         job_state['job_id'] = job_id
         job_state['mod_id'] = mod_id
         job_state['username'] = username
@@ -183,6 +200,9 @@ def job_init_state(job_id, mod_id, username, run_name, run_params,
             job_state['mod_name'] = mod_state['mod_name']
             proj_loc = mod_state['installed_path']
             mod_name = mod_state['mod_name']
+            _logger.debug('Leaving modstate part of init')
+        _logger.debug('Job state: %s' % str(job_state))
+    _logger.debug('Done with JobState (init) at: %s' % time.time())
 
     _logger.debug('Testing project location')
     if not os.path.isdir(proj_loc):
@@ -207,8 +227,11 @@ def job_init_state(job_id, mod_id, username, run_name, run_params,
             # Thrown if dir already exists.
             pass
 
+    _logger.debug('Setting run dir')
     with JobState(job_id, job_state_file) as job_state:
         job_state['run_dir'] = run_dir
+        _logger.debug('state vals: %s' % str(job_state))
+    _logger.debug('Run dir set')
 
     # The way the following is setup, if a run_dir has already been setup with
     # this run_name, it will be used (that is, not overwritten) for this launch.
@@ -235,11 +258,15 @@ def job_init_state(job_id, mod_id, username, run_name, run_params,
 def job_preprocess(job_id, job_state_file=None):
     ret_dir = os.getcwd()
     _logger.info('Calling bin/onramp_preprocess.py')
+    _logger.debug('Want JobState (preprocess) at: %s' % time.time())
     with JobState(job_id, job_state_file) as job_state:
+        _logger.debug('In JobState (preprocess) at: %s' % time.time())
+        _logger.debug('preprocess PID: %d' % os.getpid())
         job_state['state'] = 'Preprocessing'
         job_state['error'] = None
         run_dir = job_state['run_dir']
     os.chdir(run_dir)
+    _logger.debug('Done with JobState (preprocess) at: %s' % time.time())
 
     try:
         result = check_output([os.path.join(pce_root, 'src/env/bin/python'),

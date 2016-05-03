@@ -23,10 +23,9 @@
 * Defines
 ***************************************/
 
-#define TRIALS          18
-#define FLIPS_PER_TRIAL 256
+#define TRIALS          20
+#define FLIPS_PER_TRIAL 900
 #define STRING_LEN      12
-#define N_THREADS       4
 
 /***************************************
 * Global Variables
@@ -35,7 +34,7 @@
 char* trial_string;
 char* heads_string;
 char* tails_string;
-unsigned int seeds[N_THREADS];
+unsigned int seeds[32];
 
 /***************************************
 * Function Declarations

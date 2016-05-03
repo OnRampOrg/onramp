@@ -1,42 +1,6 @@
-function Job(data){
-	var self = this;
-	self.jID = data['job_id'];
-	self.user = data['user_id'];
-	self.ws = data['workspace_id'];
-	self.pce = data['pce_id'];
-	self.mod = data['module_id'];
-	self.name = data['job_name'];
-	self.status = data['state'];
-	self.time = "0:00";  // not implemented yet
 
 
-	self.viewJob = function () {
-		// go to manage Jobs page and show this job
-		window.location.href = "admin_jobs.html";
-	};
-}
-
-function Workspace(data){
-	var self = this;
-	self.wID = data['workspace_id'];
-	self.name = data['workspace_name'];
-	self.desc = data['description'];
-
-
-	this.captureWSID = function () {
-		sessionStorage.setItem("WorkspaceID", this.wID);
-		//alert("workspace " + localStorage.getItem('WorkspaceID'));
-		window.location.href = "workspace.html";
-	};
-
-	self.viewWorkspace = function () {
-		// go to manage Workspaces page and show this job
-		window.location.href = "admin_workspaces.html";
-	};
-
-}
-
-function PCE (data) {
+function adminPCE (data) {
 	var self = this;
 
 	self.id = ko.observable(data['pce_id']);
@@ -138,7 +102,7 @@ function PCE (data) {
 						console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
 						conv_data[data.pces.fields[i]] = raw[i];
 					}
-					self.Workspacelist.push(new Workspace(conv_data));
+					self.Workspacelist.push(new Workspace(conv_data, true));
 				}
 			}
 		);
@@ -163,7 +127,7 @@ function PCE (data) {
 						console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
 						conv_data[data.pces.fields[i]] = raw[i];
 					}
-					self.Jobslist.push(new Job(conv_data));
+					self.Jobslist.push(new Job(conv_data, true, false));
 				}
 			}
 		);
@@ -364,7 +328,7 @@ function UserProfile(data) {
 						console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
 						conv_data[data.users.fields[i]] = raw[i];
 					}
-					self.Jobslist.push(new Job(conv_data));
+					self.Jobslist.push(new Job(conv_data, true, false));
 				}
 			}
 		);
@@ -387,7 +351,7 @@ function UserProfile(data) {
 						console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
 						conv_data[data.users.fields[i]] = raw[i];
 					}
-					self.Workspacelist.push(new Workspace(conv_data));
+					self.Workspacelist.push(new Workspace(conv_data, true));
 				}
 			}
 		);
@@ -492,7 +456,7 @@ function AdminPCEViewModel() {
 	self.addPCE = function () {
 		// need to get user ID from the server, maybe not until data is populated?
 		self.selectedPCE(null);
-		self.newPCE(new PCE({"pce_id":-1, "pce_name":"name", "description":"description", "location":"location", "contact_info":"contact_info", "pce_username":"pce_username", "pce_password":"pce_password", "port":"port", "url":"url"}));
+		self.newPCE(new adminPCE({"pce_id":-1, "pce_name":"name", "description":"description", "location":"location", "contact_info":"contact_info", "pce_username":"pce_username", "pce_password":"pce_password", "port":"port", "url":"url"}));
 	}
 
 	self.updateServer = function () {
@@ -534,20 +498,6 @@ function AdminPCEViewModel() {
 		self.newPCE(null);
 	});
 
-	self.logout = function (){
-		// send post to server
-		$.ajax({
-			type: 'POST',
-			url: sessionStorage.server + '/logout',
-			data: self.auth_data,
-			complete: function () {
-				window.location.href = "start.html";
-			},
-			dataType: 'application/json',
-			contentType: 'application/json'
-		});
-
-	}
 
 }
 

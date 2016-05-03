@@ -1,4 +1,4 @@
-function Job(data){
+function myJob(data){
 	var self = this;
 	self.jID = data['job_id'];
 	self.user = data['user_id'];
@@ -48,7 +48,7 @@ function JobDetailsViewModel() {
 						console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
 						conv_data[data.users.fields[i]] = raw[i];
 					}
-					self.Jobslist.push(new Job(conv_data));
+					self.Jobslist.push(new myJob(conv_data));
 				}
 			}
 		);
@@ -74,7 +74,7 @@ function JobDetailsViewModel() {
 						console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
 						conv_data[data.users.fields[i]] = raw[i];
 					}
-					self.Jobslist.push(new Job(conv_data));
+					self.Jobslist.push(new myJob(conv_data));
 				}
 			}
 		);
@@ -113,21 +113,6 @@ function JobDetailsViewModel() {
 			}
 		);
 	    //self.selectedJob(this);
-	}
-
-	self.logout = function (){
-		// send post to server
-		$.ajax({
-		  type: 'POST',
-		  url: sessionStorage.server + '/logout',
-		  data: self.auth_data,
-		  complete: function () {
-			  window.location.href = "start.html";
-		  },
-		  dataType: 'application/json',
-		  contentType: 'application/json'
-		} );
-
 	}
 
 }

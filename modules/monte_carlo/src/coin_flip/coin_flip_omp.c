@@ -19,11 +19,20 @@ int main(int argc, char *argv[]) {
     int num_flips = 0;
     int num_heads = 0;
     int num_tails = 0;
+    int n_threads = 1;    
     int tid;
     unsigned int trial_flips = FLIPS_PER_TRIAL;
     unsigned int max_flips   = FLIPS_PER_TRIAL * (1<<TRIALS);
     double start_time = -1;
     double end_time   = -1;
+
+    // Get number of threads
+    if (argc > 1) {
+	n_threads = atoi(argv[1]);
+	if (n_threads > 32) {
+	    n_threads = 32;
+	}
+    }
 
     create_strings(); /* Malloc and initialize strings. */
 
@@ -31,6 +40,7 @@ int main(int argc, char *argv[]) {
     printf("\n Settings:           \n"                 );
     printf("    Trials         : %d\n", TRIALS         );
     printf("    Flips per trial: %d\n", FLIPS_PER_TRIAL);
+    printf("    Threads        : %d\n", n_threads      );
     printf("\n Begin Simulation... \n"                 );
 
     /* Print table heading. */
@@ -49,7 +59,7 @@ int main(int argc, char *argv[]) {
 
 	start_time = omp_get_wtime();
 
-        #pragma omp parallel num_threads(N_THREADS) default(none) \
+        #pragma omp parallel num_threads(n_threads) default(none) \
 	private(num_flips, tid) shared(trial_flips, seeds) \
 	reduction(+:num_heads, num_tails)
 	{

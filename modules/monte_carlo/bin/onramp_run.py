@@ -23,10 +23,45 @@ config    = ConfigObj(conf_file)
 # Run my program
 #
 os.chdir('src')
-call(['mpirun', '-np', config['onramp']['np'], 'hello', config['hello']['name']])
 
+# Retrive mode
+mode = config['monte_carlo']['mode']
+
+def default_case():
+    print  mode + ' is not a recognized mode.\n'
+    print '+----------------------------+\n'
+    print '| mode | program             |\n'
+    print '+----------------------------+\n'
+    print '|  1s  | coin_flip_seq       |\n'
+    print '|  1p  | coin_flip_omp       |\n'
+    print '|  2s  | draw_four_suits_seq |\n'
+    print '|  2p  | draw_four_suits_omp |\n'
+    print '|  3s  | roulette_sim_seq    |\n'
+    print '|  3p  | roulette_sim_omp    |\n'
+    print '+----------------------------+\n'
+    sys.exit(-1)
+
+def coin_seq():
+    call(['mpirun', '-np', '1', 'coin_flip_seq'])
+
+def coin_omp():
+    call(['mpirun', '-np', '1', 'coin_flip_omp', config['monte_carlo']['threads']])
+
+def draw_seq():
+    call(['mpirun', '-np', '1', 'draw_four_suits_seq'])
+
+def draw_omp():
+    call(['mpirun', '-np', '1', 'draw_four_suits_omp', config['monte_carlo']['threads']])
+
+def roulette_seq():
+    call(['mpirun', '-np', '1', 'roulette_sim_seq'])
+
+def roulette_omp():
+    call(['mpirun', '-np', '1', 'roulette_sim_omp', config['monte_carlo']['threads']])
+
+executables = { '1s' : coin_seq, '1p' : coin_omp, '2s' : draw_seq, '2p' : draw_omp, '3s' : roulette_seq, '3p' : roulette_omp}
+
+executables.get(mode, default_case)()
 
 # Exit 0 if all is ok
 sys.exit(0)
-# Exit with a negative value if there was a problem
-#sys.exit(-1)

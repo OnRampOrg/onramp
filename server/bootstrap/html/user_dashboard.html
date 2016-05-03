@@ -7,6 +7,8 @@
   <!-- Bootstrap -->
   <link href="../css/bootstrap.min.css" rel="stylesheet">
   <link href="../css/bootstrap-horizon.css" rel="stylesheet">
+  <link href="../css/global_style.css" rel="stylesheet">
+  <script src="../js/all_global.js"></script>
 
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media
   queries -->
@@ -25,28 +27,32 @@
   <!-- Fixed navbar -->
 
   <nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-          <span class="sr-only">Toggle navigation</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="start.html">OnRamp</a>
-      </div>
-      <div id="navbar" class="navbar-collapse collapse">
-        <ul class="nav navbar-nav">
-          <li class="active"><a href="user_dashboard.html">Home</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="myprofile.html">Profile</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <li><a href="#help">Help</a></li>
-          <li><a data-bind="click: logout">Logout</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+        <div class="NavContainer">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <a class="navbar-brand" id = "brand" href="start.html">OnRamp</a>
+				<ul class="nav navbar-nav navbar-left">
+                    <li class="active"><a href="user_dashboard.html">Home</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="myprofile.html">Profile</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="#help">Help</a></li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li>
+						<button type="button" class="btn btn-default hover" onclick = logout()>Logout</button>
+					</li>
+                </ul>
+            </div>
+        </div>
+    </nav>
   <br>
   <div class="container">
     <div class="jumbotron">
@@ -62,12 +68,15 @@
   -->
 
   <div class="container">
+	<div class = "row">
+		<a class="btn btn-default" style = "background-color: #FFD700; box-shadow: 2px 2px 10px 1px grey; margin-bottom: 10px;" href = "user_dashboard_quiet.html" >View Quiet Dashboard</a>
+	</div>
     <div class="row">
       <h4>I want to start another job...</h4>
       <p>Select on a workspace to get started.</p>
     </div>
 
-    <div class="row row-horizon" data-bind="foreach: Workspacelist()">
+    <div class="row" data-bind="foreach: Workspacelist()">
       <div class="col-md-3 " class="item">
         <div class="thumbnail">
           <!--<img alt="Workspace 1 Image" src="http://lorempixel.com/output/people-q-c-600-200-1.jpg" /> -->
@@ -80,7 +89,6 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
   <!--
@@ -115,11 +123,12 @@
       <div class="col-sm-6">
         <h2>My Jobs</h2>
         <p>This is a list of the n most recent jobs.</p>
+		<!--<button type = button class="btn-info" data-bind="click: gotoJobDetails">View Details</button>-->
         <!-- check out this website for a cool way to display a table of data: http://bootstrapmaster.com/live/genius/table.html -->
       </div>
     </div>
     <div class="row">
-      <div class="table">
+      <div class="table" id = "user-db-table">
         <table class="table">
           <thead>
             <th class="col-sm-1">Job Id</th>
@@ -129,24 +138,25 @@
             <th class="col-sm-1">Run Name</th>
             <th class="col-sm-1">Status</th>
             <th class="col-sm-1">Runtime</th>
-            <th class="col-sm-1">View Details</th>
-            <th class="col-sm-1">Cancel/Delete</th>
+           <!-- <th class="col-sm-1">View Details</th>
+            <th class="col-sm-1">Cancel/Delete</th>-->
           </thead>
           <tbody data-bind="foreach: Jobslist">
             <tr>
-              <td data-bind="text: jID"></td>
+              <td data-bind="text: id"></td>
               <td data-bind="text: ws"></td>
               <td data-bind="text: pce"></td>
               <td data-bind="text: mod"></td>
               <td data-bind="text: name"></td>
               <td data-bind="text: status"></td>
               <td data-bind="text: time"></td>
-              <td><button class="info" data-bind="click: gotoJobDetails">View Details</button></td>
-              <td><button class="danger">Cancel/Delete</button></td>
+             <!-- <td><button class="btn-info" data-bind="click: gotoJobDetails">View Details</button></td>
+              <td><button class="btn-danger">Cancel/Delete</button></td>-->
             </tr>
           </tbody>
         </table>
       </div>
+	  <button type = "button" class="btn-info" onclick = JobDetails() >View Job Details</button>
     </div>
   </div>
 

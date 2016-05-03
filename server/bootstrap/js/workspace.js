@@ -1,39 +1,16 @@
-function PCE (data) {
-	var self = this;
+// Select all elements with data-toggle="tooltips" in the document
+$('[data-toggle="tooltip"]').tooltip();
+$('.collapse').collapse();
 
-	self.id = data['pce_id'];
-	self.name = data['pce_name'];
-	self.status = data['state'];
-	//self.nodes = data['nodes'];
-	//self.corespernode = data['corespernode'];
-	//self.mempernode = data['mempernode'];
-	self.description = data['description'];
-	self.location = data['location'];
-	self.modules = ko.observableArray();
-	self.link = "http://flux.cs.uwlax.edu/";
-
-
-}
-
-function Job(data){
-	var self = this;
-	self.id = data['job_id'];
-	self.user = data['user_id'];
-	self.ws = data['workspace_id'];
-	self.pce = data['pce_id'];
-	self.mod = data['module_id'];
-	self.name = data['job_name'];
-	self.status = data['state'];
-	self.time = "0:00";  // not implemented yet
-}
-
-function Module(data){
+function workspaceModule(data){
 	var self = this;
 	self.id = data['module_id'];
 	self.name = data['module_name'];
 	self.desc = data['description'];
 	self.formFields = ko.observableArray();
 	self.PCEs = ko.observableArray();
+	self.formInfo = ko.observableArray();
+	console.log("CHRISTA DESC: " + self.desc);
 
 	self.addDefaultFormFields = function () {
 		this.formFields.push({"field": "name", "value": "test"});
@@ -97,43 +74,139 @@ function Module(data){
 				self.formFields.push({field:"job_name", data:""});
 				data.pces.uioptions.onramp.forEach(function (item, index, array){
 					self.formFields.push({field:"onramp " + item, data:""});
+					self.formInfo.push({formid: item});
 				});
 
 				if(self.name == "mpi-ring"){
 					data.pces.uioptions["ring"].forEach(function (item, index, array){
 						self.formFields.push({field:"ring " + item, data:""});
+						self.formInfo.push({formid: item});
+						console.log("christa"+ item);
 					});
 				}
 				else if(self.name == "template" || self.name == "monte-carlo"){
 					data.pces.uioptions["hello"].forEach(function (item, index, array){
 						self.formFields.push({field:"hello " + item, data:""});
+						self.formInfo.push({formid: item});
+						console.log("christa"+ item);
 					});
 				}
 				else {
 					data.pces.uioptions[self.name].forEach(function (item, index, array){
 						self.formFields.push({field:self.name + " " + item, data:""});
+						self.formInfo.push({formid: item});
+						console.log("christa"+ item);
 					});
 				}
 
 				console.log("added fields!");
 				console.log(self.formFields());
+				//call method to set the ids of each label
+				setFormId(self.formInfo());
 			}
 		);
 	}
 }
 
+//forEach(<instance> in <objects>)
+var setFormId = function(formInfo){
+	var formID = "";
+	var labels = document.getElementsByTagName("label");
+		for(var i = 1; i < labels.length; i++){
+			formID = formInfo[i-1].formid;
+		   labels[i].setAttribute("id", formID);
+		   var myDescription = getDescription(formID);
+	
+		   //http://stackoverflow.com/questions/22044106/display-tooltip-on-labels-hover
+		   //create the popup look at this: http://stackoverflow.com/questions/3559467/description-box-on-mouseover
+		   
+		   //<span id="helpBlock" class="help-block">A block of help text that breaks onto a new line and may extend beyond one line.</span>
+			if( myDescription !== "none"){
+			   /*var span = document.createElement("span");
+			   span.setAttribute("class", "help-block");
+			   var myDescription = getDescription(formID);
+			   var description = document.createTextNode(myDescription);
+			   span.appendChild(description);
+			   $(span).insertAfter(labels[i]);
+			   $(footdiv).append("<button type=\"button\" class=\"btn btn-primary\" onclick= newGame()>New Game</button>");*/
+			    var myDescription = getDescription(formID);
+			   $(labels[i]).append("<span style = \"display:block;font-size:80%\" class = \"help-block\"><span class = \"glyphicon glyphicon-info-sign\"></span> "+myDescription+"</span>");
+			}
 
-function Workspace(data){
+		}
+}
+/*maybe put in placeholder for the default*/
+
+var getDescription = function( formID ){
+	var description = "";
+	if(formID === "rectangles"){
+		description = "Number of rectangles for the Riemann Sum. Default = 100000000";
+	}
+	else if(formID === "threads"){
+		description = "Number of OpenMP threads to use for each process. Default = 1";
+	}
+	else if(formID === "mode"){
+		description = "Version of program to run ('s' -> serial, 'o' -> openmp, 'm' -> mpi, 'h' -> hybrid). Default = s";
+	}
+	else if(formID === "np"){
+		description = "Number of processes";
+	}
+	else if(formID === "nodes"){
+		description = "Number of nodes";
+	}
+	else{
+		description = "none";
+	}
+	return description;
+}
+
+var openModuleModal = function(){
+	$('#moduleModal').modal('show');
+}
+
+var openPCEModal = function(){
+	$('#PCEModal').modal('show');
+}
+
+//forEach(instance in objects)
+//use this to create a pop up somehow
+/*var displayConcepts = function(btn){
+	
+	//FIGURE OUT HOW TO CLOSE THE DIV BY CLICKING ON THE BUTTON AGAIN. COULD DO A COUNT? BASICALLY A 1 OR 0 THAN SWITCHES
+	var childClass = $(btn).next().className;
+	console.log("christa childClass = " + childClass);
+	
+	//because of the button calling this method you can't click the button to make the concepts div disapper because it will hit the below two lines
+	$(".info-div").removeClass("info-notActive"); //make 
+	$(".info-div").addClass("info-isActive");
+		
+	//check for white space click
+	$(document).mouseup(function (e){
+		var container = $(".info-div");
+
+		if (!container.is(e.target) // if the target of the click isn't the container...
+			) // ... nor a descendant of the container
+		{
+			$(".info-div").removeClass("info-isActive"); //make 
+			$(".info-div").addClass("info-notActive");
+		}
+	});
+
+}*/
+
+
+function myWorkspace(data){
 	var self = this;
 	self.id = data['workspace_id'];
 	self.name = data['workspace_name'];
 	self.desc = data['description'];
+	console.log("CHRISTA DESC: " + self.desc);
 
 
 	self.captureWSID = function () {
 
-		localStorage.setItem("WorkspaceID", self.wID);
-		alert("workspace " + localStorage.getItem('WorkspaceID'));
+		localStorage.setItem("WorkspaceID", self.id);
+		alert("workspa e " + localStorage.getItem('WorkspaceID'));
 		window.location.href = "workspace.html";
 		return;
 	}
@@ -182,7 +255,7 @@ function OnrampWorkspaceViewModel () {
 					console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
 					conv_data[data.workspaces.fields[i]] = raw[i];
 				}
-				self.workspaceInfo(new Workspace(conv_data));
+				self.workspaceInfo(new myWorkspace(conv_data));
 				self.welcome1(self.username + "'s " + self.workspaceInfo().name + " workspace");
 			}
 		);
@@ -224,7 +297,7 @@ function OnrampWorkspaceViewModel () {
 								console.log("adding: " + data.pces.fields[j] + " = " + raw[j] + " (" + (raw[j] + 1 ) + ")");
 								conv_data[data.pces.fields[j]] = raw[j];
 							}
-							var newpce = new PCE(conv_data);
+							var newpce = new PCE(conv_data, false);
 							for(var j = 0; j < pairs.length; j++){
 								var p = pairs[j][0];
 								var m = pairs[j][2];
@@ -249,7 +322,7 @@ function OnrampWorkspaceViewModel () {
 								console.log("adding: " + data.modules.fields[j] + " = " + raw[j]);
 								conv_data[data.modules.fields[j]] = raw[j];
 							}
-							var newmod = new Module(conv_data);
+							var newmod = new workspaceModule(conv_data);
 							for(var j = 0; j < pairs.length; j++){
 								var p = pairs[j][0];
 								var m = pairs[j][2];
@@ -365,7 +438,8 @@ function OnrampWorkspaceViewModel () {
 	}
 
 
-	this.launchJob = function (formData){
+	this.launchJob = function(formData){
+		console.log("launching job");
 // 		{
 //     "auth": {
 //         ... // Removed for brevity
@@ -399,6 +473,7 @@ function OnrampWorkspaceViewModel () {
 		}
 		opts[mod_name] = {};
 		formData.formFields().forEach( function(item, index, array){
+			
 			if(item.field != "job_name"){
 				if(item.field.search("onramp") >= 0){
 					// get onramp fields
@@ -406,7 +481,7 @@ function OnrampWorkspaceViewModel () {
 					opts["onramp"][item.field.slice(7)] = item.data;
 				}
 				else if(item.field.search(mod_name) >= 0){
-					console.log(item.field.slice(mod_name.length + 1));
+					console.log(item.field.slice("CHRISTA: "+mod_name.length + 1));
 					opts[mod_name][item.field.slice(mod_name.length + 1)] = item.data;
 				}
 				else {
@@ -418,6 +493,7 @@ function OnrampWorkspaceViewModel () {
 			}
 		});
 		console.log(formData.formFields()[0].data);
+		
 
 		var data_packet = JSON.stringify({
 			"auth": JSON.parse(self.auth_data),
@@ -521,7 +597,6 @@ $.alpaca({
 // load data from server
 
 
-
 // helper functions
 self.findById = function (thisList, id){
 	for(var i = 0; i < thisList.length; i++){
@@ -533,20 +608,7 @@ self.findById = function (thisList, id){
 	return null;
 }
 
-self.logout = function (){
-	// send post to server
-	$.ajax({
-	  type: 'POST',
-	  url: sessionStorage.server + '/logout',
-	  data: self.auth_data,
-	  complete: function () {
-		  window.location.href = "start.html";
-	  },
-	  dataType: 'application/json',
-	  contentType: 'application/json'
-	} );
 
-}
 
 }
 

@@ -21,8 +21,8 @@
 * Defines
 ***************************************/
 
-#define TRIALS          18
-#define FLIPS_PER_TRIAL 256
+#define TRIALS          20
+#define FLIPS_PER_TRIAL 900
 #define STRING_LEN      12
 
 /***************************************
