@@ -1,0 +1,67 @@
+#!/bin/bash
+# 
+# $Id: hpl.build,v 1.3 2012/07/12 14:55:27 charliep Exp $
+# 
+# This file is part of BCCD, an open-source live CD for computational science
+# education.
+# 
+# Copyright (C) 2010 Andrew Fitz Gibbon, Paul Gray, Kevin Hunter, Dave Joiner, 
+#   Sam Leeman-Munk, Tom Murphy, Charlie Peck, Skylar Thompson, & Aaron Weeden 
+
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Script to build HPL based on sources pulled from SERVER.
+# To save space on the BCCD itself, this build of HPL is configured to build
+# against the locally installed linear algebra libraries.
+#
+# NOTE: This script deletes the hpl-2.0 directory and starts clean from the
+# hpl tar. If you just want to rebuild, cd to hpl-2.0 and type "make arch=BCCD"
+
+TAR="hpl-2.0.tar.gz"
+ARCH="BCCD"
+MAKE="Make.$ARCH"
+DIR=`basename $TAR .tar.gz`
+OUT="build.out"
+
+cd $HOME/HPL-benchmark
+rm -fr $DIR
+
+echo "---> Extracting HPL source"
+tar xf $TAR
+cp $MAKE $DIR/
+
+echo "---> Building HPL (output in $DIR/$OUT)"
+cd $DIR
+make arch=$ARCH &> $OUT
+if [ $? != 0 ]; then exit 1; fi
+
+cd $HOME/HPL-benchmark/$DIR/bin/$ARCH/
+echo "---> Configuring HPL.dat"
+mv HPL.dat HPL.dat.orig
+perl $HOME/HPL-benchmark/hpl.configure > HPL.dat
+if [ $? != 0 ]; then exit 1; fi
+
+cd $HOME/HPL-benchmark
+
+echo
+echo "Done."
+echo "To run:"
+echo -e "\t$ cd $DIR/bin/$ARCH/"
+echo -e "\t$ mpirun -np <N> --hostfile ~/machines-<mpi> ./xhpl"
+echo -e "\t\t# Where <N> is the number of cores in your cluster (P*Q)"
+echo -e "\t\t# Or do ./hpl.run"
+echo
+echo "Note: This HPL was built with the system's BLAS library. To get better"
+echo "\tperformance, you may want to try one like ATLAS."

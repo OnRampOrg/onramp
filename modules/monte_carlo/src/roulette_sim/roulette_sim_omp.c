@@ -19,14 +19,22 @@
 
 #include "roulette_sim_omp.h"
 
-
-int main() {
+int main(int argc, char** argv) {
     int num_spins = 1; // spins per trial
     int	num_wins;      // wins per trial
     double start_time;
     double end_time;
 
-    printf("\n Starting simulation...\n\n");
+    // Get number of threads
+    n_threads = 1;
+    if (argc > 1) {
+	n_threads = atoi(argv[1]);
+	if (n_threads > 32) {
+	    n_threads = 32;
+	}
+    }
+
+    printf("\n Starting simulation with %d thread(s).\n\n", n_threads);
     printf(" ---------------------------------------------------\n");
     printf(" | Number of spins | Number of wins | Percent wins |\n");
     printf(" ---------------------------------------------------\n");
@@ -65,7 +73,7 @@ int get_num_wins(int num_spins) {
     int my_bet = 10; // amount we bet per spin
     int tid;
 
-    #pragma omp parallel num_threads(N_THREADS) default(none) \
+    #pragma omp parallel num_threads(n_threads) default(none) \
     shared(num_spins, my_bet, seeds) \
     private(spin, tid) \
     reduction(+:wins)

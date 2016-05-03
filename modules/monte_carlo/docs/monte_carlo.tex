@@ -332,6 +332,27 @@ while (numTests < MAX) {
 }
 \end{lstlisting}
 
+\section{Running Simulations with OnRamp}
+\subsection{N and NP}
+The values of these parameters are ignored.
+
+\pagebreak
+\subsection{Modes}
+Use the modes parameter to select which program and version to run.
+
+\begin{tabular}{ c l l }
+	\textbf{mode} & \textbf{program} & \textbf{version} \\
+	1s & coin\_flip & sequential \\
+	1p & coin\_flip & parallel \\
+	2s & draw\_four\_suits & sequential \\
+	2p & draw\_four\_suits & parallel \\
+	3s & roulette\_sim & sequential \\
+	3p & roulette\_sim & parallel \\
+\end{tabular}
+
+\subsection{Threads}
+Use the threads parameter to select how many threads to use in the parallel version. The default setting is 1 and the maximum setting is 32.
+
 % Diving deeper
 \section{Diving deeper}
 

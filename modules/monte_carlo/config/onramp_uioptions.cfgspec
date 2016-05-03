@@ -31,4 +31,5 @@ np =
 nodes = 
 
 [monte_carlo]
-version = string(max=32,default="coin_flip_seq")
+mode = string(max=2,default="1s")
+threads = string(max=32,default="1")

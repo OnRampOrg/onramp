@@ -1,0 +1,54 @@
+# $\Id$ 
+#
+# This file is part of BCCD, an open-source live CD for computational science
+# education.
+# 
+# Copyright (C) 2010 Andrew Fitz Gibbon, Paul Gray, Kevin Hunter, Dave Joiner, 
+#   Sam Leeman-Munk, Tom Murphy, Charlie Peck, Skylar Thompson, & Aaron Weeden 
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+HPL benchmarking:
+
+The High Performance Linpack (HPL) benchmark is the tool used to calculate 
+the performance of a parallel computing system. It is the software package from 
+which the numbers listed on the top500 list are derived. HPL is a software 
+package that solves a (random) dense linear system in double precision 
+(64 bits) arithmetic.
+
+The algorithm used by HPL can be summarized by the following keywords: 
+Two-dimensional block-cyclic data distribution - Right-looking variant of the LU 
+factorization with row partial pivoting featuring multiple look-ahead depths - 
+Recursive panel factorization with pivot search and column broadcast combined - 
+Various virtual panel broadcast topologies - bandwidth reducing swap-broadcast 
+algorithm - backward substitution with look-ahead of depth 1.
+
+The HPL package provides a testing and timing program to quantify the accuracy 
+of the obtained solution as well as the time it took to compute it. The best 
+performance achievable by this software on your system depends on a large 
+variety of factors. Nonetheless, with some restrictive assumptions on the 
+interconnection network, the algorithm described here and its attached 
+implementation are scalable in the sense that their parallel efficiency is 
+maintained constant with respect to the per processor memory usage.
+
+How to build and run:
+  $ make
+  $ /bin/bash hpl.run
+
+For more information:
+  http://www.advancedclustering.com/faq/how-do-i-tune-my-hpldat-file.html
+  http://math-atlas.sourceforge.net/
+  http://www.netlib.org/benchmark/hpl/ 
+
+Credit HPL for this explanation.
