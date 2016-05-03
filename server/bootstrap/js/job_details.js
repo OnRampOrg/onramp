@@ -115,7 +115,6 @@ function JobDetailsViewModel() {
 	    //self.selectedJob(this);
 	}
 
-
 }
 
 // Activates knockout.js
