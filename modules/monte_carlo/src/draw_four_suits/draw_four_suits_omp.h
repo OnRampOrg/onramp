@@ -22,16 +22,15 @@
 ***************************************/
 
 #define DECK_SIZE 52     // std deck of cards
-#define ITERATIONS 1<<20 // max iterations is 1 meg
+#define ITERATIONS 1<<22 // max iterations is 1 meg
 #define CARDS_IN_HAND 4  // draw 4 cards at a time
 #define NUM_SHUFFLES 10  // num times to shuffle new deck
-#define NUM_THREADS 4    // number of threads to use
 
 /***************************************
 * Global Variables
 ***************************************/
 
-unsigned int seeds[NUM_THREADS];
+unsigned int seeds[32];
 
 enum STATE {
     MERGE2,

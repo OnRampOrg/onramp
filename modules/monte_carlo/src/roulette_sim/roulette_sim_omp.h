@@ -27,14 +27,14 @@
 * Defines
 ***************************************/
 
-#define MAX 1<<20   // limit to number of spins
-#define N_THREADS 4 // the number of threads to use
+#define MAX 1<<30   // limit to number of spins
 
 /***************************************
 * Global Variables
 ***************************************/
 
-unsigned int seeds[N_THREADS];
+unsigned int seeds[32];
+int n_threads;
 
 /***************************************
 * Function Declarations

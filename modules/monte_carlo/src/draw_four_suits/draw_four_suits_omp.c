@@ -12,19 +12,28 @@
 #include "draw_four_suits_omp.h"
 
 
-int main() {
+int main(int argc, char** argv) {
     int total = 0;     // number of  hands yielding 4 suits
     int num_tests = 8; // number of trials in each run
     int i;	       // loop control variable
     int tid;           // thread id
+    int n_threads = 1;
     double percentage; // % of hands with 4 suits
     double start_time; 
     double stop_time;
     char tests_string[] = {' ', ' ', ' ', ' ', ' ', ' ', 
 			   ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
 
+    // Get numner of threads
+    if (argc > 1) {
+	n_threads = atoi(argv[1]);
+	if (n_threads > 32) {
+	    n_threads = 32;
+	}
+    }
+
     // print heading info...
-    printf("\n Starting simulation...\n\n");
+    printf("\n Starting simulation with %d thread(s).\n\n", n_threads);
     printf(" --------------------------------------\n");
     printf(" | number of draws | percent of draws |\n");
     printf(" |                 |  with four suits |\n");
@@ -35,7 +44,7 @@ int main() {
     while (num_tests < ITERATIONS) {
 	total = 0; //reset counter
 	
-        #pragma omp parallel num_threads(NUM_THREADS) default(none) \
+        #pragma omp parallel num_threads(n_threads) default(none) \
 	private (i, tid) shared (num_tests, seeds) reduction (+:total)
 	{
 	    tid = omp_get_thread_num();
