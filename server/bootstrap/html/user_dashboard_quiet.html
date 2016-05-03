@@ -7,8 +7,8 @@
   <!-- Bootstrap -->
   <link href="../css/bootstrap.min.css" rel="stylesheet">
   <link href="../css/bootstrap-horizon.css" rel="stylesheet">
-  <link href="../css/global_style.css" rel="stylesheet">
-  <script src="../js/all_global.js"></script>
+  <link href="../css/global_style_quiet.css" rel="stylesheet">
+  <script src="../js/all_global_quiet.js"></script>
 
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media
   queries -->
@@ -39,7 +39,7 @@
             <div id="navbar" class="navbar-collapse collapse">
                 <a class="navbar-brand" id = "brand" href="start.html">OnRamp</a>
 				<ul class="nav navbar-nav navbar-left">
-                    <li class="active"><a href="user_dashboard.html">Home</a></li>
+                    <li class="active"><a href="user_dashboard_quiet.html">Home</a></li>
                     <li><a href="about.html">About</a></li>
                     <li><a href="myprofile.html">Profile</a></li>
                     <li><a href="contact.html">Contact</a></li>
@@ -68,15 +68,12 @@
   -->
 
   <div class="container">
-	<div class = "row">
-		<a class="btn btn-default" style = "background-color: #FFD700; box-shadow: 2px 2px 10px 1px grey; margin-bottom: 10px;" href = "user_dashboard_quiet.html" >View Quiet Dashboard</a>
-	</div>
     <div class="row">
       <h4>I want to start another job...</h4>
       <p>Select on a workspace to get started.</p>
     </div>
 
-    <div class="row" data-bind="foreach: Workspacelist()">
+    <div class="row row-horizon" data-bind="foreach: Workspacelist()">
       <div class="col-md-3 " class="item">
         <div class="thumbnail">
           <!--<img alt="Workspace 1 Image" src="http://lorempixel.com/output/people-q-c-600-200-1.jpg" /> -->
@@ -89,7 +86,6 @@
           </div>
         </div>
       </div>
-	</div>
 
     </div>
   </div>
@@ -175,6 +171,6 @@
   <!-- knockout script -->
   <script src="../js/knockout-3.3.0.js"></script>
   <!-- my scripts -->
-  <script src="../js/user_dashboard.js"></script>
+  <script src="../js/user_dashboard_quiet.js"></script>
 </body>
 </html>

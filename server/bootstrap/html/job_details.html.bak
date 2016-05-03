@@ -26,7 +26,7 @@
 
   <!-- Fixed navbar -->
 
-  <nav class="navbar navbar-inverse navbar-fixed-top">
+ <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="NavContainer">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -37,7 +37,7 @@
                 </button>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
-                <a class="navbar-brand" id = "brand" href="start.html">OnRamp</a>
+                <a class="navbar-brand" href="start.html">OnRamp</a>
 				<ul class="nav navbar-nav navbar-left">
                     <li class="active"><a href="user_dashboard.html">Home</a></li>
                     <li><a href="about.html">About</a></li>
@@ -47,7 +47,7 @@
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li>
-						<button type="button" class="btn btn-default hover" onclick = logout()>Logout</button>
+						<button type="button" class="btn btn-default" onclick = logout()>Logout</button>
 					</li>
                 </ul>
             </div>
@@ -68,69 +68,17 @@
   -->
 
   <div class="container">
-	<div class = "row">
-		<a class="btn btn-default" style = "background-color: #FFD700; box-shadow: 2px 2px 10px 1px grey; margin-bottom: 10px;" href = "user_dashboard_quiet.html" >View Quiet Dashboard</a>
-	</div>
-    <div class="row">
-      <h4>I want to start another job...</h4>
-      <p>Select on a workspace to get started.</p>
-    </div>
-
-    <div class="row" data-bind="foreach: Workspacelist()">
-      <div class="col-md-3 " class="item">
-        <div class="thumbnail">
-          <!--<img alt="Workspace 1 Image" src="http://lorempixel.com/output/people-q-c-600-200-1.jpg" /> -->
-          <div class="caption">
-            <h3 data-bind="text: name"></h3>
-            <p data-bind="text: desc"></p>
-            <p>
-              <a class="btn btn-primary"  data-bind="click: captureWSID">Let's launch some jobs!</a>
-            </p>
-          </div>
-        </div>
-      </div>
-	</div>
-
-    </div>
-  </div>
-  <!--
-  <div class="row">
-  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 1</p></div>
-  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 2</p></div>
-  <div class="clearfix visible-sm-block"></div>
-  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 3</p></div>
-  <div class="clearfix visible-md-block"></div>
-  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 4</p></div>
-  <div class="clearfix visible-sm-block"></div>
-  <div class="clearfix visible-lg-block"></div>
-
-  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 5</p></div>
-  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 6</p></div>
-  <div class="clearfix visible-sm-block"></div>
-  <div class="clearfix visible-md-block"></div>
-  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 7</p></div>
-  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 8</p></div>
-  <div class="clearfix visible-sm-block"></div>
-  <div class="clearfix visible-lg-block"></div>
-  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 9</p></div>
-  <div class="clearfix visible-md-block"></div>
-  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 10</p></div>
-  <div class="clearfix visible-sm-block"></div>
-  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 11</p></div>
-  <div class="col-sm-6 col-md-4 col-lg-3"><p>Box 12</p></div>
-  -->
-
-  <div class="container">
     <div class="row">
       <div class="col-sm-6">
         <h2>My Jobs</h2>
-        <p>This is a list of the n most recent jobs.</p>
-		<!--<button type = button class="btn-info" data-bind="click: gotoJobDetails">View Details</button>-->
         <!-- check out this website for a cool way to display a table of data: http://bootstrapmaster.com/live/genius/table.html -->
+      </div>
+      <div class="col-sm-6">
+        <button class="btn" data-bind="click: refreshJobs">Refresh</button>
       </div>
     </div>
     <div class="row">
-      <div class="table" id = "user-db-table">
+      <div class="table">
         <table class="table">
           <thead>
             <th class="col-sm-1">Job Id</th>
@@ -139,27 +87,72 @@
             <th class="col-sm-1">Module</th>
             <th class="col-sm-1">Run Name</th>
             <th class="col-sm-1">Status</th>
-            <th class="col-sm-1">Runtime</th>
-           <!-- <th class="col-sm-1">View Details</th>
-            <th class="col-sm-1">Cancel/Delete</th>-->
+            <th class="col-sm-1">View Details</th>
+            <th class="col-sm-1">Cancel/Delete</th>
           </thead>
           <tbody data-bind="foreach: Jobslist">
             <tr>
-              <td data-bind="text: id"></td>
+              <td data-bind="text: jID"></td>
               <td data-bind="text: ws"></td>
               <td data-bind="text: pce"></td>
               <td data-bind="text: mod"></td>
               <td data-bind="text: name"></td>
               <td data-bind="text: status"></td>
-              <td data-bind="text: time"></td>
-             <!-- <td><button class="btn-info" data-bind="click: gotoJobDetails">View Details</button></td>
-              <td><button class="btn-danger">Cancel/Delete</button></td>-->
+              <td><button class="btn-info" data-bind="click: $parent.selectJob">View Details</button></td>
+              <td><button class="btn-danger">Cancel/Delete</button></td>
             </tr>
           </tbody>
         </table>
       </div>
-	  <button type = "button" class="btn-info" onclick = JobDetails() >View Job Details</button>
     </div>
+  </div>
+
+
+  <div class="container" data-bind="if: selectedJob()">
+      <div class="row" data-bind="with:selectedJob()">
+          <div class="table">
+            <table class="table">
+              <thead>
+                <th class="col-sm-1">Job Id</th>
+                <th class="col-sm-1">Workspace</th>
+                <th class="col-sm-1">PCE</th>
+                <th class="col-sm-1">Module</th>
+                <th class="col-sm-1">Run Name</th>
+                <th class="col-sm-1">Status</th>
+                <th class="col-sm-1">Runtime</th>
+                <th class="col-sm-1">Cancel/Delete</th>
+              </thead>
+              <tbody>
+                <tr>
+                  <td data-bind="text: jID"></td>
+                  <td data-bind="text: ws"></td>
+                  <td data-bind="text: pce"></td>
+                  <td data-bind="text: mod"></td>
+                  <td data-bind="text: name"></td>
+                  <td data-bind="text: $parent.jobStates[parseInt(status)]"></td>
+                  <td data-bind="text: time"></td>
+                  <td><button class="danger">Cancel/Delete</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+      </div>
+      <div class="row" data-bind="with:selectedJob()">
+          <h4>Data: (Coming soon!)</h4>
+          <!--
+          <p data-bind="text: output"></p>
+          <div class="col-md-2">
+              <ul data-bind="foreach: data_files">
+                  <li data-bind="text: $data"></li>
+              </ul>
+          </div>
+            -->
+          <div class="col-md-8 col-md-offset-2">
+              <h5 data-bind="text: $root.selectedFile()"></h5>
+              <object data-bind="attr:{ data: $root.selectedFile() }" border=5 type="text/plain" width="100%" height="100%">alt text</object>
+          </div>
+
+      </div>
   </div>
 
   <!-- footer -->
@@ -170,11 +163,11 @@
   </footer>
 
   <!-- put all scripty scripts below this line -->
-  <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+  <script src="http://code.jquery.com/jquery-1.12.0.js"></script>
   <script src="../js/bootstrap.min.js"></script>
   <!-- knockout script -->
   <script src="../js/knockout-3.3.0.js"></script>
   <!-- my scripts -->
-  <script src="../js/user_dashboard.js"></script>
+  <script src="../js/job_details.js"></script>
 </body>
 </html>
