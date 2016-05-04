@@ -84,7 +84,7 @@ function workspaceModule(data){
 						console.log("christa"+ item);
 					});
 				}
-				else if(self.name == "template" || self.name == "monte-carlo"){
+				else if(self.name == "template"){
 					data.pces.uioptions["hello"].forEach(function (item, index, array){
 						self.formFields.push({field:"hello " + item, data:""});
 						self.formInfo.push({formid: item});

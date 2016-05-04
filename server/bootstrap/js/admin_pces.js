@@ -24,7 +24,7 @@ function adminPCE (data) {
 
 	self.viewPCE = function () {
 		// go to manage Workspaces page and show this job
-		window.location.href = "admin_PCEs.html";
+		window.location.href = "admin_pces.html";
 	};
 
 	self.complete_func = function (data){
@@ -491,7 +491,7 @@ function AdminPCEViewModel() {
 						console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
 						conv_data[data.pces.fields[i]] = raw[i];
 					}
-					self.PCElist.push(new PCE(conv_data));
+					self.PCElist.push(new adminPCE(conv_data));
 				}
 			}
 		);
