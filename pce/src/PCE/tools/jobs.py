@@ -395,25 +395,16 @@ def job_postprocess(job_id, job_state_file=None):
             _delete_job(job_state)
             return (-2, 'Job %d deleted' % job_id)
 
-def _get_module_status_output(job_id, job_state_file=None):
+def _get_module_status_output(run_dir):
     """Run bin/onramp_status.py for job and return any output.
 
     Args:
-        job_id (int): Id of the job to launch bin/onramp_status.py for.
+        run_dir (str): run dir (as given by job state) for the module.
 
     Returns:
         String containint output to stdout and stderr frob job's
         bin/onramp_status.py script.
     """
-    # Get attrs needed.
-    with JobState(job_id, job_state_file) as job_state:
-        username = job_state['username']
-        mod_id = job_state['mod_id']
-        run_name = job_state['run_name']
-        mod_name = job_state['mod_name']
-        run_dir = job_state['run_dir']
-    #args = (username, mod_name, mod_id, run_name)
-    #run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % args)
     ret_dir = os.getcwd()
 
     # Run bin/onramp_status.py and grab output.
@@ -497,8 +488,8 @@ def _build_job(job_id, job_state_file=None):
                     _delete_job(job_state)
                     # FIXME: This might cause trouble. About to return {}.
                     return copy.deepcopy(job_state)
-                mod_status_output = _get_module_status_output(job_id,
-                                                              job_state_file)
+                run_dir = job_state['run_dir']
+                mod_status_output = _get_module_status_output(run_dir)
                 job_state['mod_status_output'] = mod_status_output
             elif job_status[1] == 'Queued':
                 job_state['state'] = 'Queued'
