@@ -1,13 +1,13 @@
 ######################################################
 # Justin Ragatz
 #
-# Make file for the Coin-flipping in Parllel exercise.
+# Make file for the Monte Carlo exercises.
 ######################################################
 
 CC = gcc
 OMP = -fopenmp
 CFLAGS = -Wall -O0 -g
-PROGS = coin_flip_omp coin_flip_seq draw_four_suits_omp draw_four_suits_seq roulette_sim_omp roulette_sim_seq
+PROGS = coin_flip_omp coin_flip_seq draw_four_suits_omp draw_four_suits_seq roulette_sim_omp roulette_sim_seq pi_omp pi_seq
 
 all: $(PROGS)
 
@@ -28,6 +28,12 @@ roulette_sim_omp: roulette_sim/roulette_sim_omp.c roulette_sim/roulette_sim_omp.
 
 roulette_sim_seq: roulette_sim/roulette_sim_seq.c roulette_sim/roulette_sim_seq.h
 	$(CC) $(CFLAGS) roulette_sim/roulette_sim_seq.c -o roulette_sim_seq
+
+pi_omp: pi/pi_omp.c
+	$(CC) $(OMP) $(CFLAGS) pi/pi_omp.c -o pi_omp
+
+pi_seq: pi/pi_seq.c
+	$(CC) $(CFLAGS) pi/pi_seq.c -o pi_seq
 
 clean:
 	$(RM) $(PROGS) *.o

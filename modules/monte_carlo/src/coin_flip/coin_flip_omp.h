@@ -18,14 +18,15 @@
 #include <time.h>
 #include <omp.h>
 #include <ctype.h>
+#include <string.h>
 
 /***************************************
 * Defines
 ***************************************/
 
-#define TRIALS          20
-#define FLIPS_PER_TRIAL 900
-#define STRING_LEN      12
+#define TRIALS          25LLU
+#define FLIPS_PER_TRIAL 100LLU
+#define STRING_LEN      15
 
 /***************************************
 * Global Variables
@@ -53,7 +54,7 @@ unsigned int seeds[32];
  *  Sum of the squared differnece between the observed and expected
  *  data, divided by the total expected data.
  */
-double chi_squared(int heads, int tails);
+double chi_squared(unsigned long long heads, unsigned long long tails);
 
 
 /*
@@ -67,7 +68,7 @@ double chi_squared(int heads, int tails);
  *  0 on success
  * -1 on failure
  */
-int pretty_int(int n, char* s);
+int pretty_int(unsigned long long n, char* s);
 
 
 /*
