@@ -1,6 +1,9 @@
+
 // Select all elements with data-toggle="tooltips" in the document
 $('[data-toggle="tooltip"]').tooltip();
 $('.collapse').collapse();
+var module_name = "";
+
 
 function workspaceModule(data){
 	var self = this;
@@ -79,6 +82,7 @@ function workspaceModule(data){
 
 				if(self.name == "mpi-ring"){
 					data.pces.uioptions["ring"].forEach(function (item, index, array){
+						module_name = "ring";
 						self.formFields.push({field:"ring " + item, data:""});
 						self.formInfo.push({formid: item});
 						console.log("christa"+ item);
@@ -86,6 +90,7 @@ function workspaceModule(data){
 				}
 				else if(self.name == "template"){
 					data.pces.uioptions["hello"].forEach(function (item, index, array){
+						module_name = "hello";
 						self.formFields.push({field:"hello " + item, data:""});
 						self.formInfo.push({formid: item});
 						console.log("christa"+ item);
@@ -93,6 +98,7 @@ function workspaceModule(data){
 				}
 				else {
 					data.pces.uioptions[self.name].forEach(function (item, index, array){
+						module_name = self.name;
 						self.formFields.push({field:self.name + " " + item, data:""});
 						self.formInfo.push({formid: item});
 						console.log("christa"+ item);
@@ -135,31 +141,56 @@ var setFormId = function(formInfo){
 
 		}
 }
+
+	
 /*maybe put in placeholder for the default*/
 
 var getDescription = function( formID ){
+	
 	var description = "";
 	if(formID === "rectangles"){
 		description = "Number of rectangles for the Riemann Sum. Default = 100000000";
 	}
 	else if(formID === "threads"){
-		description = "Number of OpenMP threads to use for each process. Default = 1";
+		if(module_name == "monte_carlo"){
+			description = "Select how many threads to use in the parallel version. Default = 1, max = 32.";
+		}
+		else if(module_name == "AUC"){
+			description = "Number of OpenMP threads to use for each process. Default = 1";
+		}
 	}
 	else if(formID === "mode"){
-		description = "Version of program to run ('s' -> serial, 'o' -> openmp, 'm' -> mpi, 'h' -> hybrid). Default = s";
+		if(module_name == "monte_carlo"){
+			description = "Which program and version to run: 1s coin_flip sequential, 1p coin_flip parallel, 2s draw_four_suits sequential, 2p draw_four_suits parallel, 3s roulette_sim sequential, 3p roulette_sim parallel. Default = 1s"
+		}
+		else if(module_name == "AUC"){
+			description = "Version of program to run ('s' -> serial, 'o' -> openmp, 'm' -> mpi, 'h' -> hybrid). Default = s";
+		}
 	}
 	else if(formID === "np"){
-		description = "Number of processes";
+		if(module_name == "monte_carlo"){
+			description = "Number of processes (ignored for Monte Carlo)";
+		}
+		else{
+			description = "Number of processes";
+		}
 	}
 	else if(formID === "nodes"){
-		description = "Number of nodes";
+		if(module_name == "monte_carlo"){
+			description = "Number of nodes (ignored for Monte Carlo)";
+		}
+		else{
+			description = "Number of nodes";
+		}
+	}
+	else if(formID === "name"){
+		description = "Specify a name"
 	}
 	else{
 		description = "none";
 	}
 	return description;
 }
-
 var openModuleModal = function(){
 	$('#moduleModal').modal('show');
 }
@@ -169,10 +200,8 @@ var openPCEModal = function(){
 }
 
 //forEach(instance in objects)
-//use this to create a pop up somehow
 /*var displayConcepts = function(btn){
 	
-	//FIGURE OUT HOW TO CLOSE THE DIV BY CLICKING ON THE BUTTON AGAIN. COULD DO A COUNT? BASICALLY A 1 OR 0 THAN SWITCHES
 	var childClass = $(btn).next().className;
 	console.log("christa childClass = " + childClass);
 	
@@ -386,6 +415,17 @@ function OnrampWorkspaceViewModel () {
 			m.getRealFormFields(self.selectedPCE().id);
 		}
 		self.selectedModule(m);
+		/*add module descriptions here because we need the module to be selected
+		 above or the html will not exist */
+		if(self.selectedModule().name == "monte_carlo"){
+			document.getElementById("module-desc").innerHTML = "Monte Carlo methods are a class of computational algorithms that use repeated random sampling to obtain numerical results. Typically, a single workhorse for-loop is used to generate the repeated and independent simulations. Monte Carlo methods are often employed when there is not a closed form or deterministic solution to the underlying problem. As this sort of problem is quite common, Monte Carlo methods are used in a wide variety of fields from computational chemistry to finance. While these topics are important, you may be more interested in the more intriguing application of Monte Carlo methods to gambling and card games. The well known games of roulette and poker will both be used as the basis for the exercises in this module. Upon completion of this module, students should be able to: 1) Identify embarrassingly parallel problems 2.) Understand the real-life applications of stochastic methods 3.) Measure the scalability of a parallel application.";
+		}
+		if(self.selectedModule().name == "AUC"){
+			document.getElementById("module-desc").innerHTML = "This module introduces a method to approximate the area under a curve using a Riemann sum. Serial and parallel algorithms addressing shared and distributed memory concepts are discussed, as well as the MapReduce algorithm classification. A method to estimate pi (&#x3C0) is also developed to demonstrate an example scientific application. Exercises focus on how to measure the performance and scaling of a parallel application in multi-core and many-core environments. Upon completion of this module, students should be able to: 1) Understand the importance of approximating the area under a curve in modeling scientific problems, 2) Understand and apply parallel concepts, 3) Measure the scalability of a parallel application over multiple or many cores, and 4) Identify and explain the Area Under a Curve algorithm using the Berkeley Dwarfs system of classification.";
+		}
+		if(self.selectedModule().name == "template"){
+			document.getElementById("module-desc").innerHTML = "This module prints out a greeting to the name you give it as well as which process it was executed on!";
+		}
 	}
 
 
@@ -614,3 +654,4 @@ self.findById = function (thisList, id){
 
 
 ko.applyBindings(new OnrampWorkspaceViewModel());
+
