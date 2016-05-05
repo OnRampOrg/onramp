@@ -1,6 +1,8 @@
+
 // Select all elements with data-toggle="tooltips" in the document
 $('[data-toggle="tooltip"]').tooltip();
 $('.collapse').collapse();
+
 
 function workspaceModule(data){
 	var self = this;
@@ -135,6 +137,8 @@ var setFormId = function(formInfo){
 
 		}
 }
+
+	
 /*maybe put in placeholder for the default*/
 
 var getDescription = function( formID ){
@@ -386,6 +390,16 @@ function OnrampWorkspaceViewModel () {
 			m.getRealFormFields(self.selectedPCE().id);
 		}
 		self.selectedModule(m);
+		/*add module descriptions here because we need the module to be selected
+		 above or the html will not exist */
+		if(self.selectedModule().name == "monte_carlo"){
+			document.getElementById("module-desc").innerHTML = "Monte Carlo methods are a class of computational algorithms that use repeatedrandom sampling to obtain numerical results. Typically, a single workhorse for-loop is used to generate the repeated and independent simulations. Because the numerous simulations are independent of each other, they can be easily split among multiple processing units. A problem such as this, where little effort is required to separate the problem into parallel tasks is known as \"embarrassingly parallel\". Thus, Monte Carlo methods are a convenient vehicle to introduce parallel concepts at the CS1/CS2 level. By exposing students to parallel solutions at the introductory level, they come to expect parallel solutions throughout the curriculum. In particular, students are not overwhelmed by the sudden introduction of concurrency and similar topics in senior-level coursework. Upon completion of this module, students should be able to: 1) Identify embarrassingly parallel problems 2.) Understand the real-life applications of stochastic methods 3.) Explain at a high level how OpenMP works, and 4.) Measure the scalability of a parallel application.";
+			console.log("in monte carlo");
+		}
+		if(self.selectedModule().name == "AUC"){
+			document.getElementById("module-desc").innerHTML = "This module introduces a method to approximate the area under a curve using a Riemann sum. Serial and parallel algorithms addressing shared and distributed memory concepts are discussed, as well as the MapReduce algorithm classification. A method to estimate pi (&#x3C0) is also developed to demonstrate an example scientific application. Exercises focus on how to measure the performance and scaling of a parallel application in multi-core and many-core environments. Upon completion of this module, students should be able to: 1) Understand the importance of approximating the area under a curve in modeling scientific problems, 2) Understand and apply parallel concepts, 3) Measure the scalability of a parallel application over multiple or many cores, and 4) Identify and explain the Area Under a Curve algorithm using the Berkeley Dwarfs system of classification.";
+			console.log("in AUC");
+		}
 	}
 
 
@@ -614,3 +628,4 @@ self.findById = function (thisList, id){
 
 
 ko.applyBindings(new OnrampWorkspaceViewModel());
+

@@ -409,6 +409,16 @@ function OnrampWorkspaceViewModel () {
 			m.getRealFormFields(self.selectedPCE().id);
 		}
 		self.selectedModule(m);
+		/*add module descriptions here because we need the module to be selected 
+		 above or the html will not exist */
+		if(self.selectedModule().name == "monte_carlo"){
+			document.getElementById("module-desc").innerHTML = "monte carlo module description!";
+			console.log("in monte carlo");
+		}
+		if(self.selectedModule().name == "AUC"){
+			document.getElementById("module-desc").innerHTML = "This module introduces a method to approximate the area under a curve using a Riemann sum. Serial and parallel algorithms addressing shared and distributed memory concepts are discussed, as well as the MapReduce algorithm classification. A method to estimate pi (&#x3C0) is also developed to demonstrate an example scientific application. Exercises focus on how to measure the performance and scaling of a parallel application in multi-core and many-core environments. Upon completion of this module, students should be able to: 1) Understand the importance of approximating the area under a curve in modeling scientific problems, 2) Understand and apply parallel concepts, 3) Measure the scalability of a parallel application over multiple or many cores, and 4) Identify and explain the Area Under a Curve algorithm using the Berkeley Dwarfs system of classification.";
+			console.log("in AUC");
+		}
 	}
 
 

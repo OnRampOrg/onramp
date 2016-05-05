@@ -102,6 +102,7 @@
 				<div id = "pick-PCE" class="row">
 					<h4>I want to pick a <a href="#" data-toggle="tooltip" class = "myTooltip" title="definition of a PCE!">PCE</a>...</h4>
 					<p></p>
+
 					<div class="row row-horizon" data-bind="foreach: PCElist()">
 						<div class="col-md-4 col-sm-5">
 							<div class="thumbnail">
@@ -202,9 +203,7 @@
 						</div>
 						<div data-bind="ifnot: desc">
 							<div class = "thumbnail">
-									<p>This module introduces a method to approximate the area under a curve using a Riemann sum. Serial and parallel algorithms addressing shared and distributed memory concepts are discussed, as well as the MapReduce algorithm classification. A method to estimate pi (&#x3C0) is also developed to demonstrate an example scientific application. Exercises focus on how to measure the performance and scaling of a parallel application in multi-core and many-core environments. 
-										Upon completion of this module, students should be able to: 1) Understand the importance of approximating the area under a curve in modeling scientific problems, 2) Understand and apply parallel concepts, 3) Measure the scalability of a parallel application over multiple or many cores, and 4) Identify and explain the Area Under a Curve algorithm using the Berkeley Dwarfs system of classification.
-									</p>
+								<p id = "module-desc"></p>
 							</div>	  
 						</div>
 							<form class="form-horizontal" data-bind="if: $parent.selectedPCE()">
@@ -226,8 +225,93 @@
 		</div><!--end well -->
 	</div>
 	
-		<div class="col-md-5">			
-			<div class="info-div">
+		<div class="col-md-5" data-bind="if: selectedModule()">	
+			<!-- module must exist before you can do below if statement -->	
+			<div class="info-div" data-bind="if: selectedModule().name == 'AUC'">
+				<div class="panel-group" aria-multiselectable="true">
+				  <div class="panel panel-default">
+					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingOne">
+					  <h4 class="panel-title">
+						<div data-parent="#accordion" aria-expanded="true" aria-controls="collapseOne">
+						  <strong>Scaling</strong>
+						</div>
+					  </h4>
+					</div>
+					<div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+					  <div class="panel-body">
+						<p>More parallel processors can be used to model a bigger problem in the same amount of time it would take fewer parallel processors to model a smaller problem. 
+								A common analogy to this is that one person in one boat in one hour can catch a lot fewer fish than ten people in ten boats in one hour.
+								<ul>
+									<li> Strong Scaling - Increase number of cores but keep problem size fixed. Commonly used for long-running programs.</li>
+										<!--<ul>
+											<li> For the Pi module, submit a job using the default inputs, and record the time for reference. Then continue to submit jobs and record the times, altering the number of 
+												processes and/or the number threads per process, each time, but keeping the number of rectangles the same.
+											</li>
+										</ul>-->
+									<li> Weak Scaling - Increase problem size while increasing number of cores. Commonly used for memory intensive programs. (Link this idea to Gustafson's Law!)
+										<!--<ul>
+											<li> For the Pi module, submit a job using the default inputs, and record the time for reference. Then continue to submit jobs and record the times, 
+												altering the number of processes and/or the number threads per process, each time. Each time you change the number of processes or threads, increase the number of rectangles commensurately.
+											</li>
+										</ul>-->
+								</ul>
+							</p>
+					  </div>
+					</div>
+				  </div>
+				  <div class="panel panel-default">
+					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingTwo">
+					  <h4 class="panel-title">
+						<div data-parent="#accordion" aria-expanded="false" aria-controls="collapseTwo">
+						  <strong>Amdahl's Law </strong>
+						</div>
+					  </h4>
+					</div>
+					<div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+					  <div class="panel-body">
+							<p>As the number of processors devoted to the problem increases, the advantages of parallelism diminish as the 
+								serial regions become the only parts of the code that take significant time to execute
+							</p>
+					  </div>
+					</div>
+				  </div>
+				  <div class="panel panel-default">
+					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingThree">
+					  <h4 class="panel-title">
+						<div data-parent="#accordion" aria-expanded="false" aria-controls="collapseThree">
+						  <strong>Gustafson's Law</strong>
+						</div>
+					  </h4>
+					</div>
+					<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+					  <div class="panel-body">
+						<p>Bigger problems can be modeled in the same amount of time as smaller problems if the processor count is increased.</p>
+					  </div>
+					</div>
+				  </div>
+				  <div class="panel panel-default">
+					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingFour">
+					  <h4 class="panel-title">
+						<div data-parent="#accordion" aria-expanded="false" aria-controls="collapseThree">
+						  <strong>Berkeley's Dwarfs</strong>
+						</div>
+					  </h4>
+					</div>
+					<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
+					  <div class="panel-body">
+						<p>Equivalence classes of important applications of scientific computing. Applications are grouped into dwarfs based on their computation and communication patterns. 
+							When an application is run in parallel, a certain percentage of time is spent performing calculations, while another percentage is spent communicating the results of those calculations.
+						</p>
+					  </div>
+					</div>
+				  </div>
+				  
+				</div>
+			</div>
+		</div>
+		<div class="col-md-5" data-bind="if: selectedModule()">		
+			<!-- module must exist before you can do below if statement -->			
+			<div class="info-div" data-bind="if: selectedModule().name == 'monte_carlo'">
 				<div class="panel-group" aria-multiselectable="true">
 				  <div class="panel panel-default">
 					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingOne">
