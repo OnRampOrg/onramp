@@ -257,6 +257,7 @@
 		</div><!--end well -->
 	</div>
 	
+	<!-- AUC CONCEPTS -->
 		<div class="col-md-5" data-bind="if: selectedModule()">	
 		<!-- module must exist before you can do below if statement -->			
 			<div class="info-div" data-bind="if: selectedModule().name == 'AUC'">
@@ -329,7 +330,7 @@
 						</a>
 					  </h4>
 					</div>
-					<div id="collapseFour" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingThree">
+					<div id="collapseFour" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingFour">
 					  <div class="panel-body">
 						<p>Equivalence classes of important applications of scientific computing. Applications are grouped into dwarfs based on their computation and communication patterns. 
 							When an application is run in parallel, a certain percentage of time is spent performing calculations, while another percentage is spent communicating the results of those calculations.
@@ -337,9 +338,39 @@
 					  </div>
 					</div>
 				  </div>
+				   <div class="panel panel-default">
+					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingFive">
+					  <h4 class="panel-title">
+						<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseFive" aria-expanded="false" aria-controls="collapseThree">
+						  <strong>Reimann Sum</strong>
+						</a>
+					  </h4>
+					</div>
+					<div id="collapseFive" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingFive">
+					  <div class="panel-body">
+						<p>A Riemann sum is a summation that takes the form:</p>
+						<img src = "riemann_equation.png" class = "img-responsive" alt = "reimann sum picture">
+						<p>
+							Riemann sums can be used to approximate the area under a curve by
+							dividing the area into multiple component shapes and summing their areas.
+							The specific Riemann method explored in this module involves dividing
+							the domain of integration into several rectangles. The height of an arbitrary
+							rectangle is given by f(x) and the width is ∆x. The sum of the areas of the
+							rectangles formed by this method is the approximation of the area under the
+							curve. This module considers the Left Riemann sum, in which f(x) indicates
+							the height of the left-most side of each rectangle. A pictorial example
+						</p>
+						<img src = "reimann_pic.png" class = "img-responsive" alt = "reimann sum picture">
+
+					  </div>
+					</div>
+				  </div>
+				  
 				</div>
 			</div>
 		</div>
+		
+		<!-- MONTE CARLO -->
 		<div class="col-md-5" data-bind="if: selectedModule()">	
 			<!-- module must exist before you can do below if statement -->		
 			<div class="info-div" data-bind="if: selectedModule().name == 'monte_carlo'">
@@ -348,11 +379,29 @@
 					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingOne">
 					  <h4 class="panel-title">
 						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-						  <strong>Scaling</strong>
+						  <strong>Embarrassingly Parallel</strong>
 						</a>
 					  </h4>
 					</div>
 					<div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+					  <div class="panel-body">
+						<p> 
+							Since, typically, a single workhorse for-loop is used to generate the repeated and independent simulations of a Monte Carlo Algortihm, the numerous 
+							simulations are independent of each other. This means they can be easily split among multiple processing units. A problem such as this, where little 
+							effort is required to separate the problem into parallel asks is known as "embarrassingly parallel"</p>
+						</p>
+					  </div>
+					</div>
+				  </div>
+				    <div class="panel panel-default">
+					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingTwo">
+					  <h4 class="panel-title">
+						<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+						  <strong>Scaling</strong>
+						</a>
+					  </h4>
+					</div>
+					<div id="collapseTwo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingTwo">
 					  <div class="panel-body">
 						<p>More parallel processors can be used to model a bigger problem in the same amount of time it would take fewer parallel processors to model a smaller problem. 
 								A common analogy to this is that one person in one boat in one hour can catch a lot fewer fish than ten people in ten boats in one hour.
@@ -375,47 +424,115 @@
 					</div>
 				  </div>
 				  <div class="panel panel-default">
-					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingTwo">
-					  <h4 class="panel-title">
-						<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-						  <strong>Amdahl's Law</strong>
-						</a>
-					  </h4>
-					</div>
-					<div id="collapseTwo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingTwo">
-					  <div class="panel-body">
-							<p>As the number of processors devoted to the problem increases, the advantages of parallelism diminish as the 
-								serial regions become the only parts of the code that take significant time to execute
-							</p>
-					  </div>
-					</div>
-				  </div>
-				  <div class="panel panel-default">
 					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingThree">
 					  <h4 class="panel-title">
-						<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-						  <strong>Gustafson's Law</strong>
+						<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseTwo">
+						  <strong>How Computers Generate Random Numbers</strong>
 						</a>
 					  </h4>
 					</div>
 					<div id="collapseThree" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingThree">
 					  <div class="panel-body">
-						<p>Bigger problems can be modeled in the same amount of time as smaller problems if the processor count is increased.</p>
+							<p>Computers cannot produce true random numbers. Rather, the standard library random number generator takes some relatively random 32-bit or 64-bit 
+								integer input, called the seed, and transforms it sequentially to produce astream of pseudo-random numbers. A random number 
+								generator is created with the seed as input to a function called srand(), and each time a new random number is requested 
+								using the rand() function, the integer pattern is changed to produce a new number. However, it is important to realize that for a given 
+								input seed a pseudorandom number generator function such as rand() creates the same sequence of numbers every time.
+							</p>
 					  </div>
 					</div>
 				  </div>
-				   <div class="panel panel-default">
+				  	   <div class="panel panel-default">
 					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingFour">
 					  <h4 class="panel-title">
 						<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseFour" aria-expanded="false" aria-controls="collapseThree">
-						  <strong>Berkeley's Dwarfs</strong>
+						  <strong>Parallel Code with Threads</strong>
 						</a>
 					  </h4>
 					</div>
-					<div id="collapseFour" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingThree">
+					<div id="collapseFour" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingFour">
 					  <div class="panel-body">
-						<p>Equivalence classes of important applications of scientific computing. Applications are grouped into dwarfs based on their computation and communication patterns. 
-							When an application is run in parallel, a certain percentage of time is spent performing calculations, while another percentage is spent communicating the results of those calculations.
+						<p>
+							A common mechanism for running code on multiple cores simultaneously
+							is to start threads that can execute part of our code independently and in
+							parallel on separate cores, sharing data values in memory if needed. When
+							a program using threads begins execution, it is always running on a single
+							main thread, which we conceptually label as thread 0. Then within the
+							code we can designate that more threads should start executing in parallel
+							along with thread 0. We call a point in the code where multiple threads
+							are executing concurrently a fork of those threads. Then when they are
+							done executing, we think of them as joining back with the main thread.
+							Conceptually, this looks like this
+							
+							<!--add image!!!!!!-->
+							<img src = "threads.png" class = "img-responsive" alt = "threads picture">
+							
+						</p>
+					  </div>
+					</div>
+				  </div>
+				  <div class="panel panel-default">
+					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingFive">
+					  <h4 class="panel-title">
+						<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseFive" aria-expanded="false" aria-controls="collapseThree">
+						  <strong>Simulations</strong>
+						</a>
+					  </h4>
+					</div>
+					<div id="collapseFive" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingFive">
+					  <div class="panel-body">
+						<p>
+							<ul><!--coin flips-->
+								<li>A simple way to test a random number generator is to simulate <strong>flipping a
+											coin</strong> for a large number of trials
+									<ul>
+										<li>
+											We will use srand() to seed our random number generator with a large
+											integer and then make numerous calls to rand_r() to obtain a series of
+											random integers. If the integer is even, we call it a "head", otherwise it is
+											a "tail". This code sets up trials of coin flips with ever increasing numbers
+											of flips. 
+										</li>
+										<li>
+											We can speed this up by designating portions of our program to run
+											concurrently in parallel on different cores, computing part of the overall
+											solution. In the case of flipping a coin, we can think of this as each core we have available carrying
+											out some portion of the flips independently while other cores are taking
+											care of the rest of the needed flips.
+										</li>
+									</ul>
+								</li>
+								<!--roulette-->
+								<li><strong>Roulette</strong>
+									<ul>
+										<li>
+											Simulation of spinning the Roulette wheel.
+											An American Roulette wheel has 38 slots: 18 are red, 18 are black, and 2 are
+											green, which the house always wins. When a person bets on either red or
+											black, the odds of winning are 18/38, or 47.37% of the time.
+										</li>
+										<li>
+											Add parallelism by running the loop of random spins for each trial on several threads.
+										</li>
+									</ul>
+								</li>
+								
+								<!--four cards-->
+								<li><strong>Drawing Four Cards of the Same Suit</strong>
+									<ul>
+										<li>
+											Simulating the card game of Poker examines the probability that given a random hand of 5 cards, four
+											cards will each have a different suit. In the code, the deck of cards is represented as an array of integers. 
+											The function for simulating deck shuffling mimics how a traditional "fan" shuffle.
+										</li>
+										<li>
+											For the parallel simulation, each
+											of the threads partial results are combined by summing to find the total number of hands
+											that contained all four suits.
+										</li>
+									</ul>
+								</li>
+							</ul>
 						</p>
 					  </div>
 					</div>

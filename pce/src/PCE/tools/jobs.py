@@ -1,8 +1,6 @@
 """OnRamp job launching support package.
-
 Provides functionality for launching jobs, as well as means of
 setting/storing/updating job state data.
-
 Exports:
     JobState: Encapsulation of job state that avoids race conditions.
     launch_job: Schedules job launch using system batch scheduler as configured
@@ -39,12 +37,10 @@ _logger = logging.getLogger('onramp')
 
 class JobState(dict):
     """Provide access to job state in a way that race conditions are avoided.
-
     JobState() is only intended to be used in combination with the 'with' python
     keyword. State parameters are stored/acessed as dict keys.
     
     Example:
-
         with JobState(47) as job_state:
             val = job_state['key1']
             job_state['key2'] = 'val2'
@@ -52,10 +48,8 @@ class JobState(dict):
 
     def __init__(self, id, job_state_file=None):
         """Return initialized JobState instance.
-
         Method works in get-or-create fashion, that is, if state exists for
         job id, open and return it, else create and return it.
-
         Args:
             id (int): Id of the job to get/create state for.
         """
@@ -105,7 +99,6 @@ class JobState(dict):
 
     def _close(self):
         """Serialize and store state parameters.
-
         If stored state exists, overwrite it with current instance keys/vals.
         """
         if 'state' in self.keys() and self['state'] != 'Does not exist':
@@ -131,13 +124,11 @@ class JobState(dict):
 def launch_job(job_id, mod_id, username, run_name, run_params):
     """Schedule job launch using system batch scheduler as configured in
     onramp_pce_config.cfg.
-
     Args:
         job_id (int): Unique identifier for job.
         mod_id (int): Id for OnRamp educational module to run in this job.
         username (str): Username of user running the job.
         run_name (str): Human-readable label for this job run.
-
     Returns:
         Tuple with 0th position being error code and 1st position being string
         indication of status.
@@ -337,10 +328,8 @@ def job_run(job_id, job_state_file=None):
 
 def job_postprocess(job_id, job_state_file=None):
     """Run bin/onramp_postprocess.py for job_id and update state to reflect.
-
     Args:
         job_id (int): Id of the job to launch bin/onramp_postprocess.py for.
-
     Returns:
         Tuple with 0th position being error code and 1st position being string
         indication of status.
@@ -395,25 +384,14 @@ def job_postprocess(job_id, job_state_file=None):
             _delete_job(job_state)
             return (-2, 'Job %d deleted' % job_id)
 
-def _get_module_status_output(job_id, job_state_file=None):
+def _get_module_status_output(run_dir):
     """Run bin/onramp_status.py for job and return any output.
-
     Args:
-        job_id (int): Id of the job to launch bin/onramp_status.py for.
-
+        run_dir (str): run dir (as given by job state) for the module.
     Returns:
         String containint output to stdout and stderr frob job's
         bin/onramp_status.py script.
     """
-    # Get attrs needed.
-    with JobState(job_id, job_state_file) as job_state:
-        username = job_state['username']
-        mod_id = job_state['mod_id']
-        run_name = job_state['run_name']
-        mod_name = job_state['mod_name']
-        run_dir = job_state['run_dir']
-    #args = (username, mod_name, mod_id, run_name)
-    #run_dir = os.path.join(pce_root, 'users/%s/%s_%d/%s' % args)
     ret_dir = os.getcwd()
 
     # Run bin/onramp_status.py and grab output.
@@ -436,14 +414,11 @@ def _get_module_status_output(job_id, job_state_file=None):
 def _build_job(job_id, job_state_file=None):
     """Launch actions required to maintain job state and/or currate job results
     and return the state.
-
     When current job state (as a function of both PCE state tracking and
     scheduler output) warrants, initiate job postprocessing and/or status
     checking prior to building and returning state.
-
     Args:
         job_id (int): Id of the job to get state for.
-
     Returns:
         OnRamp formatted dictionary containing job attrs.
     """
@@ -497,8 +472,8 @@ def _build_job(job_id, job_state_file=None):
                     _delete_job(job_state)
                     # FIXME: This might cause trouble. About to return {}.
                     return copy.deepcopy(job_state)
-                mod_status_output = _get_module_status_output(job_id,
-                                                              job_state_file)
+                run_dir = job_state['run_dir']
+                mod_status_output = _get_module_status_output(run_dir)
                 job_state['mod_status_output'] = mod_status_output
             elif job_status[1] == 'Queued':
                 job_state['state'] = 'Queued'
@@ -560,10 +535,8 @@ def _build_job(job_id, job_state_file=None):
 def _clean_job(job):
     """Remove and key/value pairs from job where the key is prefixed by an
     underscore.
-
     Args:
         job (JobState): The job to clean.
-
     Returns:
         JobState with all underscore-prefixed keys removed.
     """
@@ -574,11 +547,9 @@ def _clean_job(job):
 
 def get_jobs(job_id=None, job_state_file=None):
     """Return list of tracked jobs or single job.
-
     Kwargs:
         job_id (int/None): If int, return jobs resource with corresponding id.
             If None, return list of all tracked job resources.
-
     Returns:
         OnRamp formatted dict containing job attrs for each job requested.
     """
@@ -591,15 +562,12 @@ def get_jobs(job_id=None, job_state_file=None):
 
 def init_job_delete(job_id):
     """Initiate the deletion of a job.
-
     If job is in a state where deletion is an acceptable action, job will
     be deleted immediately. If not, job will be marked for deletion.
     Transistions from unacceptable delete states to acceptable delete states
     should check the job to see if deletion has been requested.
-
     Args:
         job_id (int): Id of the job to delete.
-
     Returns:
         Tuple with 0th position being error code and 1st position being string
         indication of status.
@@ -622,9 +590,7 @@ def init_job_delete(job_id):
         
 def _delete_job(job_state):
     """Delete given job.
-
     Both state for and contents of job will be removed.
-
     Args:
         job_state (JobState): State object for the job to remove.
     """
