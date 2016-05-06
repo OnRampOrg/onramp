@@ -301,8 +301,21 @@
 					</div>
 					<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
 					  <div class="panel-body">
-						<p>Equivalence classes of important applications of scientific computing. Applications are grouped into dwarfs based on their computation and communication patterns. 
-							When an application is run in parallel, a certain percentage of time is spent performing calculations, while another percentage is spent communicating the results of those calculations.
+						<p>Equivalence classes of important applications of scientific computing. Applications are grouped into dwarfs based on their computation 
+						and communication patterns. When an application is run in parallel, a certain percentage of time is spent performing calculations, 
+						while another percentage is spent communicating the results of those calculations.<br><br>
+						Approximating the area under a curve falls into the
+						MapReduce dwarf. Applications in this class are characterized by a single
+						function that is applied in parallel to unique sets of data. In the case of
+						area under a curve, the function is simply the calculation of the area of a
+						rectangle (a number that you specified). In MapReduce applications,
+						after the calculations have been mapped to the execution flows, they are
+						communicated to a single execution flow (usually Thread 0),
+						where they are reduced. In the case of area under a curve, this "reduction"
+						takes the form of a summation. Applications in the MapReduce dwarf are
+						<i><b>embarrassingly parallel</b></i> because the calculations can be performed in their
+						entirety without need for communication in between. Communication
+						happens once, at the end, to perform the reduction.
 						</p>
 					  </div>
 					</div>

@@ -22,7 +22,7 @@
 	margin-top: 20px;
 }
 
-#user-db-table{
+[class = "table-flow"]{
 	height: 300px;
 	width: 100%;
 	overflow-y: scroll;

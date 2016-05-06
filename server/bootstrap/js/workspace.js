@@ -3,6 +3,9 @@
 $('[data-toggle="tooltip"]').tooltip();
 $('.collapse').collapse();
 var module_name = "";
+//var user_design_split = sessionStorage.Username.split("");
+//var user_design = user_design_split[0];
+//console.log("CHRISTA user_design: "+ user_design);
 
 
 function workspaceModule(data){
@@ -124,20 +127,50 @@ var setFormId = function(formInfo){
 		   labels[i].setAttribute("id", formID);
 		   var myDescription = getDescription(formID);
 	
-		   //http://stackoverflow.com/questions/22044106/display-tooltip-on-labels-hover
-		   //create the popup look at this: http://stackoverflow.com/questions/3559467/description-box-on-mouseover
 		   
 		   //<span id="helpBlock" class="help-block">A block of help text that breaks onto a new line and may extend beyond one line.</span>
 			if( myDescription !== "none"){
-			   /*var span = document.createElement("span");
-			   span.setAttribute("class", "help-block");
-			   var myDescription = getDescription(formID);
-			   var description = document.createTextNode(myDescription);
-			   span.appendChild(description);
-			   $(span).insertAfter(labels[i]);
-			   $(footdiv).append("<button type=\"button\" class=\"btn btn-primary\" onclick= newGame()>New Game</button>");*/
-			    var myDescription = getDescription(formID);
-			   $(labels[i]).append("<span style = \"display:block;font-size:80%\" class = \"help-block\"><span class = \"glyphicon glyphicon-info-sign\"></span> "+myDescription+"</span>");
+				if(sessionStorage.Username === "q" || sessionStorage.Username === "Q"){
+				   var div = document.createElement("div");
+				   div.setAttribute("class", "formTip notActive");
+				   var myDescription = getDescription(formID);
+				   var description = document.createTextNode(myDescription);
+				   div.appendChild(description);
+				   $(div).insertAfter(labels[i]);
+				   
+				}
+				else{ //busy design
+					var myDescription = getDescription(formID);
+					$(labels[i]).append("<span style = \"display:block;font-size:80%\" class = \"help-block\"><span class = \"glyphicon glyphicon-info-sign\"></span> "+myDescription+"</span>");
+				} 
+			}
+			
+			if(sessionStorage.Username === "q" || sessionStorage.Username === "Q"){
+				//check for form label click
+				$(document).ready(function () {
+				   $('.formLabel').click(function(e) {
+					   var id = $(e.target).attr("id");
+					   var self = e.target;
+					   console.log("myid: "+id);
+					$(".formTip").removeClass("isActive"); 
+					$(".formTip").addClass("notActive");
+					$(self).next().removeClass('notActive');
+						
+					$(self).next().addClass('isActive');
+					
+				   });
+				});
+				//check for white space click
+				$(document).mouseup(function (e){
+					var container = $(".formLabel");
+
+					if (!container.is(e.target) // if the target of the click isn't the container...
+						&& container.has(e.target).length === 0) // ... nor a descendant of the container
+					{
+						$(".formTip").removeClass("isActive"); 
+						$(".formTip").addClass("notActive");
+					}
+				});
 			}
 
 		}
@@ -187,6 +220,9 @@ var getDescription = function( formID ){
 	else if(formID === "name"){
 		description = "Specify a name"
 	}
+	else if(formID === "pi_trials"){
+		description = "Number of trials for the pi simulation. Default= 100000000, max = 32";
+	}
 	else{
 		description = "none";
 	}
@@ -200,8 +236,9 @@ var openPCEModal = function(){
 	$('#PCEModal').modal('show');
 }
 
+
 //forEach(instance in objects)
-/*var displayConcepts = function(btn){
+var displayConcepts = function(btn){
 	
 	var childClass = $(btn).next().className;
 	console.log("christa childClass = " + childClass);
@@ -222,7 +259,7 @@ var openPCEModal = function(){
 		}
 	});
 
-}*/
+}
 
 
 function myWorkspace(data){
@@ -234,12 +271,16 @@ function myWorkspace(data){
 	self.desc = "This workspace is for exploring parallelism and scaling using some embarassingly parallel applications.  The workspace contains the template module which runs an MPI version of \"Hello world!,\" the Monte Carlo module which includes several programs that use a Monte Carlo approach for simulating random events, and the AUC module which uses Riemann sums to estimate pi.";
 	console.log("CHRISTA DESC: " + self.desc);
 
-
 	self.captureWSID = function () {
 
 		localStorage.setItem("WorkspaceID", self.id);
 		alert("workspa e " + localStorage.getItem('WorkspaceID'));
-		window.location.href = "workspace.html";
+		if(sessionStorage.Username === "q" || sessionStorage.Username === "Q"){
+			window.location.href = "workspace_quiet.html";
+		}
+		else{
+			window.location.href = "workspace.html";
+		}
 		return;
 	}
 }

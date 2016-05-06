@@ -27,6 +27,7 @@ function JobDetailsViewModel() {
 
 	self.welcome =   "Welcome " + self.username;
 	self.selectedFile = ko.observable("test.txt");
+	
 
 	self.refreshJobs = function () {
 		self.selectedJob(null);
