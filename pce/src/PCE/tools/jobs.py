@@ -297,9 +297,27 @@ def job_run(job_id, job_state_file=None):
         run_name = job_state['run_name']
     os.chdir(run_dir)
 
+    # Load run params:
+    run_np = None
+    run_nodes = None
+    run_cfg = ConfigObj('onramp_runparams.cfg')
+    if 'onramp' in run_cfg.keys():
+        if 'np' in run_cfg['onramp']:
+            run_np = run_cfg['onramp']['np']
+        if 'nodes' in run_cfg['onramp']:
+            run_nodes = run_cfg['onramp']['nodes']
+
     # Write batch script.
     with open('script.sh', 'w') as f:
-        f.write(scheduler.get_batch_script(run_name))
+        if run_np and run_nodes:
+            f.write(scheduler.get_batch_script(run_name, numtasks=run_np,
+                    num_nodes=run_nodes))
+        elif run_np:
+            f.write(scheduler.get_batch_script(run_name, numtasks=run_np))
+        elif run_nodes:
+            f.write(scheduler.get_batch_script(run_name, num_nodes=run_nodes))
+        else:
+            f.write(scheduler.get_batch_script(run_name))
 
     # Schedule job.
     result = scheduler.schedule(run_dir)
