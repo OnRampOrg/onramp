@@ -219,6 +219,9 @@ var getDescription = function( formID ){
 	else if(formID === "name"){
 		description = "Specify a name"
 	}
+	else if(formID === "pi_trials"){
+		description = "Number of trials for the pi simulation. Default= 100000000, max = 32";
+	}
 	else{
 		description = "none";
 	}
