@@ -33,3 +33,4 @@ nodes =
 [monte_carlo]
 mode = string(max=2,default="1s")
 threads = string(max=32,default="1")
+pi_trials = string(max=32,default="1000000000")

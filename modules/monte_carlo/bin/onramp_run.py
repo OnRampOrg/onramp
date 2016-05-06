@@ -59,7 +59,13 @@ def roulette_seq():
 def roulette_omp():
     call(['mpirun', '-np', '1', 'roulette_sim_omp', config['monte_carlo']['threads']])
 
-executables = { '1s' : coin_seq, '1p' : coin_omp, '2s' : draw_seq, '2p' : draw_omp, '3s' : roulette_seq, '3p' : roulette_omp}
+def pi_seq():
+    call(['mpirun', '-np', '1', 'pi_seq', config['monte_carlo']['pi_trials']])
+
+def pi_omp():
+    call(['mpirun', '-np', '1', 'pi_omp', config['monte_carlo']['pi_trials'], config['monte_carlo']['threads']])
+
+executables = { '1s' : coin_seq, '1p' : coin_omp, '2s' : draw_seq, '2p' : draw_omp, '3s' : roulette_seq, '3p' : roulette_omp, '4s' : pi_seq, '4p' : pi_omp}
 
 executables.get(mode, default_case)()
 

@@ -20,7 +20,6 @@ int main(int argc, char** argv) {
     int n_threads = 1;
     double percentage; // % of hands with 4 suits
     double start_time; 
-    double stop_time;
     char tests_string[] = {' ', ' ', ' ', ' ', ' ', ' ', 
 			   ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
 
@@ -34,10 +33,10 @@ int main(int argc, char** argv) {
 
     // print heading info...
     printf("\n Starting simulation with %d thread(s).\n\n", n_threads);
-    printf(" --------------------------------------\n");
-    printf(" | number of draws | percent of draws |\n");
-    printf(" |                 |  with four suits |\n");
-    printf(" --------------------------------------\n");
+    printf(" -------------------------------------------------\n");
+    printf(" | number of draws | percent of draws | time (s) |\n");
+    printf(" |                 |  with four suits |          |\n");
+    printf(" -------------------------------------------------\n");
 
     start_time = omp_get_wtime();
 
@@ -63,16 +62,12 @@ int main(int argc, char** argv) {
 	// calc % of 4-suit hands & report results...
 	percentage = 100.0 * ( (double)total) / num_tests;
 	pretty_int(num_tests, tests_string);
-	printf(" | %15s | %15.2f%% |\n", tests_string, percentage);
+	printf(" | %15s | %15.2f%% | %8.2f |\n", tests_string, percentage, (double)(omp_get_wtime() - start_time) );
 	num_tests += num_tests;
     }
 
-    stop_time = omp_get_wtime();
-
-    printf(" --------------------------------------\n\n");
-    printf(" Elapsed wallclock time: %.2f seconds\n\n",
-	   (double)(stop_time - start_time));
-    printf(" *** Normal Termination ***\n\n");
+    printf(" -------------------------------------------------\n");
+    printf("\n *** Normal Termination ***\n\n");
 
     return 0;
 }
