@@ -25,7 +25,7 @@
                 </button>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
-                <a class="navbar-brand" href="start.html">OnRamp</a>
+                <a class="navbar-brand" id="brand" href="start.html">OnRamp</a>
 				<ul class="nav navbar-nav navbar-left">
                     <li class="active"><a href="admin_dashboard.html">Home</a></li>
                     <li><a href="about.html">About</a></li>
@@ -60,24 +60,26 @@
   </div>
 
   <div class="row">
-    <table class="table table-striped">
-      <thead >
-        <th>ID</th>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Admin?</th>
-        <!-- <th>View/Edit</th> -->
-      </thead>
-      <tbody data-bind="foreach: Userslist()">
-        <tr>
-          <td data-bind="text: id"></td>
-          <td data-bind="text: username"></td>
-          <td data-bind="text: fullName"></td>
-          <td data-bind="text: isAdmin"></td>
-          <!-- <td><a data-bind="click: viewUser">View</a></td> -->
-        </tr>
-      </tbody>
-    </table>
+	<div class = "table-flow">
+		<table class="table table-striped">
+		  <thead >
+			<th>ID</th>
+			<th>Name</th>
+			<th>Email</th>
+			<th>Admin?</th>
+			<!-- <th>View/Edit</th> -->
+		  </thead>
+		  <tbody data-bind="foreach: Userslist()">
+			<tr>
+			  <td data-bind="text: id"></td>
+			  <td data-bind="text: username"></td>
+			  <td data-bind="text: fullName"></td>
+			  <td data-bind="text: isAdmin"></td>
+			  <!-- <td><a data-bind="click: viewUser">View</a></td> -->
+			</tr>
+		  </tbody>
+		</table>
+	</div>
   </div>
 </div>
 
@@ -93,32 +95,34 @@
   </div>
 
   <div class="row">
-    <table class="table table-striped">
-      <thead>
-        <th>ID</th>
-        <th>Run Name</th>
-        <th>User</th>
-        <th>Workspace</th>
-        <th>PCE</th>
-        <th>Module</th>
-        <th>Status</th>
-        <th>Runtime</th>
-        <!-- <th>View/Edit</th> -->
-      </thead>
-      <tbody data-bind="foreach: Jobslist()">
-        <tr>
-          <td data-bind="text: id"></td>
-          <td data-bind="text: name"></td>
-          <td data-bind="text: user"></td>
-          <td data-bind="text: ws"></td>
-          <td data-bind="text: pce"></td>
-          <td data-bind="text: mod"></td>
-          <td data-bind="text: status"></td>
-          <td data-bind="text: time"></td>
-          <!-- <td><a data-bind="click: viewJob">View</a></td> -->
-        </tr>
-      </tbody>
-    </table>
+	  <div class = "table-flow">
+		<table class="table table-striped">
+		  <thead>
+			<th>ID</th>
+			<th>Run Name</th>
+			<th>User</th>
+			<th>Workspace</th>
+			<th>PCE</th>
+			<th>Module</th>
+			<th>Status</th>
+			<th>Runtime</th>
+			<!-- <th>View/Edit</th> -->
+		  </thead>
+		  <tbody data-bind="foreach: Jobslist()">
+			<tr>
+			  <td data-bind="text: id"></td>
+			  <td data-bind="text: name"></td>
+			  <td data-bind="text: user"></td>
+			  <td data-bind="text: ws"></td>
+			  <td data-bind="text: pce"></td>
+			  <td data-bind="text: mod"></td>
+			  <td data-bind="text: status"></td>
+			  <td data-bind="text: time"></td>
+			  <!-- <td><a data-bind="click: viewJob">View</a></td> -->
+			</tr>
+		  </tbody>
+		</table>
+	</div>
   </div>
 </div>
 
@@ -134,22 +138,24 @@
   </div>
 
   <div class="row">
-    <table class="table table-striped">
-      <thead>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Description</th>
-        <!-- <th>View/Edit</th> -->
-      </thead>
-      <tbody data-bind="foreach: Workspacelist()">
-        <tr>
-          <td data-bind="text: id"></td>
-          <td data-bind="text: name"></td>
-          <td data-bind="text: desc"></td>
-          <!-- <td><a data-bind="click: viewWorkspace">View</a></td> -->
-        </tr>
-      </tbody>
-    </table>
+	<div class = "table-flow">
+		<table class="table table-striped">
+		  <thead>
+			<th>ID</th>
+			<th>Name</th>
+			<th>Description</th>
+			<!-- <th>View/Edit</th> -->
+		  </thead>
+		  <tbody data-bind="foreach: Workspacelist()">
+			<tr>
+			  <td data-bind="text: id"></td>
+			  <td data-bind="text: name"></td>
+			  <td data-bind="text: desc"></td>
+			  <!-- <td><a data-bind="click: viewWorkspace">View</a></td> -->
+			</tr>
+		  </tbody>
+		</table>
+	</div>
   </div>
 </div>
 
@@ -165,32 +171,34 @@
   </div>
 
   <div class="row">
-    <table class="table table-striped">
-      <thead>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Status</th>
-        <th>Description</th>
-        <!--<th>Nodes</th>-->
-        <!--<th>Cores per node</th>-->
-        <!--<th>Mem per node</th>-->
-        <th>Location</th>
-        <!-- <td>View/Edit</td> -->
-      </thead>
-      <tbody data-bind="foreach: PCEslist()">
-        <tr>
-          <td data-bind="text: id"></td>
-          <td data-bind="text: name"></td>
-          <td data-bind="text: status"></td>
-          <td data-bind="text: description"></td>
-          <!--<td data-bind="text: nodes"></td>-->
-          <!--<td data-bind="text: corespernode"></td>-->
-          <!--<td data-bind="text: mempernode"></td>-->
-          <td data-bind="text: location"></td>
-          <!-- <td><a data-bind="click: viewPCE">View</a></td> -->
-        </tr>
-      </tbody>
-    </table>
+	<div class = "table-flow">
+		<table class="table table-striped">
+		  <thead>
+			<th>ID</th>
+			<th>Name</th>
+			<th>Status</th>
+			<th>Description</th>
+			<!--<th>Nodes</th>-->
+			<!--<th>Cores per node</th>-->
+			<!--<th>Mem per node</th>-->
+			<th>Location</th>
+			<!-- <td>View/Edit</td> -->
+		  </thead>
+		  <tbody data-bind="foreach: PCEslist()">
+			<tr>
+			  <td data-bind="text: id"></td>
+			  <td data-bind="text: name"></td>
+			  <td data-bind="text: status"></td>
+			  <td data-bind="text: description"></td>
+			  <!--<td data-bind="text: nodes"></td>-->
+			  <!--<td data-bind="text: corespernode"></td>-->
+			  <!--<td data-bind="text: mempernode"></td>-->
+			  <td data-bind="text: location"></td>
+			  <!-- <td><a data-bind="click: viewPCE">View</a></td> -->
+			</tr>
+		  </tbody>
+		</table>
+	</div>
   </div>
 </div>
 
@@ -206,22 +214,24 @@
   </div>
 
   <div class="row">
-    <table class="table table-striped">
-      <thead>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Description</th>
-        <!-- <th>View/Edit</th> -->
-      </thead>
-      <tbody data-bind="foreach: Moduleslist()">
-        <tr>
-          <td data-bind="text: id"></td>
-          <td data-bind="text: name"></td>
-          <td data-bind="text: desc"></td>
-          <!-- <td><a data-bind="click: viewModule">View</a></td> -->
-        </tr>
-      </tbody>
-    </table>
+	<div class = "table-flow">
+		<table class="table table-striped">
+		  <thead>
+			<th>ID</th>
+			<th>Name</th>
+			<th>Description</th>
+			<!-- <th>View/Edit</th> -->
+		  </thead>
+		  <tbody data-bind="foreach: Moduleslist()">
+			<tr>
+			  <td data-bind="text: id"></td>
+			  <td data-bind="text: name"></td>
+			  <td data-bind="text: desc"></td>
+			  <!-- <td><a data-bind="click: viewModule">View</a></td> -->
+			</tr>
+		  </tbody>
+		</table>
+	</div>
   </div>
 </div>
 
