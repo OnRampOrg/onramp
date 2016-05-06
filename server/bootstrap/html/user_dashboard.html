@@ -68,9 +68,9 @@
   -->
 
   <div class="container">
-	<div class = "row">
+	<!--<div class = "row">
 		<a class="btn btn-default" style = "background-color: #FFD700; box-shadow: 2px 2px 10px 1px grey; margin-bottom: 10px;" href = "user_dashboard_quiet.html" >View Quiet Dashboard</a>
-	</div>
+	</div>-->
     <div class="row">
       <h4>I want to start another job...</h4>
       <p>Select on a workspace to get started.</p>
@@ -128,7 +128,7 @@
       </div>
     </div>
     <div class="row">
-      <div class="table" id = "user-db-table">
+      <div class = "table-flow">
         <table class="table">
           <thead>
             <th class="col-sm-1">Job Id</th>
@@ -137,9 +137,7 @@
             <th class="col-sm-1">Module</th>
             <th class="col-sm-1">Run Name</th>
             <th class="col-sm-1">Status</th>
-            <th class="col-sm-1">Runtime</th>
-           <!-- <th class="col-sm-1">View Details</th>
-            <th class="col-sm-1">Cancel/Delete</th>-->
+            <!--<th class="col-sm-1">Runtime</th>-->
           </thead>
           <tbody data-bind="foreach: Jobslist">
             <tr>
@@ -149,9 +147,7 @@
               <td data-bind="text: mod"></td>
               <td data-bind="text: name"></td>
               <td data-bind="text: status"></td>
-              <td data-bind="text: time"></td>
-             <!-- <td><button class="btn-info" data-bind="click: gotoJobDetails">View Details</button></td>
-              <td><button class="btn-danger">Cancel/Delete</button></td>-->
+             <!-- <td data-bind="text: time"></td>-->
             </tr>
           </tbody>
         </table>
