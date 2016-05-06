@@ -9,7 +9,7 @@ function workspaceModule(data){
 	var self = this;
 	self.id = data['module_id'];
 	self.name = data['module_name'];
-	self.desc = data['description'];
+	self.desc = data['description'];                                                                  
 	self.formFields = ko.observableArray();
 	self.PCEs = ko.observableArray();
 	self.formInfo = ko.observableArray();

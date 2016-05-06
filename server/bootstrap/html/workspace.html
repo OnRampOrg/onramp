@@ -100,7 +100,7 @@
 			<!-- PCE selection -->
 			<div class="container" data-bind="ifnot: selectedPCE()" >
 				<div id = "pick-PCE" class="row">
-					<h4>I want to pick a <a href="#" data-toggle="tooltip" class = "myTooltip" title="definition of a PCE!">PCE</a>...</h4>
+					<h4>I want to pick a <a href="#" data-toggle="tooltip" class = "myTooltip" title="PCE stands for Parallel Compute Environment, typically a cluster.">PCE</a>...</h4>
 					<p></p>
 
 					<div class="row row-horizon" data-bind="foreach: PCElist()">
@@ -140,6 +140,7 @@
 					<div class="col-sm-8" data-bind="with: selectedPCE()">
 						<div class = "thumbnail">
 								<p data-bind="text: description"></p>
+								<p><a data-bind="attr:{href:url}">More Info</a></p>
 						</div>
 					</div>
 				</div>
@@ -317,7 +318,7 @@
 					<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFive">
 					  <div class="panel-body">
 						<p>A Riemann sum is a summation that takes the form:</p>
-						<img src = "riemann_equation.png" class = "img-responsive" alt = "reimann sum picture">
+						<img src = "riemann_equation.PNG" class = "img-responsive" alt = "reimann sum picture">
 						<p>
 							Riemann sums can be used to approximate the area under a curve by
 							dividing the area into multiple component shapes and summing their areas.

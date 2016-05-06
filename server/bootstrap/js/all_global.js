@@ -6,7 +6,12 @@ function PCE(data, view){
 	//self.nodes = data['nodes'];
 	//self.corespernode = data['corespernode'];
 	//self.mempernode = data['mempernode'];
-	self.description = data['description'];
+	
+	// CHANGE BE BACK AFTER TESTING
+	//self.description = data['description'];
+	// hard-coded version for testing the system
+	self.description = "This machine is a generic cluster with four nodes, one serves as the head node, and the other three are compute nodes.  Each compute node has 8 cores and 48GB of memory.";
+	self.url = "http://flux.cs.uwlax.edu/";
 	self.location = data['location'];
 	self.modules = ko.observableArray();
 	

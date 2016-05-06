@@ -21,6 +21,7 @@ function workspaceModule(data){
 		this.formFields.push({"field": "processes", "value": 4});
 	}
 
+	
 
 	self.getRealFormFields = function (pce_id) {
 		self.formFields.removeAll();
@@ -228,7 +229,9 @@ function myWorkspace(data){
 	var self = this;
 	self.id = data['workspace_id'];
 	self.name = data['workspace_name'];
-	self.desc = data['description'];
+	//self.desc = data['description'];
+	// hard-coded description of a workspace, this is really just the info for the pi module.
+	self.desc = "This workspace is for exploring parallelism and scaling using some embarassingly parallel applications.  The workspace contains the template module which runs an MPI version of \"Hello world!,\" the Monte Carlo module which includes several programs that use a Monte Carlo approach for simulating random events, and the AUC module which uses Riemann sums to estimate pi.";
 	console.log("CHRISTA DESC: " + self.desc);
 
 
