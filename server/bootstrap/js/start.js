@@ -7,6 +7,7 @@ function DummyLoginViewModel() {
     self.password = ko.observable("");
     sessionStorage["UserID"] = -999;
     sessionStorage["isAdmin"] = false;
+	sessionStorage["Username"] = ""; 
     // find a better way to do this!!
     sessionStorage["server"] = "http://flux.cs.uwlax.edu/~ssfoley/server/api";
     
@@ -32,14 +33,21 @@ function DummyLoginViewModel() {
 	    sessionStorage["UserID"] = rt.auth.user_id;
 	    sessionStorage["apikey"] = rt.auth.apikey;
 	    sessionStorage["auth_data"] = JSON.stringify(rt.auth);
+		/*--------------saving username in session storage?----------*/
+			var user_design_split = rt.auth.username.split("");
+			var user_design = user_design_split[0];
+			sessionStorage["Username"] = user_design;
+			console.log("CHRISTA username: "+ sessionStorage.Username);
+		/*-----------------------------------------------------------*/
+		
 	    // check if admin
 	    //FIXME!!!!!
 	    if(rt.auth.username == "admin"){
 		window.location.href = "admin_dashboard.html";
 	    }
-	    else {
-		window.location.href = "user_dashboard.html";
-	    }
+		else{
+			window.location.href = "user_dashboard.html";
+		}
 
 	    
 	}
@@ -91,20 +99,6 @@ function DummyLoginViewModel() {
 	console.log("after ajax...");
     };
     
-    self.logout = function (){
-	// send post to server
-	$.ajax({
-		type: 'POST',
-		url: sessionStorage["server"] + 'logout',
-		data: self.auth_data,
-		complete: function () {
-		    window.location.href = "start.html";
-		},
-		dataType: 'application/json',
-		contentType: 'application/json'
-	    } );
-	
-    };
     
     
 }

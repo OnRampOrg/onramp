@@ -18,16 +18,15 @@ int main() {
     int i;	       // loop control variable
     double percentage; // % of hands with 4 suits
     clock_t start_time;
-    clock_t stop_time;
     char tests_string[] = {' ', ' ', ' ', ' ', ' ', ' ', 
 			   ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
 
     // print heading info...
     printf("\n Starting simulation...\n\n");
-    printf(" --------------------------------------\n");
-    printf(" | number of draws | percent of draws |\n");
-    printf(" |                 |  with four suits |\n");
-    printf(" --------------------------------------\n");
+    printf(" -------------------------------------------------\n");
+    printf(" | number of draws | percent of draws | time (s) |\n");
+    printf(" |                 |  with four suits |          |\n");
+    printf(" -------------------------------------------------\n");
 
     start_time = clock();
     srand(time(NULL));
@@ -45,16 +44,13 @@ int main() {
 	// calc % of 4-suit hands & report results...
 	percentage = 100.0 * ( (double)total) / num_tests;
 	pretty_int(num_tests, tests_string);
-	printf(" | %15s | %15.2f%% |\n", tests_string, percentage);
+	printf(" | %15s | %15.2f%% | %8.2f |\n", tests_string, percentage, (double)(clock() - start_time) / CLOCKS_PER_SEC);
 	num_tests += num_tests;
     }
 
-    stop_time = clock();
+    printf(" -------------------------------------------------\n");
 
-    printf(" --------------------------------------\n\n");
-    printf(" Elapsed wallclock time: %.2f seconds\n\n",
-	   (double)(stop_time - start_time) / CLOCKS_PER_SEC);
-    printf(" *** Normal Termination ***\n\n");
+    printf("\n *** Normal Termination ***\n\n");
 
     return 0;
 }

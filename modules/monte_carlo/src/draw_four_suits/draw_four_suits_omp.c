@@ -12,30 +12,38 @@
 #include "draw_four_suits_omp.h"
 
 
-int main() {
+int main(int argc, char** argv) {
     int total = 0;     // number of  hands yielding 4 suits
     int num_tests = 8; // number of trials in each run
     int i;	       // loop control variable
     int tid;           // thread id
+    int n_threads = 1;
     double percentage; // % of hands with 4 suits
     double start_time; 
-    double stop_time;
     char tests_string[] = {' ', ' ', ' ', ' ', ' ', ' ', 
 			   ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
 
+    // Get numner of threads
+    if (argc > 1) {
+	n_threads = atoi(argv[1]);
+	if (n_threads > 32) {
+	    n_threads = 32;
+	}
+    }
+
     // print heading info...
-    printf("\n Starting simulation...\n\n");
-    printf(" --------------------------------------\n");
-    printf(" | number of draws | percent of draws |\n");
-    printf(" |                 |  with four suits |\n");
-    printf(" --------------------------------------\n");
+    printf("\n Starting simulation with %d thread(s).\n\n", n_threads);
+    printf(" -------------------------------------------------\n");
+    printf(" | number of draws | percent of draws | time (s) |\n");
+    printf(" |                 |  with four suits |          |\n");
+    printf(" -------------------------------------------------\n");
 
     start_time = omp_get_wtime();
 
     while (num_tests < ITERATIONS) {
 	total = 0; //reset counter
 	
-        #pragma omp parallel num_threads(NUM_THREADS) default(none) \
+        #pragma omp parallel num_threads(n_threads) default(none) \
 	private (i, tid) shared (num_tests, seeds) reduction (+:total)
 	{
 	    tid = omp_get_thread_num();
@@ -54,16 +62,12 @@ int main() {
 	// calc % of 4-suit hands & report results...
 	percentage = 100.0 * ( (double)total) / num_tests;
 	pretty_int(num_tests, tests_string);
-	printf(" | %15s | %15.2f%% |\n", tests_string, percentage);
+	printf(" | %15s | %15.2f%% | %8.2f |\n", tests_string, percentage, (double)(omp_get_wtime() - start_time) );
 	num_tests += num_tests;
     }
 
-    stop_time = omp_get_wtime();
-
-    printf(" --------------------------------------\n\n");
-    printf(" Elapsed wallclock time: %.2f seconds\n\n",
-	   (double)(stop_time - start_time));
-    printf(" *** Normal Termination ***\n\n");
+    printf(" -------------------------------------------------\n");
+    printf("\n *** Normal Termination ***\n\n");
 
     return 0;
 }

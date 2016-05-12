@@ -1,38 +1,22 @@
-function PCE (data) {
-	var self = this;
 
-	self.id = data['pce_id'];
-	self.name = data['pce_name'];
-	self.status = data['state'];
-	//self.nodes = data['nodes'];
-	//self.corespernode = data['corespernode'];
-	//self.mempernode = data['mempernode'];
-	self.description = data['description'];
-	self.location = data['location'];
-	self.modules = ko.observableArray();
+// Select all elements with data-toggle="tooltips" in the document
+$('[data-toggle="tooltip"]').tooltip();
+$('.collapse').collapse();
+var module_name = "";
+//var user_design_split = sessionStorage.Username.split("");
+//var user_design = user_design_split[0];
+//console.log("CHRISTA user_design: "+ user_design);
 
 
-}
-
-function Job(data){
-	var self = this;
-	self.id = data['job_id'];
-	self.user = data['user_id'];
-	self.ws = data['workspace_id'];
-	self.pce = data['pce_id'];
-	self.mod = data['module_id'];
-	self.name = data['job_name'];
-	self.status = data['state'];
-	self.time = "0:00";  // not implemented yet
-}
-
-function Module(data){
+function workspaceModule(data){
 	var self = this;
 	self.id = data['module_id'];
 	self.name = data['module_name'];
 	self.desc = data['description'];
 	self.formFields = ko.observableArray();
 	self.PCEs = ko.observableArray();
+	self.formInfo = ko.observableArray();
+	console.log("CHRISTA DESC: " + self.desc);
 
 	self.addDefaultFormFields = function () {
 		this.formFields.push({"field": "name", "value": "test"});
@@ -40,6 +24,7 @@ function Module(data){
 		this.formFields.push({"field": "processes", "value": 4});
 	}
 
+	
 
 	self.getRealFormFields = function (pce_id) {
 		self.formFields.removeAll();
@@ -96,44 +81,206 @@ function Module(data){
 				self.formFields.push({field:"job_name", data:""});
 				data.pces.uioptions.onramp.forEach(function (item, index, array){
 					self.formFields.push({field:"onramp " + item, data:""});
+					self.formInfo.push({formid: item});
 				});
 
 				if(self.name == "mpi-ring"){
 					data.pces.uioptions["ring"].forEach(function (item, index, array){
+						module_name = "ring";
 						self.formFields.push({field:"ring " + item, data:""});
+						self.formInfo.push({formid: item});
+						console.log("christa"+ item);
 					});
 				}
 				else if(self.name == "template"){
 					data.pces.uioptions["hello"].forEach(function (item, index, array){
+						module_name = "hello";
 						self.formFields.push({field:"hello " + item, data:""});
+						self.formInfo.push({formid: item});
+						console.log("christa"+ item);
 					});
 				}
 				else {
 					data.pces.uioptions[self.name].forEach(function (item, index, array){
+						module_name = self.name;
 						self.formFields.push({field:self.name + " " + item, data:""});
+						self.formInfo.push({formid: item});
+						console.log("christa"+ item);
 					});
 				}
 
 				console.log("added fields!");
 				console.log(self.formFields());
+				//call method to set the ids of each label
+				setFormId(self.formInfo());
 			}
 		);
 	}
 }
 
+//forEach(<instance> in <objects>)
+var setFormId = function(formInfo){
+	var formID = "";
+	var labels = document.getElementsByTagName("label");
+		for(var i = 1; i < labels.length; i++){
+			formID = formInfo[i-1].formid;
+		   labels[i].setAttribute("id", formID);
+		   var myDescription = getDescription(formID);
+	
+		   
+		   //<span id="helpBlock" class="help-block">A block of help text that breaks onto a new line and may extend beyond one line.</span>
+			if( myDescription !== "none"){
+				if(sessionStorage.Username === "q" || sessionStorage.Username === "Q"){
+				   var div = document.createElement("div");
+				   div.setAttribute("class", "formTip notActive");
+				   var myDescription = getDescription(formID);
+				   var description = document.createTextNode(myDescription);
+				   div.appendChild(description);
+				   $(div).insertAfter(labels[i]);
+				   
+				}
+				else{ //busy design
+					var myDescription = getDescription(formID);
+					$(labels[i]).append("<span style = \"display:block;font-size:80%\" class = \"help-block\"><span class = \"glyphicon glyphicon-info-sign\"></span> "+myDescription+"</span>");
+				} 
+			}
+			
+			if(sessionStorage.Username === "q" || sessionStorage.Username === "Q"){
+				//check for form label click
+				$(document).ready(function () {
+				   $('.formLabel').click(function(e) {
+					   var id = $(e.target).attr("id");
+					   var self = e.target;
+					   console.log("myid: "+id);
+					$(".formTip").removeClass("isActive"); 
+					$(".formTip").addClass("notActive");
+					$(self).next().removeClass('notActive');
+						
+					$(self).next().addClass('isActive');
+					
+				   });
+				});
+				//check for white space click
+				$(document).mouseup(function (e){
+					var container = $(".formLabel");
 
-function Workspace(data){
+					if (!container.is(e.target) // if the target of the click isn't the container...
+						&& container.has(e.target).length === 0) // ... nor a descendant of the container
+					{
+						$(".formTip").removeClass("isActive"); 
+						$(".formTip").addClass("notActive");
+					}
+				});
+			}
+
+		}
+}
+
+	
+/*maybe put in placeholder for the default*/
+
+var getDescription = function( formID ){
+	
+	var description = "";
+	if(formID === "rectangles"){
+		description = "Number of rectangles for the Riemann Sum. Default = 100000000";
+	}
+	else if(formID === "threads"){
+		if(module_name == "monte_carlo"){
+			description = "Select how many threads to use in the parallel version. Default = 1, max = 32.";
+		}
+		else if(module_name == "AUC"){
+			description = "Number of OpenMP threads to use for each process. Default = 1";
+		}
+	}
+	else if(formID === "mode"){
+		if(module_name == "monte_carlo"){
+			description = "Which program and version to run: 1s coin_flip sequential, 1p coin_flip parallel, 2s draw_four_suits sequential, 2p draw_four_suits parallel, 3s roulette_sim sequential, 3p roulette_sim parallel. Default = 1s"
+		}
+		else if(module_name == "AUC"){
+			description = "Version of program to run ('s' -> serial, 'o' -> openmp, 'm' -> mpi, 'h' -> hybrid). Default = s";
+		}
+	}
+	else if(formID === "np"){
+		if(module_name == "monte_carlo"){
+			description = "Number of processes (ignored for Monte Carlo)";
+		}
+		else{
+			description = "Number of processes";
+		}
+	}
+	else if(formID === "nodes"){
+		if(module_name == "monte_carlo"){
+			description = "Number of nodes (ignored for Monte Carlo)";
+		}
+		else{
+			description = "Number of nodes";
+		}
+	}
+	else if(formID === "name"){
+		description = "Specify a name"
+	}
+	else if(formID === "pi_trials"){
+		description = "Number of trials for the pi simulation. Default= 100000000, max = 32";
+	}
+	else{
+		description = "none";
+	}
+	return description;
+}
+var openModuleModal = function(){
+	$('#moduleModal').modal('show');
+}
+
+var openPCEModal = function(){
+	$('#PCEModal').modal('show');
+}
+
+
+//forEach(instance in objects)
+var displayConcepts = function(btn){
+	
+	var childClass = $(btn).next().className;
+	console.log("christa childClass = " + childClass);
+	
+	//because of the button calling this method you can't click the button to make the concepts div disapper because it will hit the below two lines
+	$(".info-div").removeClass("info-notActive"); //make 
+	$(".info-div").addClass("info-isActive");
+		
+	//check for white space click
+	$(document).mouseup(function (e){
+		var container = $(".info-div");
+
+		if (!container.is(e.target) // if the target of the click isn't the container...
+			) // ... nor a descendant of the container
+		{
+			$(".info-div").removeClass("info-isActive"); //make 
+			$(".info-div").addClass("info-notActive");
+		}
+	});
+
+}
+
+
+function myWorkspace(data){
 	var self = this;
 	self.id = data['workspace_id'];
 	self.name = data['workspace_name'];
-	self.desc = data['description'];
-
+	//self.desc = data['description'];
+	// hard-coded description of a workspace, this is really just the info for the pi module.
+	self.desc = "This workspace is for exploring parallelism and scaling using some embarassingly parallel applications.  The workspace contains the template module which runs an MPI version of \"Hello world!,\" the Monte Carlo module which includes several programs that use a Monte Carlo approach for simulating random events, and the AUC module which uses Riemann sums to estimate pi.";
+	console.log("CHRISTA DESC: " + self.desc);
 
 	self.captureWSID = function () {
 
-		localStorage.setItem("WorkspaceID", self.wID);
-		alert("workspace " + localStorage.getItem('WorkspaceID'));
-		window.location.href = "workspace.html";
+		localStorage.setItem("WorkspaceID", self.id);
+		alert("workspa e " + localStorage.getItem('WorkspaceID'));
+		if(sessionStorage.Username === "q" || sessionStorage.Username === "Q"){
+			window.location.href = "workspace_quiet.html";
+		}
+		else{
+			window.location.href = "workspace.html";
+		}
 		return;
 	}
 }
@@ -181,7 +328,7 @@ function OnrampWorkspaceViewModel () {
 					console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
 					conv_data[data.workspaces.fields[i]] = raw[i];
 				}
-				self.workspaceInfo(new Workspace(conv_data));
+				self.workspaceInfo(new myWorkspace(conv_data));
 				self.welcome1(self.username + "'s " + self.workspaceInfo().name + " workspace");
 			}
 		);
@@ -223,7 +370,7 @@ function OnrampWorkspaceViewModel () {
 								console.log("adding: " + data.pces.fields[j] + " = " + raw[j] + " (" + (raw[j] + 1 ) + ")");
 								conv_data[data.pces.fields[j]] = raw[j];
 							}
-							var newpce = new PCE(conv_data);
+							var newpce = new PCE(conv_data, false);
 							for(var j = 0; j < pairs.length; j++){
 								var p = pairs[j][0];
 								var m = pairs[j][2];
@@ -248,7 +395,7 @@ function OnrampWorkspaceViewModel () {
 								console.log("adding: " + data.modules.fields[j] + " = " + raw[j]);
 								conv_data[data.modules.fields[j]] = raw[j];
 							}
-							var newmod = new Module(conv_data);
+							var newmod = new workspaceModule(conv_data);
 							for(var j = 0; j < pairs.length; j++){
 								var p = pairs[j][0];
 								var m = pairs[j][2];
@@ -312,6 +459,17 @@ function OnrampWorkspaceViewModel () {
 			m.getRealFormFields(self.selectedPCE().id);
 		}
 		self.selectedModule(m);
+		/*add module descriptions here because we need the module to be selected
+		 above or the html will not exist */
+		if(self.selectedModule().name == "monte_carlo"){
+			document.getElementById("module-desc").innerHTML = "Monte Carlo methods are a class of computational algorithms that use repeated random sampling to obtain numerical results. Typically, a single workhorse for-loop is used to generate the repeated and independent simulations. Monte Carlo methods are often employed when there is not a closed form or deterministic solution to the underlying problem. As this sort of problem is quite common, Monte Carlo methods are used in a wide variety of fields from computational chemistry to finance. While these topics are important, you may be more interested in the more intriguing application of Monte Carlo methods to gambling and card games. The well known games of roulette and poker will both be used as the basis for the exercises in this module. Upon completion of this module, students should be able to: 1) Identify embarrassingly parallel problems 2.) Understand the real-life applications of stochastic methods 3.) Measure the scalability of a parallel application.";
+		}
+		if(self.selectedModule().name == "AUC"){
+			document.getElementById("module-desc").innerHTML = "This module introduces a method to approximate the area under a curve using a Riemann sum. Serial and parallel algorithms addressing shared and distributed memory concepts are discussed, as well as the MapReduce algorithm classification. A method to estimate pi (&#x3C0) is also developed to demonstrate an example scientific application. Exercises focus on how to measure the performance and scaling of a parallel application in multi-core and many-core environments. Upon completion of this module, students should be able to: 1) Understand the importance of approximating the area under a curve in modeling scientific problems, 2) Understand and apply parallel concepts, 3) Measure the scalability of a parallel application over multiple or many cores, and 4) Identify and explain the Area Under a Curve algorithm using the Berkeley Dwarfs system of classification.";
+		}
+		if(self.selectedModule().name == "template"){
+			document.getElementById("module-desc").innerHTML = "This module prints out a greeting to the name you give it as well as which process it was executed on!";
+		}
 	}
 
 
@@ -364,7 +522,8 @@ function OnrampWorkspaceViewModel () {
 	}
 
 
-	this.launchJob = function (formData){
+	this.launchJob = function(formData){
+		console.log("launching job");
 // 		{
 //     "auth": {
 //         ... // Removed for brevity
@@ -398,6 +557,7 @@ function OnrampWorkspaceViewModel () {
 		}
 		opts[mod_name] = {};
 		formData.formFields().forEach( function(item, index, array){
+			
 			if(item.field != "job_name"){
 				if(item.field.search("onramp") >= 0){
 					// get onramp fields
@@ -405,7 +565,7 @@ function OnrampWorkspaceViewModel () {
 					opts["onramp"][item.field.slice(7)] = item.data;
 				}
 				else if(item.field.search(mod_name) >= 0){
-					console.log(item.field.slice(mod_name.length + 1));
+					console.log(item.field.slice("CHRISTA: "+mod_name.length + 1));
 					opts[mod_name][item.field.slice(mod_name.length + 1)] = item.data;
 				}
 				else {
@@ -417,6 +577,7 @@ function OnrampWorkspaceViewModel () {
 			}
 		});
 		console.log(formData.formFields()[0].data);
+		
 
 		var data_packet = JSON.stringify({
 			"auth": JSON.parse(self.auth_data),
@@ -520,7 +681,6 @@ $.alpaca({
 // load data from server
 
 
-
 // helper functions
 self.findById = function (thisList, id){
 	for(var i = 0; i < thisList.length; i++){
@@ -532,22 +692,10 @@ self.findById = function (thisList, id){
 	return null;
 }
 
-self.logout = function (){
-	// send post to server
-	$.ajax({
-	  type: 'POST',
-	  url: sessionStorage.server + '/logout',
-	  data: self.auth_data,
-	  complete: function () {
-		  window.location.href = "start.html";
-	  },
-	  dataType: 'application/json',
-	  contentType: 'application/json'
-	} );
 
-}
 
 }
 
 
 ko.applyBindings(new OnrampWorkspaceViewModel());
+

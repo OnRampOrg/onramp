@@ -26,7 +26,7 @@
  * Defines
  **************************************/
 
-#define MAX 1<<20 // limit to number of spins
+#define MAX 1<<30 // limit to number of spins
 
 /***************************************
  * Function Declarations

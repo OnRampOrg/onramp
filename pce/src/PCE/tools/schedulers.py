@@ -132,6 +132,7 @@ class SLURMScheduler(_BatchScheduler):
         contents += '#SBATCH --job-name=\"' + run_name + '\"\n'
         contents += '#SBATCH -o output.txt\n'
         contents += '#SBATCH -n ' + str(numtasks) + '\n'
+        contents += '#SBATCH -N ' + str(num_nodes) + '\n'
         if email:
             self.logger.debug('%s configured for email reporting to %s'
                               % (run_name, email))

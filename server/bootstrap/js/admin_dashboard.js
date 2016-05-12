@@ -1,81 +1,5 @@
-function Job(data){
-	var self = this;
-	self.jID = data['job_id'];
-	self.user = data['user_id'];
-	self.ws = data['workspace_id'];
-	self.pce = data['pce_id'];
-	self.mod = data['module_id'];
-	self.name = data['job_name'];
-	self.status = data['state'];
-	self.time = "0:00";  // not implemented yet
 
 
-	self.viewJob = function () {
-		// go to manage Jobs page and show this job
-		window.location.href = "admin_jobs.html";
-	};
-}
-
-function Workspace(data){
-	var self = this;
-	self.wID = data['workspace_id'];
-	self.name = data['workspace_name'];
-	self.desc = data['description'];
-
-
-	this.captureWSID = function () {
-		sessionStorage.setItem("WorkspaceID", this.wID);
-		//alert("workspace " + localStorage.getItem('WorkspaceID'));
-		window.location.href = "workspace.html";
-	};
-
-	self.viewWorkspace = function () {
-		// go to manage Workspaces page and show this job
-		window.location.href = "admin_workspaces.html";
-	};
-
-}
-
-function PCE (data) {
-	var self = this;
-
-	self.id = data['pce_id'];
-	self.name = data['pce_name'];
-	self.status = data['state'];
-	//self.nodes = data['nodes'];
-	//self.corespernode = data['corespernode'];
-	//self.mempernode = data['mempernode'];
-	self.description = data['description'];
-	self.location = data['location'];
-	self.modules = ko.observableArray();
-
-	self.viewPCE = function () {
-		// go to manage Workspaces page and show this job
-		window.location.href = "admin_pces.html";
-	};
-}
-
-
-
-function Module(data){
-	var self = this;
-	self.id = data['module_id'];
-	self.name = data['module_name'];
-	self.desc = data['description'];
-	self.formFields = ko.observableArray();
-	self.PCEs = ko.observableArray();
-
-	self.addDefaultFormFields = function () {
-		this.formFields.push({"field": "name", "value": "test"});
-		this.formFields.push({"field": "nodes", "value": 1});
-		this.formFields.push({"field": "processes", "value": 4});
-	};
-
-	self.viewModule = function () {
-		// go to manage users page and start with this user
-		window.location.href = "admin_modules.html";
-	};
-}
 
 function UserProfile(data) {
 	var self = this;
@@ -197,7 +121,7 @@ function AdminDashboardViewModel() {
 											console.log("adding: " + data.jobs.fields[i] + " = " + raw[i]);
 											conv_data[data.jobs.fields[i]] = raw[i];
 										}
-										self.Jobslist.push(new Job(conv_data));
+										self.Jobslist.push(new Job(conv_data, true, false));
 									}
 								}
 							);
@@ -220,7 +144,7 @@ function AdminDashboardViewModel() {
 											console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
 											conv_data[data.workspaces.fields[i]] = raw[i];
 										}
-										self.Workspacelist.push(new Workspace(conv_data));
+										self.Workspacelist.push(new Workspace(conv_data, true));
 									}
 								}
 							);
@@ -242,12 +166,12 @@ function AdminDashboardViewModel() {
 											console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
 											conv_data[data.pces.fields[i]] = raw[i];
 										}
-										self.PCEslist.push(new PCE(conv_data));
+										self.PCEslist.push(new PCE(conv_data, true));
 									}
 								}
 							);
 
-		$.getJSON( "http://flux.cs.uwlax.edu/onramp/api/modules?apikey=" + JSON.parse(self.auth_data).apikey,
+		$.getJSON( sessionStorage["server"] + "modules?apikey=" + JSON.parse(self.auth_data).apikey,
 								//self.auth_data,
 								function (data){
 									// {"status": 0,
@@ -264,26 +188,12 @@ function AdminDashboardViewModel() {
 											console.log("adding: " + data.modules.fields[i] + " = " + raw[i]);
 											conv_data[data.modules.fields[i]] = raw[i];
 										}
-										self.Moduleslist.push(new Module(conv_data));
+										self.Moduleslist.push(new Module(conv_data, true));
 									}
 								}
 							);
 		});
 
-		self.logout = function (){
-			// send post to server
-			$.ajax({
-			  type: 'POST',
-			  url:  sessionStorage["server"] + 'logout',
-			  data: self.auth_data,
-			  complete: function () {
-				  window.location.href = "start.html";
-			  },
-			  dataType: 'application/json',
-			  contentType: 'application/json'
-			} );
-
-		}
 
 	}
 

@@ -16,30 +16,40 @@
 
 
 int main(int argc, char *argv[]) {
-    int num_flips = 0;
-    int num_heads = 0;
-    int num_tails = 0;
+    unsigned long long num_flips = 0;
+    unsigned long long num_heads = 0;
+    unsigned long long num_tails = 0;
+    int n_threads = 1;    
     int tid;
-    unsigned int trial_flips = FLIPS_PER_TRIAL;
-    unsigned int max_flips   = FLIPS_PER_TRIAL * (1<<TRIALS);
+    unsigned long long trial_flips = FLIPS_PER_TRIAL;
+    unsigned long long max_flips   = FLIPS_PER_TRIAL * (1LLU<<TRIALS);
     double start_time = -1;
     double end_time   = -1;
+
+    // Get number of threads
+    if (argc > 1) {
+	n_threads = atoi(argv[1]);
+	if (n_threads > 32) {
+	    n_threads = 32;
+	}
+    }
 
     create_strings(); /* Malloc and initialize strings. */
 
     /* Print introduction. */
-    printf("\n Settings:           \n"                 );
-    printf("    Trials         : %d\n", TRIALS         );
-    printf("    Flips per trial: %d\n", FLIPS_PER_TRIAL);
-    printf("\n Begin Simulation... \n"                 );
+    printf("\n Settings:           \n"                   );
+    printf("    Trials         : %llu\n", TRIALS         );
+    printf("    Flips per trial: %llu\n", FLIPS_PER_TRIAL);
+    printf("    Threads        : %d\n", n_threads        );
+    printf("\n Begin Simulation... \n"                   );
 
     /* Print table heading. */
-    printf("\n -----------------------------------"
-	   "------------------------------------\n");
-    printf(" | %12s | %12s | %12s | %11s | %8s |\n",
+    printf("\n ----------------------------------------"
+	   "----------------------------------------\n");
+    printf(" | %15s | %15s | %15s | %11s | %8s |\n",
 	   "Trials", "Heads", "Tails", "Chi Squared", "Time");
-    printf(" -----------------------------------"
-	   "------------------------------------\n");
+    printf(" ----------------------------------------"
+	   "----------------------------------------\n");
 
     /* Run the simulation. */
     while (trial_flips <= max_flips) {  
@@ -49,7 +59,7 @@ int main(int argc, char *argv[]) {
 
 	start_time = omp_get_wtime();
 
-        #pragma omp parallel num_threads(N_THREADS) default(none) \
+        #pragma omp parallel num_threads(n_threads) default(none) \
 	private(num_flips, tid) shared(trial_flips, seeds) \
 	reduction(+:num_heads, num_tails)
 	{
@@ -72,7 +82,7 @@ int main(int argc, char *argv[]) {
 	pretty_int(num_heads  , heads_string);
 	pretty_int(num_tails  , tails_string);
 
-	printf(" | %12s | %12s | %12s | %11.2f | %8.2f |\n",
+	printf(" | %15s | %15s | %15s | %11.2f | %8.2f |\n",
 	       trial_string, heads_string, tails_string,
 	       chi_squared(num_heads, num_tails),
 	       (double)(end_time - start_time));
@@ -80,8 +90,8 @@ int main(int argc, char *argv[]) {
         trial_flips *= 2;
     }
     
-    printf(" -----------------------------------"
-	   "------------------------------------\n");
+    printf(" ----------------------------------------"
+	   "----------------------------------------\n");
 
     clean_exit(0);
 
@@ -89,7 +99,7 @@ int main(int argc, char *argv[]) {
 }
 
 
-double chi_squared(int heads, int tails) {
+double chi_squared(unsigned long long heads, unsigned long long tails) {
     double sum = 0;              // chi square sum
     double tot = heads + tails;  // total flips
     double expected = 0.5 * tot; // expected heads (or tails)
@@ -101,27 +111,41 @@ double chi_squared(int heads, int tails) {
 }
 
 
-int pretty_int(int n, char* s) {
-    int digit;	                    /* Each digit of n.          */  
-    int digit_cnt = STRING_LEN - 1; /* Don't touch EOS character */
+int pretty_int(unsigned long long n, char* s) {
+    int extra  = 0;
+    int commas = 0;
+    int count  = 0;
+    int len = 0;
+    int i;
 
-    if (NULL == s)
-        return -1;
+    if (NULL == s) return -1;
 
-    do {
-    	digit = n % 10;
-    	n = n / 10;
+    len = sprintf(s, "%llu", n);
 
-	if (0 == digit_cnt % 4 && digit_cnt != 0) {
-	    s[digit_cnt - 1] = ',';
-	    digit_cnt--;
+    if ( len > STRING_LEN ) {
+	printf("Buffer overflow, cannot print string.\n");
+	s = NULL;
+	return -1;
+    }
+
+    extra = strlen(s) % 3;
+    commas = (strlen(s) - extra) / 3;
+
+    if (0 == extra) commas--;
+
+    s[strlen(s) + commas] = '\0';
+
+    for (i = strlen(s) - 1; i > 0; i--) {
+	count++;
+	count = count % 3;
+	if (0 == count) {
+	    s[i + commas] = s[i];
+	    commas--;
+	    s[i + commas] = ',';
+	} else {
+	    s[i + commas] = s[i];
 	}
-
-	s[digit_cnt - 1] = '0' + digit;
-
-	digit_cnt--;
-
-    } while (n > 0);
+    }
 
     return 0;
 }
@@ -151,7 +175,7 @@ int create_strings() {
 	clean_exit(-1);
     }
 
-    for (i = 0; i < STRING_LEN - 2; i++) {
+    for (i = 0; i < STRING_LEN - 1; i++) {
 	trial_string[i] = ' ';
 	heads_string[i] = ' ';
 	tails_string[i] = ' ';

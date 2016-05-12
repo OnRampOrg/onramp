@@ -8,6 +8,7 @@ import os
 import requests
 import time
 
+
 class PCEAccess():
     """Client-side interface to OnRamp PCE server.
 
@@ -653,6 +654,15 @@ class PCEAccess():
 
         self._logger.debug("%s Checking on Job %d" % (prefix, job_id))
         job = self.get_jobs(job_id)
+
+        # This is a temp fix (though after analysis may prove to be THE fix). #
+        if 'job_id' not in job.keys():
+            job['job_id'] = job_id
+        if 'output' not in job.keys():
+            job['output'] = None
+        if 'state' not in job.keys():
+            job['state'] = 'Setting up launch'
+        #######################################################################
 
         self._logger.debug("%s job RAW %s" % (prefix, str(job)))
         self._save_job_output( job["job_id"], job["output"] )

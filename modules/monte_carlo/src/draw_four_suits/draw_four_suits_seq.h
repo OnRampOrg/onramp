@@ -21,7 +21,7 @@
 ***************************************/
 
 #define DECK_SIZE 52     // std deck of cards
-#define ITERATIONS 1<<20 // max iterations is 1 meg
+#define ITERATIONS 1<<24 // max iterations is 1 meg
 #define CARDS_IN_HAND 4  // draw 4 cards at a time
 #define NUM_SHUFFLES 10  // num times to shuffle new deck
 

@@ -1,0 +1,203 @@
+#!/usr/bin/perl
+# 
+# $Id: hpl.configure,v 1.1 2012/05/01 20:56:33 charliep Exp $
+#
+# This file is part of BCCD, an open-source live CD for computational science
+# education.
+# 
+# Copyright (C) 2010 Andrew Fitz Gibbon, Paul Gray, Kevin Hunter, Dave Joiner, 
+#   Sam Leeman-Munk, Tom Murphy, Charlie Peck, Skylar Thompson, & Aaron Weeden 
+
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Script to "automatically" configure an HPL.dat file.
+# Assumes all nodes are identical to the node this script is being run on.
+#
+# Some of the code here based roughly on Advanced Clustering Technologies'
+# HPL.dat tuning page, specifically getGrid:
+# http://advancedclustering.com/faq/how-do-i-tune-my-hpldat-file.html
+#
+# Usage:
+#    ./hpl.configure [NODES] [PPN] [MPN] [BS]
+#        NODES   Number of nodes in cluster
+#        PPN     Processors Per Node
+#        MPN     Memory Per Node (in MB)
+#        BS      Block size
+#    With no options appropriate values will be guessed
+#    If unable to guess, user will be prompted.
+
+use strict;
+use POSIX qw(floor);
+
+# Defaults, constants
+my $NB        = 128;           # block size
+my $p_mem     = 0.8;           # fraction of memory to utilize
+my $dp_bytes  = 8;             # number of bytes in double precision
+my $hosts     = "./tmp-hosts"; # temporary hosts file
+my $publisher = "Bootable Cluster CD (http://bccd.net)";
+
+my ($nodes, $ppn, $mem_raw, $mem, $unit, $mult, $N, @pq);
+
+if ($#ARGV == 3) {
+	$nodes = $ARGV[0];
+	$ppn   = $ARGV[1];
+	$mem   = $ARGV[2];
+	$NB    = $ARGV[3];
+	$mult  = 1024*1024;
+} elsif ($#ARGV > -1) {
+	usage();
+	die "Incorrect number of arguments!\n";
+} else {
+	# count number of nodes
+	if (-f "/etc/bccd-revision") {
+		system("/bin/bccd-snarfhosts -f $hosts");
+		chomp($nodes = `cat $hosts | wc -l`);
+		system("rm $hosts");
+	} else { # if not BCCD, prompt for nodes
+		$nodes = promptInt("Nodes in the cluster: ");
+	}
+
+	# get number of cores/node
+	if (-f "/proc/cpuinfo") {
+		chomp($ppn=`grep ^processor /proc/cpuinfo | wc -l`);
+	} else {
+		$ppn = promptInt("Cores per node: ");
+	}
+
+	# get amount of memory/node
+	if (-f "/proc/meminfo") {
+		$mem_raw=`grep ^MemFree /proc/meminfo`;
+		(my $r, $mem, $unit) = split(/\s+/, $mem_raw, 3);
+
+		if ($unit == "kB") {
+			$mult=1024;
+		} else { # assume if it's not kB, then it's MB
+			$mult=1024*1024;
+		}
+	} else {
+		$mem = promptInt("Memory per node: ");
+		$mult = 1024*1024;
+	}
+}
+
+$N=floor(sqrt(($mem * $p_mem * $nodes * $mult) / $dp_bytes));
+@pq=getGrid($nodes, $ppn);
+
+print <<HPLDAT;
+HPLinpack benchmark input file
+$publisher
+HPL.out      output file name (if any)
+6            device out (6=stdout,7=stderr,file)
+1            # of problems sizes (N)
+$N           Ns
+1            # of NBs
+$NB          NBs
+0            PMAP process mapping (0=Row-,1=Column-major)
+1            # of process grids (P x Q)
+$pq[0]       Ps
+$pq[1]       Qs
+16.0         threshold
+3            # of panel fact
+0 1 2        PFACTs (0=left, 1=Crout, 2=Right)
+2            # of recursive stopping criterium
+2 4          NBMINs (>= 1)
+1            # of panels in recursion
+2            NDIVs
+3            # of recursive panel fact.
+0 1 2        RFACTs (0=left, 1=Crout, 2=Right)
+1            # of broadcast
+0            BCASTs (0=1rg,1=1rM,2=2rg,3=2rM,4=Lng,5=LnM)
+1            # of lookahead depth
+0            DEPTHs (>=0)
+2            SWAP (0=bin-exch,1=long,2=mix)
+64           swapping threshold
+0            L1 in (0=transposed,1=no-transposed) form
+0            U  in (0=transposed,1=no-transposed) form
+1            Equilibration (0=no,1=yes)
+8            memory alignment in double (> 0)
+HPLDAT
+
+# perl-ized version of ACT's javascript getGrid
+# added case for $nodes == 1
+sub getGrid {
+	my ($nodes,$ppn) = @_;
+	my $cores = $nodes*$ppn;
+	my $sqrt = sqrt($cores);
+	my @factors = ();
+	my @pQ = ();
+
+	if ($nodes == 1) {
+		@pQ = ($nodes, $ppn);
+	} else {
+		for (my $num = 2; $num <= $sqrt; $num++) {
+			if (($cores % $num) == 0) {
+				push @factors, $num;
+			}
+		}
+
+		if (scalar(@factors) == 0) {
+			push @factors, 1;
+		}
+
+		my $diff = 0;
+		my $keep = 0;
+
+		for (my $i = 0; $i < scalar(@factors); $i++) {
+			if ($diff == 0) { $diff = $cores - $factors[$i]; }
+			if ($keep == 0) { $keep = $factors[$i]; } 
+
+			my $tmpDiff = $cores - $factors[$i];
+			if ($tmpDiff<$diff) {
+				$diff = $tmpDiff;
+				$keep = $factors[$i];
+			}
+		}
+
+		@pQ = ($keep, $cores/$keep);
+	}
+
+	return(@pQ);
+}
+
+sub promptInt {
+	my ($prompt) = @_;
+	my $ret;
+
+	print $prompt;
+	chomp ($ret = <STDIN>);
+
+	while ($ret !~ /^\d+$/) {
+		print "Must be an integer!\n";
+		print $prompt;
+		chomp ($ret = <STDIN>);
+	}
+
+	return $ret;
+}
+
+sub usage {
+	print <<USAGE;
+Usage:
+	$0 [NODES] [PPN] [MPN] [BS]
+		NODES   Number of nodes in cluster
+		PPN     Processors Per Node
+		MPN     Memory Per Node (in MB)
+		BS      Block size
+	With no options appropriate values will be guessed
+	If unable to guess, user will be prompted.
+
+	HPL.dat file written to stdout.
+USAGE
+}
