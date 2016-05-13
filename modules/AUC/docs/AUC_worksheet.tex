@@ -1,6 +1,6 @@
 % Title: Area Under a Curve (AUC) Worksheet
 % Author: Jason Regina
-% Date: 6 November 2015
+% Date: 5 May 2016
 % Description: Supplemental worksheet for the Area Under a Curve module
 
 %----------------------------------------------------------------------------------------
@@ -62,8 +62,38 @@
 \end{tabu}
 \end{table}
 
-% Questions
+% Instructions
 \bigskip
+\paragraph{Instructions}
+\begin{enumerate}
+\item Log on to the OnRamp web-server
+\item Select a workspace
+\item Select a PCE
+\item Select the AUC module
+\item The right-hand column summarizes important concepts from the module documentation. At this point, decide whether to conduct a \emph{strong scaling} or a \emph{weak scaling} study.
+\item Input a `job\_name.' This will be used by the PCE to track your job status.
+\item Input parameters into the relevant fields that are appropriate to the PCE and type of scaling studying being conducted. The AUC program accepts 5 parameters:
+\begin{enumerate}
+\item \textbf{onramp np:} Number of MPI processes
+\item \textbf{onramp nodes:} Number of compute nodes
+\item \textbf{AUC threads:} Number of OpenMP threads per process
+\item \textbf{AUC rectangles:} Number of rectangles for the Riemann Sum
+\item \textbf{AUC mode:} Character indicating version of AUC to run
+\begin{enumerate}
+\item `s' = serial
+\item `o' = OpenMP only
+\item `m' = MPI only
+\item `h' = hybrid OpenMP and MPI
+\end{enumerate}
+\end{enumerate}
+\item Click the `Launch Job' button
+\item Find your `Run Name' among the list of `My Jobs.' Click `View Details.'
+\item Record the details of the job output including the input parameters and the time.
+\item Repeat the process for different parameters, depending on the scaling study being conducted.
+\end{enumerate}
+
+% Questions
+\pagebreak
 \paragraph{Questions}
 \begin{enumerate}
 \setlength\itemsep{8em}
