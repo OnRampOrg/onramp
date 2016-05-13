@@ -23,7 +23,7 @@ config    = ConfigObj(conf_file)
 # Run my program
 #
 os.chdir('src')
-call(['FWC-serial', '-h', config['FWC']['grid_height'], '-w', config['FWC']['grid_width']])
+call(['time', 'mpirun', '-np', '1', 'FWC-serial', '-h', config['FWC']['grid_height'], '-w', config['FWC']['grid_width']])
 
 
 # Exit 0 if all is ok
