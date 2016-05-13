@@ -31,3 +31,11 @@ np =
 nodes = 
 
 [hpl]
+
+num_Ns   = integer(default=1)
+Ns       = integer(default=1)
+num_NBs  = integer(default=1)
+NBs      = integer(default=1)
+num_PsQs = integer(default=1)
+Ps       = integer(default=1)
+Qs       = integer(default=1)

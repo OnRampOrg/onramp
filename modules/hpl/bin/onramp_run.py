@@ -24,9 +24,9 @@ config    = ConfigObj(conf_file)
 #
 os.chdir('src')
 
-#
-# TODO
-#
+call(['mpirun', 'np', 'parameters', config['hpl']['num_Ns'], config['hpl']['Ns'], config['hpl']['num_NBs'], config['hpl']['NBs'], config['hpl']['num_PsQs'], config['hpl']['Ps'], config['hpl']['Qs']]);
+
+call(['mpirun', 'np', config['onramp']['np'], 'xhpl']);
 
 # Exit 0 if all is ok
 sys.exit(0)
