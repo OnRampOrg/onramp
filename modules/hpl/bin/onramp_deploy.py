@@ -17,7 +17,7 @@ os.chdir('src')
 #
 # Make the program
 #
-call(['make'])
+call(['make', 'parameters'])
 
 
 #
