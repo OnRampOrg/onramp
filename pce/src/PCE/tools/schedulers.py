@@ -276,18 +276,20 @@ class PBSScheduler(_BatchScheduler):
         Returns:
             Batch script implementing given attrs.
         """
+        self.logger.debug("starting to write file")
         script = '#!/bin/bash\n'
         script += '\n'
         script += '################################################\n'
-        script += '#PBS -l select=%d:mpiprocs=%d\n' % (num_nodes, numtasks)
-        script += '#PBS -N %s\n' % run_name
+        script += '#PBS -l select=' + num_nodes + ':mpiprocs='+ numtasks +'\n'
+        script += '#PBS -N ' + run_name + '\n' 
         script += '#PBS -V\n'
         script += '#PBS -j oe\n'
         script += '#PBS -o output.txt\n'
         script += '################################################\n'
         script += '\n'
         script += 'cd ${PBS_O_WORKDIR}\n'
-        script += '%s bin/onramp_run.py\n' % self.local_python
+        script +=  self.local_python + ' bin/onramp_run.py\n'
+        self.logger.debug("wrote: %s" % script)
         return script
 
     def schedule(self, proj_loc):
