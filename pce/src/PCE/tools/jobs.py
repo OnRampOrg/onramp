@@ -292,13 +292,13 @@ def job_run(job_id, job_state_file=None):
     scheduler = Scheduler(cfg['cluster']['batch_scheduler'])
 
     _logger.debug("in job_run: trying to launch using scheduler %s", cfg['cluster']['batch_scheduler'])
-    ret_dir = os.getcwd()
+    #ret_dir = os.getcwd()
     with JobState(job_id, job_state_file) as job_state:
         run_dir = job_state['run_dir']
         run_name = job_state['run_name']
     os.chdir(run_dir)
 
-    _logger.debug("in job_run: attempting to be in %s, really in %s", run_dir, os.get_cwd())
+    #_logger.debug("in job_run: attempting to be in %s, really in %s", run_dir, os.get_cwd())
     # Load run params:
     run_np = None
     run_nodes = None
@@ -312,7 +312,6 @@ def job_run(job_id, job_state_file=None):
     _logger.debug("in job_run: loaded params np: %d and nodes: %d", run_np, run_nodes)
     # Write batch script.
     with open('script.sh', 'w') as f:
-        f.write("test")
         if run_np and run_nodes:
             f.write(scheduler.get_batch_script(run_name, numtasks=run_np,
                     num_nodes=run_nodes))

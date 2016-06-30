@@ -139,7 +139,7 @@ class SLURMScheduler(_BatchScheduler):
             contents += '#SBATCH --mail-user=' + email + '\n'
         contents += '###################################\n'
         contents += '\n'
-        contents += '%s bin/onramp_run.py\n' % self.local_python
+        contents += self.local_python + ' bin/onramp_run.py\n'
         return contents
         
     def schedule(self, proj_loc):
