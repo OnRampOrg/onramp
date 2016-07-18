@@ -42,6 +42,7 @@
         </div>
     </nav>
 <br>
+<div class="page">
 <div class="container">
   <div class="jumbotron">
     <h1>Users Admin Dashboard</h1>
@@ -86,50 +87,79 @@
     <h3>User Info: <span data-bind="text:username"></span> (User ID: <span data-bind="text: id"></span>)</h3>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+     <div class="edit-table-col table-header">
+        <p>Field</p>
+     </div>
+     <div class="edit-table-col table-header">
+        <p>Current Value</p>
+     </div>
+     <div class="edit-table-col table-header">
+        <p>New Value</p>
+ 	 </div>
+  </div>
+  <div class="row">
+    <div class="edit-table-col">
+    	<p>Username</p>
+    </div>
+    <div class="edit-table-col">
       <p data-bind="text: username"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: username"/>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+    <div class="edit-table-col">
+    	<p>Full Name</p>
+    </div>
+    <div class="edit-table-col">
       <p data-bind="text: fullName"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: fullName"/>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+  	<div class="edit-table-col">
+  	  <p>Email</p>
+  	</div>
+    <div class="edit-table-col">
       <p data-bind="text: email"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: email"/>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+    <div class="edit-table-col">
+      <p>Password</p>
+    </div>
+    <div class="edit-table-col">
       <p data-bind="text: password"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: password"/>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p>Admin? (<span data-bind="text: isAdmin"></span>)</p>
+    <div class="edit-table-col">
+      <p>Admin</p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
+      <p data-bind="text: isAdmin"></p>
+    </div>
+    <div class="edit-table-col">
       <input data-bind="checked: isAdmin" type="checkbox" />
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p>Enabled? (<span data-bind="text: isEnabled"></span>)</p>
+    <div class="edit-table-col">
+      <p>Enabled</p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
+      <p data-bind="text: isEnabled"></p>
+    </div>
+    <div class="edit-table-col">
       <input data-bind="checked: isEnabled" type="checkbox" />
     </div>
   </div>
@@ -265,6 +295,7 @@
       <button class="btn" data-bind="click: updateServer">Save Changes</button>
     </div>
   </div>
+</div>
 </div>
 
 <!-- footer -->
