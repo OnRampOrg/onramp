@@ -18,8 +18,22 @@
 	margin-right: 30px;
 	margin-top: 15px;
 }
+
+.page {
+    padding-top: 5%;
+    padding-bottom: 3%;
+}
+
 .footer{
-	margin-top: 20px;
+	margin-top: 10px;
+	position: fixed;
+	height: 4%;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	color: black;
+	padding-top: 3px;
+	background-color: #0c84e4;
 }
 
 [class = "table-flow"]{
@@ -36,4 +50,15 @@
 .jumbotron{
 	background-color: Lavender;
 	text-align: center;
+}
+
+/* style for tables used to edit objects */
+.edit-table-col {
+	width: 20%;
+	float: left;
+}
+
+.table-header {
+	font-weight: bold;
+	text-decoration: underline;
 }

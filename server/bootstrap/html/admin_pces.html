@@ -42,6 +42,7 @@
         </div>
     </nav>
 <br>
+<div class="page">
 <div class="container">
   <div class="jumbotron">
     <h1>PCE Admin Dashboard</h1>
@@ -92,66 +93,101 @@
     <h3>PCE Info: <span data-bind="text:name"></span></h3>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+  	<div class="edit-table-col table-header">
+  		<p>Field</p>
+  	</div>
+  	<div class="edit-table-col table-header">
+  		<p>Current Value</p>
+  	</div>
+  	<div class="edit-table-col table-header">
+  		<p>New Value</p>
+  	</div>
+  </div>
+  <div class="row">
+    <div class="edit-table-col">
+    	<p>PCE Name</p>
+    </div>
+    <div class="edit-table-col">
       <p data-bind="text: name"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: name"/>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+    <div class="edit-table-col">
+    	<p>Description:</p>
+    </div>
+    <div class="edit-table-col">
       <p data-bind="text: description"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: description"/>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+  	<div class="edit-table-col">
+  		<p>Location:</p>
+  	</div>
+    <div class="edit-table-col">
       <p data-bind="text: location"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: location"/>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+  	<div class="edit-table-col">
+  		<p>Contact Information:</p>
+  	</div>
+    <div class="edit-table-col">
       <p data-bind="text: contact_info"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: contact_info"/>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+  	<div class="edit-table-col">
+  		<p>PCE Username:</p>
+  	</div>
+    <div class="edit-table-col">
       <p data-bind="text: pce_username"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: pce_username"/>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+  	<div class="edit-table-col">
+  		<p>PCE Password</p>
+  	</div>
+    <div class="edit-table-col">
       <p data-bind="text: pce_password"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: pce_password"/>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+  	<div class="edit-table-col">
+  		<p>Port:</p>
+  	</div>
+    <div class="edit-table-col">
       <p data-bind="text: port"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: port"/>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+  	<div class="edit-table-col">
+  		<p>URL:</p>
+  	</div>
+    <div class="edit-table-col">
       <p data-bind="text: url"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: url"/>
     </div>
   </div>
@@ -172,34 +208,57 @@
     <h3>PCE Info: <span data-bind="text:name"></span> (PCE ID: <span data-bind="text: id"></span>)</h3>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+     <div class="edit-table-col table-header">
+         <p>Field</p>
+     </div>
+    <div class="edit-table-col table-header">
+         <p>Current Value</p>
+    </div>
+    <div class="edit-table-col table-header">
+    	 <p>New Value</p>
+  	</div>
+  </div>
+  <div class="row">
+    <div class="edit-table-col">
+    	<p>PCE Name:</p>
+    </div>
+    <div class="edit-table-col">
       <p data-bind="text: name"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: name"/>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p>Status</p>
+    <div class="edit-table-col">
+    	<p>Status:</p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
-      <p data-bind="text: status"/>
+    <div class="edit-table-col">
+      <p data-bind="text: status"></p>
+    </div>
+    <div class="edit-table-col">
+      <p></p>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+    <div class="edit-table-col">
+    	<p>Description:</p>
+    </div>
+    <div class="edit-table-col">
       <p data-bind="text: description"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: description"/>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+  	<div class="edit-table-col">
+  		<p>Location:</p>
+  	</div>
+    <div class="edit-table-col">
       <p data-bind="text: location"></p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <input data-bind="value: location"/>
     </div>
   </div>
@@ -376,7 +435,7 @@
 
 
 </div>
-
+</div>
 <!-- footer -->
 <footer class="footer">
   <div class="container" class="footer">
