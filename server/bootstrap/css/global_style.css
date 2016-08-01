@@ -24,6 +24,18 @@
     padding-bottom: 3%;
 }
 
+.refresh-header {
+	width: 50%;
+	display: table-cell;
+	float: left;
+}
+
+.refresh-button {
+	display: table-cell;
+	margin-left: 20px;
+	float: right;
+}
+
 .footer{
 	margin-top: 10px;
 	position: fixed;
@@ -34,6 +46,11 @@
 	color: black;
 	padding-top: 3px;
 	background-color: #0c84e4;
+}
+
+.footer p {
+	float: left;
+	padding-left: 20px;
 }
 
 [class = "table-flow"]{

@@ -25,7 +25,7 @@
                 </button>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
-                <a class="navbar-brand" id="brand" href="start.html">OnRamp</a>
+                <a class="navbar-brand" id="brand">OnRamp</a>
 				<ul class="nav navbar-nav navbar-left">
                     <li class="active"><a href="admin_dashboard.html">Home</a></li>
                     <li><a href="about.html">About</a></li>
@@ -86,25 +86,25 @@
     <h3>Workspace Info: <span data-bind="text:name"></span> (Workspace ID: <span data-bind="text: id"></span>)</h3>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+    <div class="edit-table-col">
       <p>Name</p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <p data-bind="text: name"></p>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+    <div class="edit-table-col">
       <p>Description</p>
     </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
+    <div class="edit-table-col">
       <p data-bind="text: desc"></p>
     </div>
   </div>
 
   <!-- Add a new pair to workspace -->
       <div class="row">
-        <p>Fill in the PCE and Module IDs for the pair to add the workspace.</p>
+        <p><b>Fill in the PCE and Module IDs for the pair to add the workspace.</b></p>
       </div>
       <!-- PCE -->
       <div class="row">
@@ -138,12 +138,81 @@
           <button class="btn btn-primary" data-bind="click: addPCEModPair">Add PCE - Module Pair to Workspace</button>
         </div>
       </div>
-
-
-  <!-- list of Jobs -->
-
+  <br>
+<!-- add users -->
   <div class="row">
-    <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
+      <h4>Edit Users (<span data-bind="text: $parent.AllUsers().length"></span>)</h4>
+
+      <table class="table table-striped">
+        <thead>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Add to Workspace</th>
+          <th>View Users</th>
+        </thead>
+        <tbody data-bind="foreach: $parent.AllUsers()">
+          <tr>
+            <td data-bind="text: id"></td>
+            <td data-bind="text: username"></td>
+            <td><button class="btn btn-primary" data-bind="click: $parent.addUser">Add</button></td>
+            <td><button class="btn" data-bind="click: viewUser">Details</button></td>
+          </tr>
+        </tbody>
+      </table>
+  </div>
+  <br>
+  
+
+  <!-- list of pce-module pairs -->
+  <div class="row">
+    
+      <h4>PCE-Module Pairs (<span data-bind="text: PCEModlist().length"></span>)</h4>
+
+      <table class="table table-striped">
+        <thead>
+          <th>PCE ID</th>
+          <th>PCE Name</th>
+          <th>Module ID</th>
+          <th>Module Name</th>
+        </thead>
+        <tbody data-bind="foreach: PCEModlist">
+          <tr>
+            <td data-bind="text: pce_id"></td>
+            <td data-bind="text: pce_name"></td>
+            <td data-bind="text: mod_id"></td>
+            <td data-bind="text: mod_name"></td>
+          </tr>
+        </tbody>
+      </table>
+    
+  </div>
+  <br>
+  <!-- list current users -->
+  <div class="row">
+      <h4>Current Users (<span data-bind="text: Userslist().length"></span>)</h4>
+
+      <table class="table table-striped">
+        <thead>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Remove from Workspace</th>
+          <th>View Users</th>
+        </thead>
+        <tbody data-bind="foreach: Userslist">
+          <tr>
+            <td data-bind="text: id"></td>
+            <td data-bind="text: username"></td>
+            <td><button class="btn btn-danger" data-bind="click: $parent.removeUser">Remove</button></td>
+            <td><button class="btn" data-bind="click: viewUser">Details</button></td>
+          </tr>
+        </tbody>
+      </table>
+  </div>
+  <br>
+
+<!-- list of Jobs -->
+  <br>
+  <div class="row">
       <h4>Jobs (<span data-bind="text: Jobslist().length"></span>)</h4>
 
       <table class="table table-striped">
@@ -168,89 +237,17 @@
             <td data-bind="text: mod"></td>
             <td data-bind="text: status"></td>
             <td data-bind="text: time"></td>
-            <td><a data-bind="click: viewJob">View</a></td>
+            <td><button class="btn" data-bind="click: viewJob">View Job</button></td>
           </tr>
         </tbody>
       </table>
-    </div>
   </div>
-
-
-  <!-- list of pce-module pairs -->
-  <div class="row">
-    <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
-      <h4>PCE-Module Pairs (<span data-bind="text: PCEModlist().length"></span>)</h4>
-
-      <table class="table table-striped">
-        <thead>
-          <th>PCE ID</th>
-          <th>PCE Name</th>
-          <th>Module ID</th>
-          <th>Module Name</th>
-        </thead>
-        <tbody data-bind="foreach: PCEModlist">
-          <tr>
-            <td data-bind="text: pce_id"></td>
-            <td data-bind="text: pce_name"></td>
-            <td data-bind="text: mod_id"></td>
-            <td data-bind="text: mod_name"></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- list current users -->
-  <div class="row">
-    <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
-      <h4>Current Users (<span data-bind="text: Userslist().length"></span>)</h4>
-
-      <table class="table table-striped">
-        <thead>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Remove from Workspace</th>
-          <th>View Users</th>
-        </thead>
-        <tbody data-bind="foreach: Userslist">
-          <tr>
-            <td data-bind="text: id"></td>
-            <td data-bind="text: username"></td>
-            <td><button class="btn btn-danger" data-bind="click: $parent.removeUser">Remove</button></td>
-            <td><button class="btn" data-bind="click: viewUser">Details</button></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <!-- add users -->
-  <div class="row">
-    <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
-      <h4>Edit Users (<span data-bind="text: $parent.AllUsers().length"></span>)</h4>
-
-      <table class="table table-striped">
-        <thead>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Add to Workspace</th>
-          <th>View Users</th>
-        </thead>
-        <tbody data-bind="foreach: $parent.AllUsers()">
-          <tr>
-            <td data-bind="text: id"></td>
-            <td data-bind="text: username"></td>
-            <td><button class="btn btn-primary" data-bind="click: $parent.addUser">Add</button></td>
-            <td><button class="btn" data-bind="click: viewUser">Details</button></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
+  <br>
+<div>
+  
   <!-- footer -->
   <footer class="footer">
-    <div class="container" class="footer">
+    <div class="footer">
       <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
     </div>
   </footer>

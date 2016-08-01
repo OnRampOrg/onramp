@@ -25,7 +25,7 @@ function PCE(data, view){
 
 function Job(data, view, details){
 	var self = this;
-	self.id = data['job_id'];
+	self.jID = data['job_id'];
 	self.user = data['user_id'];
 	self.ws = data['workspace_id'];
 	self.pce = data['pce_id'];
@@ -73,7 +73,7 @@ function Module(data, view){
 
 function Workspace(data, view){
 	var self = this;
-	self.id = data['workspace_id'];
+	self.wID = data['workspace_id'];
 	self.name = data['workspace_name'];
 	self.desc = data['description'];
 

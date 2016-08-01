@@ -1,7 +1,5 @@
 
 
-
-
 function UserProfile(data) {
 	var self = this;
 	self.id = ko.observable(data['user_id']);
@@ -40,6 +38,8 @@ function UserProfile(data) {
 									//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
 									//    "data": [2, "alice", "", "", 0, 1]}}
 									console.log(JSON.stringify(data));
+									// Remove all jobs from the list and re-populate
+									self.Jobslist.removeAll();
 									for (var x = 0; x < data.users.data.length; x++){
 										var raw = data.users.data[x];
 										console.log(raw);
@@ -63,6 +63,8 @@ function UserProfile(data) {
 									//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
 									//    "data": [2, "alice", "", "", 0, 1]}}
 									console.log(JSON.stringify(data));
+									// Make sure when we refresh all workspaces in the table are removed
+									self.Workspacelist.removeAll();
 									for (var x = 0; x < data.users.data.length; x++){
 										var raw = data.users.data[x];
 										console.log(raw);
