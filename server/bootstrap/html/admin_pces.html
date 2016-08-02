@@ -25,7 +25,7 @@
                 </button>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
-                <a class="navbar-brand" id="brand" href="start.html">OnRamp</a>
+                <a class="navbar-brand" id="brand">OnRamp</a>
 				<ul class="nav navbar-nav navbar-left">
                     <li class="active"><a href="admin_dashboard.html">Home</a></li>
                     <li><a href="about.html">About</a></li>
@@ -268,45 +268,43 @@
 
   <!-- list of workspaces -->
   <div class="row">
-      <div class="col-lg-6 col-md-7 col-sm-8 col-md-offset-1">
-        <h4>Workspaces (<span data-bind="text: Workspacelist().length"></span>)</h4>
-      </div>
-      <div class="col-lg-3 col-md-2 col-sm-1">
+	<div class="refresh-header">
+    	<h4>Workspaces (<span data-bind="text: Workspacelist().length"></span>)</h4>
+  	</div>
+  	<div class="refresh-button">
         <button class="btn btn-primary" data-bind="click: $parent.refreshWorkspaces">Refresh Workspaces</button>
-      </div>
-      <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
-      <table class="table table-striped">
-        <thead>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Description</th>
-          <th>View/Edit</th>
+	</div>		  
+      
+	<table class="table table-striped">
+	    <thead>
+			<th>ID</th>
+	        <th>Name</th>
+            <th>Description</th>
+            <th>View/Edit</th>
           <!-- <th>Remove</th> -->
         </thead>
         <tbody data-bind="foreach: Workspacelist">
-          <tr>
-            <td data-bind="text: wID"></td>
-            <td data-bind="text: name"></td>
-            <td data-bind="text: desc"></td>
-            <td><a data-bind="click: viewWorkspace">View</a></td>
+            <tr>
+            	<td data-bind="text: wID"></td>
+            	<td data-bind="text: name"></td>
+            	<td data-bind="text: desc"></td>
+            	<td><button class="btn" data-bind="click: viewWorkspace">View Workspace</button></td>
             <!--<td><a data-bind="click: $parent.removeFromWorkspace">Remove</a></td> -->
-          </tr>
+            </tr>
         </tbody>
-      </table>
-    </div>
+	</table>
   </div>
 
   <!-- list of Jobs -->
   <div class="row">
-      <div class="col-lg-6 col-md-7 col-sm-8 col-md-offset-1">
-        <h4>Jobs (<span data-bind="text: Jobslist().length"></span>)</h4>
-      </div>
-      <div class="col-lg-3 col-md-2 col-sm-1">
-        <button class="btn btn-primary" data-bind="click: $parent.refreshJobs">Refresh Jobs</button>
-      </div>
-      <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
-      <table class="table table-striped">
-        <thead>
+	<div class="refresh-header">
+    	<h4>Jobs (<span data-bind="text: Jobslist().length"></span>)</h4>
+  	</div>
+  	<div class="refresh-button">
+		<button class="btn btn-primary" data-bind="click: $parent.refreshJobs">Refresh Jobs</button>
+  	</div>
+	<table class="table table-striped">
+	    <thead>
           <th>ID</th>
           <th>Run Name</th>
           <th>User</th>
@@ -328,29 +326,29 @@
             <td data-bind="text: mod"></td>
             <td data-bind="text: status"></td>
             <td data-bind="text: time"></td>
-            <td><a data-bind="click: viewJob">View</a></td>
+            <td><button class="btn" data-bind="click: viewJob">View Job</button></td>
             <!-- <td><a data-bind="click: $parent.deleteJob">Remove</a></td> -->
           </tr>
         </tbody>
-      </table>
-    </div>
+	</table>
   </div>
 
 
   <!-- list of modules -->
   <!-- Need to add buttons to deploy modules -->
   <div class="row">
-    <div class="col-lg-4 col-md-4 col-sm-6 col-md-offset-1">
-      <h4>Modules (<span data-bind="text: Moduleslist().length"></span>)</h4>
-    </div>
-    <div class="col-lg-3 col-md-2 col-sm-1">
-      <button class="btn btn-primary" data-bind="click: $parent.showNewModuleForm">Add a Module</button>
-    </div>
-    <div class="col-lg-3 col-md-2 col-sm-1">
-      <button class="btn btn-primary" data-bind="click: refreshModules">Refresh Modules</button>
-    </div>
-    <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
-      <table class="table table-striped">
+	<div class="refresh-header">
+  		<h4>Modules (<span data-bind="text: Moduleslist().length"></span>)</h4>
+	</div>
+	<div class="refresh-button">
+  		<button class="btn btn-primary" data-bind="click: $parent.showNewModuleForm">Add a Module</button>
+	</div>
+	<div class="refresh-button">
+  		<button class="btn btn-primary" data-bind="click: refreshModules">Refresh Modules</button>
+	</div>
+	
+  
+    <table class="table table-striped">
         <thead>
           <th>ID</th>
           <th>Name</th>
@@ -371,56 +369,66 @@
             <td><button class="btn" data-bind="click: $parent.deployModule">Deploy</button></td>
           </tr>
         </tbody>
-      </table>
-    </div>
+    </table>
 </div>
 
     <!-- Add a module -->
     <div class="container" data-bind="with: newModule()">
-        <div class="row">
+		<div class="row">
           <h3>Module to add: <span data-bind="text:name"></span></h3>
         </div>
+		<div class="row">
+			 <div class="edit-table-col table-header">
+				 <p>Field</p>
+			 </div>
+			<div class="edit-table-col table-header">
+				 <p>Current Value</p>
+			</div>
+			<div class="edit-table-col table-header">
+				 <p>New Value</p>
+		  	</div>
+		</div>
         <div class="row">
-          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+          <div class="edit-table-col">
               <p>Name</p>
           </div>
-          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+          <div class="edit-table-col">
             <p data-bind="text: name"></p>
           </div>
-          <div class="col-lg-2 col-md-3 col-sm-4">
+          <div class="edit-table-col">
             <input data-bind="value: name"/>
           </div>
         </div>
         <div class="row">
-          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+          <div class="edit-table-col">
               <p>Install Location</p>
           </div>
-          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+          <div class="edit-table-col">
             <p data-bind="text: install_location"></p>
           </div>
-          <div class="col-lg-2 col-md-3 col-sm-4">
+          <div class="edit-table-col">
             <input data-bind="value: install_location"/>
           </div>
         </div>
         <div class="row">
-          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+          <div class="edit-table-col">
               <p>Source Location Type</p>
           </div>
-          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+          <div class="edit-table-col">
             <p data-bind="text: src_location_type"></p>
           </div>
-          <div class="col-lg-2 col-md-3 col-sm-4">
+          <div class="edit-table-col">
             <input data-bind="value: src_location_type"/>
           </div>
         </div>
         <div class="row">
-          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+          <div class="edit-table-col">
               <p>Source Location Path</p>
           </div>
-          <div class="col-lg-2 col-md-3 col-sm-4 col-md-offset-1">
+          <div class="edit-table-col">
             <p data-bind="text: src_location_path"></p>
           </div>
-          <div class="col-lg-2 col-md-3 col-sm-4">
+          <div class="edit-table-col">
             <input data-bind="value: src_location_path"/>
           </div>
         </div>
@@ -438,7 +446,7 @@
 </div>
 <!-- footer -->
 <footer class="footer">
-  <div class="container" class="footer">
+  <div class="footer">
     <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
   </div>
 </footer>

@@ -13,6 +13,7 @@ function PCEMod(data){
 	self.mod_name = ko.observable(data['module_name']);
 }
 
+
 function adminWorkspace(data){
 	var self = this;
 	self.id = ko.observable(data['workspace_id']);
