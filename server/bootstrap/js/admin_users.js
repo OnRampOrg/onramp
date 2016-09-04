@@ -109,14 +109,21 @@ function UserProfile(data) {
 	self.updateServer = function () {
 		// this will push the user info to the server as a new user
 		$.ajax({
-	      type: 'POST',
-	      url: sessionStorage.server + '/admin/user?apikey=' + JSON.parse(this.auth_data).apikey,
-	      //data: JSON.stringify({'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
-		  data: JSON.stringify({'auth': JSON.parse(self.auth_data), 'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
-	      complete: self.complete_func,
-	      dataType: 'application/json',
-	      contentType: 'application/json'
-	  	} );
+	      	type: 'POST',
+	      	url: sessionStorage.server + '/admin/user?apikey=' + JSON.parse(this.auth_data).apikey,     
+			data: JSON.stringify({
+				'auth': JSON.parse(self.auth_data), 
+				'password':this.password(), 
+				'username':this.username(), 
+				'is_admin':this.isAdmin(), 
+				'is_enabled':this.isEnabled(),
+		 		'email':this.email(), 
+				'full_name':this.fullName(), 
+				'user_id':this.id()}),
+	      	complete: self.complete_func,
+	      	dataType: 'application/json',
+	      	contentType: 'application/json'
+	  	});
 	}
 
 	self.removeFromWorkspace = function () {
@@ -126,19 +133,25 @@ function UserProfile(data) {
 	}
 
 	self.removeOnServer = function () {
-		alert("not implemented");
-		/* * not implemented *
-		alert("removing " + self.username() + " from the server.");
+		//alert("not implemented");
+		// For now it just disables the user not deletes them
+		//var remove = confirm("Remove " + self.username() + " from the server?");
 
+		// For now just make request to update user and set is_enabled to false
 		$.ajax({
-	      type: 'DELETE',
-	      url: 'http://flux.cs.uwlax.edu/onramp/api/admin/user' + self.id,
-	      data: JSON.stringify({'password':this.password(), 'username':this.username()}),
-	      complete: self.complete_func,
-	      dataType: 'application/json',
-	      contentType: 'application/json'
+      		type: 'POST',
+      		url: sessionStorage.server + '/admin/user?apikey=' + JSON.parse(this.auth_data).apikey,
+      		data: JSON.stringify({
+				'auth': JSON.parse(self.auth_data),
+				'user_id':this.id(),
+				'is_enabled':false
+			}),
+      		complete: self.complete_func,
+      		dataType: 'application/json',
+      		contentType: 'application/json'
 	  	} );
-	  */
+		this.isEnabled(false);
+	  
 
 	}
 
@@ -167,7 +180,7 @@ function UserProfile(data) {
 
 		self.deleteUser = function () {
 			// tell server to delete this user
-			self.Userslist.remove(this);
+			//self.Userslist.remove(this);
 			if (self.selectedUser() == this) {
 				self.selectedUser(null);
 			}

@@ -224,12 +224,24 @@ class Database_sqlite(onrampdb.Database):
         else:
             return row[0]
 
-    def add_user(self, username, password):
+    def add_user(self, username, **create_data):
         self._logger.debug(self._name + "add_user(" + username + ")")
-
-        sql = "INSERT INTO user (username, password, is_admin) VALUES (?, ?, 0)"
-        args = (username, password)
-
+        sql = "INSERT INTO user "
+        valid_fields = set(["username", "password", "is_admin", "is_enabled", "email", "full_name"])
+        fields = ["username"]
+        args = [username]
+        holders = ["?"]
+        for k, v in create_data.iteritems():
+            if k not in valid_fields:
+                # skip any field specified that is not in the table
+                continue
+            fields.append(k)
+            args.append(v)
+            holders.append("?")
+        sql += "("+",".join(fields)+") VALUES ("+", ".join(holders)+")"
+        #sql = "INSERT INTO user (username, password, is_admin) VALUES (?, ?, 0)"
+        #args = (username, password)
+        
         self._logger.debug(self._name + " " + sql)
         
         self._connect()
@@ -305,6 +317,40 @@ class Database_sqlite(onrampdb.Database):
         self._logger.debug(self._name + "get_user_jobs(" + str(user_id)+")")
         return self._find_jobs_by('user_id', user_id, search_params)
 
+    def edit_user_info(self, user_id, **update_info):
+        self._logger.debug(self._name + " edit_user_info({}, {})".format(str(user_id), str(update_info)))
+             
+        sql = "UPDATE user SET "
+        updates = []
+        args = []
+        if 'full_name' in update_info:
+            updates.append("full_name = ?")
+            args.append(update_info['full_name'])
+        if 'email' in update_info:
+            updates.append("email = ?")
+            args.append(update_info['email'])
+        if 'password' in update_info and update_info['password'] != "**********":
+            updates.append("password = ?")
+            args.append(update_info['password'])
+        if 'is_admin' in update_info:
+            updates.append("is_admin = ?")
+            args.append(1 if update_info['is_admin'] else 0)
+        if 'is_enabled' in update_info:
+            updates.append("is_enabled = ?")
+            args.append(1 if update_info['is_enabled'] else 0)
+        
+        # finish creating the sql statement 
+        sql += ", ".join(updates)
+        sql += " WHERE user_id = ?"
+        args.append(user_id)
+        self._logger.debug(self._name + " " + sql)
+        
+        self._connect()
+        self._cursor.execute(sql, tuple(args) )
+        rowid = self._cursor.lastrowid
+        self._disconnect()
+
+        return rowid
 
     ##########################################################
     def get_workspace_id(self, name):
