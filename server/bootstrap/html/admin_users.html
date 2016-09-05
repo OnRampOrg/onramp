@@ -64,9 +64,11 @@
     <table class="table table-striped">
       <thead >
         <th>ID</th>
+	<th>Username</th>
         <th>Name</th>
         <th>Email</th>
-        <th>Admin?</th>
+        <th>Admin</th>
+	<th>Enabled</th>
         <th>Delete</th>
       </thead>
       <tbody data-bind="foreach: Userslist()">
@@ -74,8 +76,10 @@
           <td data-bind="text: id"></td>
           <td data-bind="text: username"></td>
           <td data-bind="text: fullName"></td>
+          <td data-bind="text: email"></td>
           <td data-bind="text: isAdmin"></td>
-          <td><button class="btn btn-danger" data-bind="click: $parent.deleteUser">Delete</button></td>
+	  <td data-bind="text: isEnabled"></td>
+          <td><button class="btn btn-danger" data-bind="click: $parent.deleteUser">Disable</button></td>
         </tr>
       </tbody>
     </table>
@@ -164,6 +168,12 @@
     </div>
   </div>
 
+  <!-- Save Changes button -->
+  <div class="row">
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <button class="btn" data-bind="click: updateServer">Save Changes</button>
+    </div>
+  </div>
 
   <!-- list of workspaces -->
   <div class="row">
@@ -285,12 +295,7 @@
   </div>
 -->
 
-  <!-- Save Changes button -->
-  <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6">
-      <button class="btn" data-bind="click: updateServer">Save Changes</button>
-    </div>
-  </div>
+  
 </div>
 </div>
 

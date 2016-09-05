@@ -71,6 +71,7 @@ class _ServerResourceBase:
 
         # Define the Database - SQLite
         self.logger.debug("Setup database credentials")
+        
         self._db = onrampdb.DBAccess(self.logger, 'sqlite', {'filename' : os.getcwd() + '/../tmp/onramp_sqlite.db'} )
         if self._db is None:
             self.logger.error("No DB connection present")
@@ -94,10 +95,8 @@ class _ServerResourceBase:
                 }
 
     def _check_user_apikey(self, prefix, apikey):
-        if self._db.check_user_apikey( apikey ) is False:
-            return False
-        return True
-
+        return self._db.check_user_apikey( apikey )
+        
     def _check_auth(self, prefix, auth, req_admin=False, throw_error=True):
         if self._db.check_user_auth( auth, req_admin ) is False:
             if throw_error is True:
@@ -169,7 +168,7 @@ class Users(_ServerResourceBase):
         # Make sure the required fields have been specified
         #
         self.logger.debug(prefix + " Checking authorization")
-        if 'apikey' not in kwargs.keys():
+        if 'apikey' not in kwargs:
             self.logger.debug(prefix + " Authorization Failed: No 'apikey' specified")
             raise cherrypy.HTTPError(401)
         elif self._check_user_apikey(prefix, kwargs['apikey']) is False:
@@ -285,20 +284,20 @@ class Users(_ServerResourceBase):
         rtn = {}
         rtn['status'] = 0
         rtn['status_message'] = 'Success'
-
-        return self._not_implemented(prefix)
+	
+        return rtn
 
         #
         # Make sure the required fields have been specified
         #
-        allowed_search = ["name", "email"]
+        #allowed_search = ["name", "email"]
 
-        for key, value in kwargs.iteritems():
-            if key not in allowed_search:
-                raise cherrypy.HTTPError(400)
-            self.logger.debug("Users.POST(): %s=%s" % (key, value) )
+        #for key, value in kwargs.iteritems():
+        #    if key not in allowed_search:
+        #        raise cherrypy.HTTPError(400)
+        #    self.logger.debug("Users.POST(): %s=%s" % (key, value) )
 
-        return rtn
+        #return rtn
 
 
 ########################################################
@@ -1431,20 +1430,20 @@ class Admin(_ServerResourceBase):
         prefix = '['+type+' /admin/user]'
         rdata = {}
 
+        user_id = data.pop('user_id', None)
         #
         # Adding a new user
         # /admin/user
         #
         if user_id is None:
             self.logger.info(prefix + " Adding \"" + data["username"] + "\"")
-            rdata = self._db.user_add_if_new( data["username"], data["password"] )
+            rdata = self._db.user_add_if_new(data.pop("username", None), **data)
             user_id = rdata['id']
-        #
-        # Note implemented
-        #
+        
         else:
-            raise cherrypy.NotFound()
-
+            self.logger.debug("Updating user: {}".format(user_id))
+            self._db.user_edit_info(user_id, **data)
+            
         self.logger.debug(prefix + ' process_user(%s, %s)' % (type, user_id))
 
         return rdata

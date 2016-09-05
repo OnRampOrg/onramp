@@ -9,12 +9,14 @@ import exceptions
 class Database():
 
     # JJH TODO Need a reverse lookup
+    # CRLK I added a reverse mapping for each, is this sufficient?
 
     pce_states    = { 0 : "Running",
                       1 : "Establishing Connection",
                       2 : "Down",
                       -1 : "Error: Undefined",
                       }
+    pce_states_r = {v:k for k, v in pce_states.iteritems()}
 
     module_states = {  0 : "Not on PCE",
                        1 : "Available on PCE, Not Installed",
@@ -27,6 +29,8 @@ class Database():
                        6 : "Available on PCE, Deployed",
                       -99 : "Error: Undefined",
                       }
+
+    module_states_r = {v:k for k, v in module_states.iteritems()}
 
     job_states = {  0 : "Unknown job id",
                     1 : "Setting up launch",
@@ -42,6 +46,7 @@ class Database():
                     7 : "Done",
                    -99 : "Error: Undefined",
                   }
+    job_states_r = {v:k for k, v in job_states.iteritems()}
 
     def __init__(self, logger, auth):
         self._auth = auth
@@ -111,6 +116,9 @@ class Database():
         raise NotImplemented("Please implement this method")
 
     def get_user_jobs(self, user_id, search_params):
+        raise NotImplemented("Please implement this method")
+
+    def edit_user_info(self, user_id, **update_info):
         raise NotImplemented("Please implement this method")
 
     ##########################################################
@@ -377,7 +385,7 @@ class DBAccess():
         return True
 
     ##########################################
-    def user_add_if_new(self, username, password):
+    def user_add_if_new(self, username, **create_data):
         self._db.connect()
 
         info = {}
@@ -387,7 +395,7 @@ class DBAccess():
             info['exists'] = True
         else:
             info['exists'] = False
-            user_id = self._db.add_user(username, password)
+            user_id = self._db.add_user(username, **create_data)
 
         info['id'] = user_id
 
@@ -408,6 +416,7 @@ class DBAccess():
         self._db.disconnect()
         return user_id
 
+
     ##########################################
     def user_get_info(self, user_id=None):
         self._db.connect()
@@ -420,6 +429,19 @@ class DBAccess():
         user_info = self._db.get_user_info(user_id)
         self._db.disconnect()
         return user_info
+
+    ##########################################
+    def user_edit_info(self, user_id, **data):
+        self._db.connect()
+        
+        if user_id is not None and self._db.is_valid_user_id(user_id) is False:
+            self._logger.error("Invalid User ID ("+str(user_id)+")")
+            self._db.disconnect()
+            return None
+    
+        user = self._db.edit_user_info(user_id, **data)
+        self._db.disconnect()
+        return user
 
     ##########################################
     def user_get_workspaces(self, user_id):
