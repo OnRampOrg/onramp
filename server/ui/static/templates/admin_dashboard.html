@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>OnRamp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Bootstrap -->
+  <link href="/static/third_party/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/css/global_style.css" rel="stylesheet">
+    <script src="/static/javascript/all_global.js"></script>
+</head>
+<body role="document">
+<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+<script src="/static/javascript/third_party/sammy.js"></script>
+<!-- Fixed navbar -->
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="NavContainer">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <a class="navbar-brand" id="brand">OnRamp</a>
+				<ul class="nav navbar-nav navbar-left">
+                    <li class="active"><a href="/public/dashboard">Home</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="/profile">Profile</a></li>
+                    <li><a href="/contact">Contact</a></li>
+                    <li><a href="/help">Help</a></li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li>
+						<button type="button" class="btn btn-default" onclick = logout()>Logout</button>
+					</li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+<br>
+<div class="page">
+<div class="container">
+  <div class="jumbotron">
+    <h1>Admin Dashboard: <span data-bind="text: username"></span></h1>
+  </div>
+</div>
+
+<!-- User info -->
+<div class="container">
+  <div class="row">
+    <h2>User Info</h2>
+    <p>This is a list of all users associated with this OnRamp server instance.</p>
+  </div>
+
+  <div class="row">
+    <button class="btn btn-primary" data-bind="click: manageUsers">Manage Users</button>
+  </div>
+
+  <div class="row">
+	<div class = "table-flow">
+		<table class="table table-striped">
+		  <thead >
+			<th>ID</th>
+			<th>Name</th>
+			<th>Email</th>
+			<th>Admin?</th>
+			<!-- <th>View/Edit</th> -->
+		  </thead>
+		  <tbody data-bind="foreach: Userslist()">
+			<tr>
+			  <td data-bind="text: id"></td>
+			  <td data-bind="text: username"></td>
+			  <td data-bind="text: fullName"></td>
+			  <td data-bind="text: isAdmin"></td>
+			  <!-- <td><a data-bind="click: viewUser">View</a></td> -->
+			</tr>
+		  </tbody>
+		</table>
+	</div>
+  </div>
+</div>
+
+<!-- Job info -->
+<div class="container">
+  <div class="row">
+    <h2>Job Info</h2>
+    <p>This is a list of the most recent jobs started using this OnRamp server instance.</p>
+  </div>
+
+  <div class="row">
+    <button class="btn btn-primary" data-bind="click: manageJobs">Manage Jobs</button>
+  </div>
+
+  <div class="row">
+	  <div class = "table-flow">
+		<table class="table table-striped">
+		  <thead>
+			<th>ID</th>
+			<th>Run Name</th>
+			<th>User</th>
+			<th>Workspace</th>
+			<th>PCE</th>
+			<th>Module</th>
+			<th>Status</th>
+			<th>Runtime</th>
+			<!-- <th>View/Edit</th> -->
+		  </thead>
+		  <tbody data-bind="foreach: Jobslist()">
+			<tr>
+			  <td data-bind="text: jID"></td>
+			  <td data-bind="text: name"></td>
+			  <td data-bind="text: user"></td>
+			  <td data-bind="text: ws"></td>
+			  <td data-bind="text: pce"></td>
+			  <td data-bind="text: mod"></td>
+			  <td data-bind="text: status"></td>
+			  <td data-bind="text: time"></td>
+			  <!-- <td><a data-bind="click: viewJob">View</a></td> -->
+			</tr>
+		  </tbody>
+		</table>
+	</div>
+  </div>
+</div>
+
+<!-- Workspace info -->
+<div class="container">
+  <div class="row">
+    <h2>Workspace Info</h2>
+    <p>This is a list of all of the workspaces associated with this OnRamp server instance.</p>
+  </div>
+
+  <div class="row">
+    <button class="btn btn-primary" data-bind="click: manageWorkspaces">Manage Workspaces</button>
+  </div>
+
+  <div class="row">
+	<div class = "table-flow">
+		<table class="table table-striped">
+		  <thead>
+			<th>ID</th>
+			<th>Name</th>
+			<th>Description</th>
+			<!-- <th>View/Edit</th> -->
+		  </thead>
+		  <tbody data-bind="foreach: Workspacelist()">
+			<tr>
+			  <td data-bind="text: wID"></td>
+			  <td data-bind="text: name"></td>
+			  <td data-bind="text: desc"></td>
+			  <!-- <td><a data-bind="click: viewWorkspace">View</a></td> -->
+			</tr>
+		  </tbody>
+		</table>
+	</div>
+  </div>
+</div>
+
+<!-- PCE info -->
+<div class="container">
+  <div class="row">
+    <h2>PCE Info</h2>
+    <p>This is a list of all of the PCEs associated with this OnRamp server instance.</p>
+  </div>
+
+  <div class="row">
+    <button class="btn btn-primary" data-bind="click: managePCEs">Manage PCEs</button>
+  </div>
+
+  <div class="row">
+	<div class = "table-flow">
+		<table class="table table-striped">
+		  <thead>
+			<th>ID</th>
+			<th>Name</th>
+			<th>Status</th>
+			<th>Description</th>
+			<!--<th>Nodes</th>-->
+			<!--<th>Cores per node</th>-->
+			<!--<th>Mem per node</th>-->
+			<th>Location</th>
+			<!-- <td>View/Edit</td> -->
+		  </thead>
+		  <tbody data-bind="foreach: PCEslist()">
+			<tr>
+			  <td data-bind="text: id"></td>
+			  <td data-bind="text: name"></td>
+			  <td data-bind="text: status"></td>
+			  <td data-bind="text: description"></td>
+			  <!--<td data-bind="text: nodes"></td>-->
+			  <!--<td data-bind="text: corespernode"></td>-->
+			  <!--<td data-bind="text: mempernode"></td>-->
+			  <td data-bind="text: location"></td>
+			  <!-- <td><a data-bind="click: viewPCE">View</a></td> -->
+			</tr>
+		  </tbody>
+		</table>
+	</div>
+  </div>
+</div>
+
+<!-- Module info -->
+<div class="container">
+  <div class="row">
+    <h2>Module Info</h2>
+    <p>This is a list of all of the modules associated with this OnRamp server instance.</p>
+  </div>
+
+  <div class="row">
+    <button class="btn btn-primary" data-bind="click: manageModules">Manage Modules</button>
+  </div>
+
+  <div class="row">
+	<div class = "table-flow">
+		<table class="table table-striped">
+		  <thead>
+			<th>ID</th>
+			<th>Name</th>
+			<th>Description</th>
+			<!-- <th>View/Edit</th> -->
+		  </thead>
+		  <tbody data-bind="foreach: Moduleslist()">
+			<tr>
+			  <td data-bind="text: id"></td>
+			  <td data-bind="text: name"></td>
+			  <td data-bind="text: desc"></td>
+			  <!-- <td><a data-bind="click: viewModule">View</a></td> -->
+			</tr>
+		  </tbody>
+		</table>
+	</div>
+  </div>
+</div>
+</div>
+
+<!-- footer -->
+<footer class="footer">
+  <div class="footer">
+    <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
+  </div>
+</footer>
+
+<!-- put all scripty scripts below this line -->
+<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+<script src="/static/javascript/third_party/bootstrap.min.js"></script>
+<script src="/static/javascript/third_party/knockout-3.3.0.js"></script>
+<script src="/static/javascript/admin_dashboard.js"></script>
+</body>
+</html>

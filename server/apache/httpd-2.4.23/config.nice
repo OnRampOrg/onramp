@@ -1,0 +1,37 @@
+#! /bin/sh
+#
+# Created by configure
+
+"./configure" \
+"--prefix=/root/onramp/server/webserver" \
+"--enable-nonportable-atomics=yes" \
+"--with-mpm=worker" \
+"--enable-core=static" \
+"--enable-unixd=static" \
+"--enable-ssl=static" \
+"--enable-socache_shmcb=static" \
+"--enable-authz_core=static" \
+"--enable-allowmethods=static" \
+"--enable-headers=static" \
+"--enable-expires=static" \
+"--enable-alias=static" \
+"--enable-rewrite=static" \
+"--enable-filter=static" \
+"--enable-deflate=static" \
+"--enable-cache=static" \
+"--enable-log_config=static" \
+"--enable-mime=static" \
+"--enable-env=static" \
+"--disable-authn_core" \
+"--disable-authn_file" \
+"--disable-authz_host" \
+"--disable-authz_groupfile" \
+"--disable-authz_user" \
+"--disable-access_compat" \
+"--disable-mime_magic" \
+"--disable-auth_basic" \
+"--disable-setenvif" \
+"--disable-version" \
+"--disable-autoindex" \
+"--disable-dir" \
+"$@"
