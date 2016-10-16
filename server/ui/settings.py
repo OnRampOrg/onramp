@@ -55,7 +55,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            '/OnRamp/ui/static/templates/'
+            '{}/ui/static/templates/'.format(BASE_DIR)
         ],
         'APP_DIRS': True,
         'OPTIONS': {
