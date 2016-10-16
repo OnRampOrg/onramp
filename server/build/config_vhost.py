@@ -73,7 +73,7 @@ def main(onramp_dir, apache_dir, port):
     print "Please restart apache to complete configuration.\n"
 
 if __name__ == '__main__':
-    onramp_dir = raw_input("\nPlease enter in the full path to the OnRamp directory: ")
+    onramp_dir = raw_input("\nPlease enter in the full path to the OnRamp server directory: ")
     if not onramp_dir.startswith("/") and not os.path.isdir(onramp_dir):
         print "Please enter in a valid path!"
         sys.exit(1)
