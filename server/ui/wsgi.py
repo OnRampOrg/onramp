@@ -11,9 +11,9 @@ import os
 import sys
 from django.core.wsgi import get_wsgi_application
 
-sys.path.append("/root/onramp/server")
-sys.path.append("/root/onramp/server/ui")
-sys.path.append("/root/onramp/server/virtual-env/lib/python2.7/site-packages")
+sys.path.append("/OnRamp")
+sys.path.append("/OnRamp/ui")
+sys.path.append("/OnRamp/virtual-env/lib/python2.7/site-packages")
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ui.settings")
 

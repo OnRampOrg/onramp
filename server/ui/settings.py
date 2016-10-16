@@ -55,7 +55,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            '/root/onramp/server/ui/static/templates/'
+            '/OnRamp/ui/static/templates/'
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -77,8 +77,12 @@ WSGI_APPLICATION = 'ui.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'django',
+        'USER': 'onramp',
+        'PASSWORD': 'OnRamp_16',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
