@@ -230,9 +230,16 @@ class Installer(object):
         fh = open("{}/build/config/httpd.conf".format(self.base_dir), 'r')
         httpd_conf = fh.read().strip()
         fh.close()
-
         fh = open("{}/webserver/conf/httpd.conf".format(self.base_dir), 'w')
         fh.write(httpd_conf.replace("ONRAMP", "{}/webserver".format(self.base_dir)))
+        fh.close()
+
+        print "Configuring httpd-vhosts.conf..."
+        fh = open("{}/build/config/httpd-vhosts.conf".format(self.base_dir), 'r')
+        httpd_vhost = fh.read().strip()
+        fh.close()
+        fh = open("{}/webserver/conf/extra/httpd-vhosts.conf".format(self.base_dir), 'w')
+        fh.write(httpd_vhost.replace("ONRAMP", self.base_dir))
         fh.close()
 
         print "Apache installed successfully!\n"
@@ -377,7 +384,6 @@ class Installer(object):
             phase['func']()
             sleep(2)
         print "INSTALLATION COMPLETE\n"
-        print "Run the config_vhost.py script to finish setting up OnRamp\n"
 
 if __name__ == '__main__':
     parser = ArgumentParser("Tool to build and install OnRamp webserver and interface.")
