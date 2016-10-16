@@ -9,11 +9,12 @@ https://docs.djangoproject.com/en/1.10/howto/deployment/wsgi/
 
 import os
 import sys
-from django.core.wsgi import get_wsgi_application
 
-sys.path.append("/OnRamp")
-sys.path.append("/OnRamp/ui")
-sys.path.append("/OnRamp/virtual-env/lib/python2.7/site-packages")
+base_dir = "/".join(os.getcwd().split("/")[0:-1])
+sys.path.append(base_dir)
+sys.path.append("{}/virtual-env/lib/python2.7/site-packages".format(base_dir))
+
+from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ui.settings")
 
