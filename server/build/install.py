@@ -337,15 +337,9 @@ class Installer(object):
     def run(self):
         self.check_perms()
         print "\nSTARTING INSTALLATION\n"
-        sleep(2)
-        self.install_dependencies()
-        sleep(2)
-        self.install_apache()
-        sleep(2)
-        self.install_wsgi()
-        sleep(2)
-        self.install_mysql()
-        sleep(2)
+        for phase in self.phases:
+            phase['func']()
+            sleep(2)
         print "INSTALLATION COMPLETE\n"
         print "Run the config_vhost.py script to finish setting up OnRamp\n"
 
