@@ -30,31 +30,26 @@ function AdminDashboardViewModel() {
 	self.PCEslist = ko.observableArray();
 	self.Moduleslist = ko.observableArray();
 
-
-	//this.Jobslist.add(new Job({'JobID' : 2, 'Workspace' : 'default', 'PCE' : 'flux', 'Module' : 'Hello World', 'RunName' : 'test1', 'Status' : 'Running', 'Runtime' : '0:00'}));
-	//this.Workspacelist.add(new Workspace({'WorkspaceID': 1, 'WorkspaceName': 'default', 'Description':'My personal workspace'}));
-	//this.Workspacelist.add(new Workspace({'WorkspaceID': 2, 'WorkspaceName': 'test', 'Description':'testing workspace'}));
-
 	self.welcome =   "Admin Panel: " + self.username();
 
 	self.manageUsers = function () {
-		window.location.href = "admin_users.html";
+		window.location.href = "../Users";
 	};
 
 	self.manageJobs = function () {
-		window.location.href = "admin_jobs.html";
+		window.location.href = "../Jobs";
 	};
 
 	self.manageWorkspaces = function () {
-		window.location.href = "admin_workspaces.html";
+		window.location.href = "../Workspaces";
 	};
 
 	self.managePCEs = function () {
-		window.location.href = "admin_pces.html";
+		window.location.href = "../PCEs";
 	};
 
 	self.manageModules = function () {
-		window.location.href = "admin_modules.html";
+		window.location.href = "../Modules";
 	};
 
 	$(document).ready( function () {
@@ -65,137 +60,79 @@ function AdminDashboardViewModel() {
 		self.PCEslist([]);
 		self.Moduleslist([]);
 
-		console.log("server is: " + sessionStorage["server"]);
+        // Get users and populate the table
+        $.ajax({
+            url:'/admin/Dashboard/GetUsers/',
+            type:'GET',
+            dataType: 'json',
+            success: function(data) {
+                // loop over the users in the response and push them to the array
+                for (var x = 0; x < data.users.length; x++){
+                    var user_data = data.users[x];
+                    self.Userslist.push(new UserProfile(user_data));
+                }
+            }
+        })
 
-		// get data from server
-		$.getJSON( sessionStorage["server"] + "/users/" + self.userID + "?apikey=" + JSON.parse(self.auth_data).apikey,
-					function (data){
-					// {"status": 0,
-					//  "status_message": "Success",
-					//  "users": {
-					//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-					//    "data": [2, "alice", "", "", 0, 1]}}
-					console.log(data);
-					self.username(data.users.data[1]);
-					sessionStorage['UserName'] = self.username();
-				}
-		);
+        // Get jobs and populate the table
+        $.ajax({
+            url:'/admin/Dashboard/GetJobs/',
+            type:'GET',
+            dataType: 'json',
+            success: function(data) {
+                // loop over the users in the response and push them to the array
+                for (var x = 0; x < data.jobs.length; x++){
+                    var job_data = data.jobs[x];
+                    self.Jobslist.push(new Job(job_data, true, false));
+                }
+            }
+        })
 
-		$.getJSON(  sessionStorage["server"] + "users?apikey=" + JSON.parse(self.auth_data).apikey,
-					//self.auth_data,
-					function (data){
-					// {"status": 0,
-					//  "status_message": "Success",
-					//  "users": {
-					//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-					//    "data": [2, "alice", "", "", 0, 1]}}
-						console.log(JSON.stringify(data));
-						for (var x = 0; x < data.users.data.length; x++){
-							var raw = data.users.data[x];
-							console.log(raw);
-							var conv_data = {};
-							for(var i = 0; i < data.users.fields.length; i++){
-								console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
-								conv_data[data.users.fields[i]] = raw[i];
-							}
-							self.Userslist.push(new UserProfile(conv_data));
-						}
-					}
-		);
+        // Get workspaces and populate the table
+        $.ajax({
+            url:'/admin/Dashboard/GetWorkspaces/',
+            type:'GET',
+            dataType: 'json',
+            success: function(data) {
+                // loop over the workspaces in the response and push them to the array
+                for (var x = 0; x < data.workspaces.length; x++){
+                    var workspace_data = data.workspaces[x];
+                    self.Workspacelist.push(new Workspace(workspace_data, true));
+                }
+            }
+        })
 
-
-		$.getJSON(  sessionStorage["server"] + "jobs?apikey=" + JSON.parse(self.auth_data).apikey,
-								//self.auth_data,
-								function (data){
-									// {"status": 0,
-									//  "status_message": "Success",
-									//  "users": {
-									//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-									//    "data": [2, "alice", "", "", 0, 1]}}
-									console.log(JSON.stringify(data));
-									for (var x = 0; x < data.jobs.data.length; x++){
-										var raw = data.jobs.data[x];
-										console.log(raw);
-										var conv_data = {};
-										for(var i = 0; i < data.jobs.fields.length; i++){
-											console.log("adding: " + data.jobs.fields[i] + " = " + raw[i]);
-											conv_data[data.jobs.fields[i]] = raw[i];
-										}
-										self.Jobslist.push(new Job(conv_data, true, false));
-									}
-								}
-							);
-
-		// get workspaces for this user
-		$.getJSON(  sessionStorage["server"] + "workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
-								//self.auth_data,
-								function (data){
-									// {"status": 0,
-									//  "status_message": "Success",
-									//  "users": {
-									//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-									//    "data": [2, "alice", "", "", 0, 1]}}
-									console.log(JSON.stringify(data));
-									for (var x = 0; x < data.workspaces.data.length; x++){
-										var raw = data.workspaces.data[x];
-										console.log(raw);
-										var conv_data = {};
-										for(var i = 0; i < data.workspaces.fields.length; i++){
-											console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
-											conv_data[data.workspaces.fields[i]] = raw[i];
-										}
-										self.Workspacelist.push(new Workspace(conv_data, true));
-									}
-								}
-							);
-
-		$.getJSON(  sessionStorage["server"] + "pces?apikey=" + JSON.parse(self.auth_data).apikey,
-								//self.auth_data,
-								function (data){
-									// {"status": 0,
-									//  "status_message": "Success",
-									//  "users": {
-									//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-									//    "data": [2, "alice", "", "", 0, 1]}}
-									console.log(JSON.stringify(data));
-									for (var x = 0; x < data.pces.data.length; x++){
-										var raw = data.pces.data[x];
-										console.log(raw);
-										var conv_data = {};
-										for(var i = 0; i < data.pces.fields.length; i++){
-											console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
-											conv_data[data.pces.fields[i]] = raw[i];
-										}
-										self.PCEslist.push(new PCE(conv_data, true));
-									}
-								}
-							);
-
-		$.getJSON( sessionStorage["server"] + "modules?apikey=" + JSON.parse(self.auth_data).apikey,
-								//self.auth_data,
-								function (data){
-									// {"status": 0,
-									//  "status_message": "Success",
-									//  "users": {
-									//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-									//    "data": [2, "alice", "", "", 0, 1]}}
-									console.log(JSON.stringify(data));
-									for (var x = 0; x < data.modules.data.length; x++){
-										var raw = data.modules.data[x];
-										console.log(raw);
-										var conv_data = {};
-										for(var i = 0; i < data.modules.fields.length; i++){
-											console.log("adding: " + data.modules.fields[i] + " = " + raw[i]);
-											conv_data[data.modules.fields[i]] = raw[i];
-										}
-										self.Moduleslist.push(new Module(conv_data, true));
-									}
-								}
-							);
-		});
+        // Get PCE's and populate the table
+        $.ajax({
+            url:'/admin/Dashboard/GetPces/',
+            type:'GET',
+            dataType: 'json',
+            success: function(data) {
+                // loop over the workspaces in the response and push them to the array
+                for (var x = 0; x < data.pces.length; x++){
+                    var pce_data = data.pces[x];
+                    self.PCEslist.push(new PCE(pce_data, true));
+                }
+            }
+        })
 
 
-	}
+		// Get modules and populate the table
+        $.ajax({
+            url:'/admin/Dashboard/GetModules/',
+            type:'GET',
+            dataType: 'json',
+            success: function(data) {
+                // loop over the workspaces in the response and push them to the array
+                for (var x = 0; x < data.modules.length; x++){
+                    var module_data = data.modules[x];
+                    self.Moduleslist.push(new Module(module_data, true));
+                }
+            }
+        })
 
-	// Activates knockout.js
-	ko.applyBindings(new AdminDashboardViewModel());
+    });
+}
+
+// Activates knockout.js
+ko.applyBindings(new AdminDashboardViewModel());

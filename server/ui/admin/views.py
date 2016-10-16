@@ -1,26 +1,18 @@
+import django
+django.setup()
 import json
 
+
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 
 from django.template import Context
 from django.template.loader import get_template
 
-def main(request):
-    return HttpResponse()
 
-# TODO wrapper
-def dashboard_page(request):
-    """ Renders the main Admin dashboard on login
 
-        URL: /admin/dashboard
 
-    :param request:
-    :return:
-    """
-    context = Context({})
-    template = get_template('admin_dashboard.html')
-    return HttpResponse(template.render(context))
 
 #============================== /admin/users/* ===============================#
 
@@ -37,24 +29,7 @@ def users_page(request):
     template = get_template('admin_users.html')
     return HttpResponse(template.render(context))
 
-def get_all_users(request):
-    """ Retrieves all OnRamp users
 
-        URL: /admin/users/GetAll
-
-    :param request:
-    :return:
-    """
-    users = User.objects.all().values('id', 'username', 'email', 'is_admin')
-    data = []
-    for user in users:
-        data.append({
-            'user_id':user.id,
-            'username':user.username,
-            'email':user.email,
-            'is_admin':user.is_admin
-        })
-    return HttpResponse(json.dumps(data))
 
 def get_user(request):
     """ Gets all attributes for a specific user

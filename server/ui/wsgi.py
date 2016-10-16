@@ -16,6 +16,6 @@ sys.path.append("{}/virtual-env/lib/python2.7/site-packages".format(base_dir))
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ui.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 
 application = get_wsgi_application()

@@ -15,14 +15,15 @@ Including another URLconf
 """
 
 from django.conf.urls import url, include
-from ui import views
+import views
 
 urlpatterns = [
-    url(r'^public/', include('public.urls')),
-    url(r'^admin/', include('admin.urls')),
+    url(r'^public/', include('ui.public.urls')),
+    url(r'^admin/', include('ui.admin.urls')),
     url(r'^about/', views.about_page),
     url(r'^profile/', views.profile_page),
     url(r'^contact/', views.contact_page),
     url(r'^help/', views.help_page),
+    url(r'^login/', views.onramp_login),
     url(r'^$', views.login_page)
 ]

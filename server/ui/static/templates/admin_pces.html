@@ -5,13 +5,11 @@
   <title>OnRamp</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Bootstrap -->
-  <link href="../css/bootstrap.min.css" rel="stylesheet">
-  <link href="../css/global_style.css" rel="stylesheet">
-  <script src="../js/all_global.js"></script>
+    <link href="/static/css/third_party/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/global_style.css" rel="stylesheet">
 </head>
 <body role="document">
-<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-<script src="../js/sammy.js"></script>
+
 <!-- Fixed navbar -->
 
 <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -452,9 +450,11 @@
 </footer>
 
 <!-- put all scripty scripts below this line -->
+<!-- Order Matters here JQuery needs to be first then all_global.js -->
 <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-<script src="../js/bootstrap.min.js"></script>
-<script src="../js/knockout-3.3.0.js"></script>
-<script src="../js/admin_pces.js"></script>
+<script src="/static/javascript/all_global.js"></script>
+<script src="/static/javascript/third_party/bootstrap.min.js"></script>
+<script src="/static/javascript/third_party/knockout-3.3.0.js"></script>
+<script src="/static/javascript/admin_pces.js"></script>
 </body>
 </html>

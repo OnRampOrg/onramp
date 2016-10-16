@@ -1,3 +1,4 @@
+
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -27,13 +28,14 @@ class module(models.Model):
 
 class job(models.Model):
     job_id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(User) #TODO not sure
+    user_id = models.ForeignKey(User)
     workspace_id = models.ForeignKey(workspace)
     pce_id = models.ForeignKey(pce)
     module_id = models.ForeignKey(module)
     job_name = models.TextField()
     state = models.IntegerField(default=0)
     output_file = models.TextField(default='') # TODO FileField or FilePathField?
+    # TODO run_parameters, files, runtime
 
 class user_to_workspace(models.Model):
     uw_pair_id = models.AutoField(primary_key=True)
@@ -56,7 +58,7 @@ class module_to_pce(models.Model):
     class Meta:
         unique_together = ('pce_id', 'module_id')
 
-class worksapce_to_pce_module(models.Model):
+class workspace_to_pce_module(models.Model):
     wpm_pair_id = models.AutoField(primary_key=True)
     workspace_id = models.ForeignKey(workspace)
     pm_pair_id = models.ForeignKey(module_to_pce)

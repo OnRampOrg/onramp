@@ -41,9 +41,10 @@ function AdminJobsViewModel() {
 	self.Jobslist = ko.observableArray();
 
 	self.deleteJob = function () {
-		// tell server to delete this user
+		// tell server to delete this job
+		// TODO this isn't implemented
 		self.Jobslist.remove(this);
-		this.removeOnServer();
+//		this.removeOnServer();
 	}
 
 
@@ -52,28 +53,39 @@ function AdminJobsViewModel() {
 		self.Jobslist.removeAll();
 
 		// get data from server
-		// get jobs for this user
-		$.getJSON( sessionStorage.server + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
-								//self.auth_data,
-								function (data){
-									// {"status": 0,
-									//  "status_message": "Success",
-									//  "users": {
-									//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-									//    "data": [2, "alice", "", "", 0, 1]}}
-									console.log(JSON.stringify(data));
-									for (var x = 0; x < data.jobs.data.length; x++){
-										var raw = data.jobs.data[x];
-										console.log(raw);
-										var conv_data = {};
-										for(var i = 0; i < data.jobs.fields.length; i++){
-											console.log("adding: " + data.jobs.fields[i] + " = " + raw[i]);
-											conv_data[data.jobs.fields[i]] = raw[i];
-										}
-										self.Jobslist.push(new myJob(conv_data));
-									}
-								}
-							);
+		$.ajax({
+		    url:'/admin/Jobs/All',
+		    type:'GET',
+		    dataType:'json',
+		    success: function(response) {
+		        for (var x = 0; x < response.jobs; x++){
+                    var job_data = response.jobs[x];
+                    self.Jobslist.push(new myJob(job_data));
+                }
+		    }
+		})
+
+//		$.getJSON( sessionStorage.server + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+//								//self.auth_data,
+//								function (data){
+//									// {"status": 0,
+//									//  "status_message": "Success",
+//									//  "users": {
+//									//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+//									//    "data": [2, "alice", "", "", 0, 1]}}
+//									console.log(JSON.stringify(data));
+//									for (var x = 0; x < data.jobs.data.length; x++){
+//										var raw = data.jobs.data[x];
+//										console.log(raw);
+//										var conv_data = {};
+//										for(var i = 0; i < data.jobs.fields.length; i++){
+//											console.log("adding: " + data.jobs.fields[i] + " = " + raw[i]);
+//											conv_data[data.jobs.fields[i]] = raw[i];
+//										}
+//										self.Jobslist.push(new myJob(conv_data));
+//									}
+//								}
+//							);
 
 	});
 

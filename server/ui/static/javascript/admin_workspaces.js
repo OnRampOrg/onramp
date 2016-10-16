@@ -66,105 +66,84 @@ function adminWorkspace(data){
 
 	self.refreshJobs = function () {
 		self.Jobslist.removeAll();
-		$.getJSON( sessionStorage.server + "/workspaces/" + self.id() + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
-			//self.auth_data,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-				console.log(JSON.stringify(data));
-				for (var x = 0; x < data.workspaces.data.length; x++){
-					var raw = data.workspaces.data[x];
-					console.log(raw);
-					var conv_data = {};
-					for(var i = 0; i < data.workspaces.fields.length; i++){
-						console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
-						conv_data[data.workspaces.fields[i]] = raw[i];
-					}
-					self.Jobslist.push(new Job(conv_data, true, false));
+
+		$.ajax({
+		    url: '/admin/Workspaces/Jobs',
+		    type:'POST',
+		    dataType: 'json',
+		    data: {'workspace_id':self.id()},
+		    success: function (data) {
+		        for (var x = 0; x < data.jobs.length; x++){
+					var job_data = data.jobs[x];
+					self.Jobslist.push(new Job(job_data, true, false));
 				}
 			}
-		);
+		})
+
+
 	};
 
 	// refresh PCEs
 	self.refreshPCEModPairs = function () {
 		self.PCEModlist.removeAll();
-		$.getJSON( sessionStorage.server + "/workspaces/" + self.id() + "/pcemodulepairs?apikey=" + JSON.parse(self.auth_data).apikey,
-			//self.auth_data,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-				console.log(JSON.stringify(data));
-				for (var x = 0; x < data.workspaces.data.length; x++){
-					var raw = data.workspaces.data[x];
-					console.log(raw);
-					var conv_data = {};
-					for(var i = 0; i < data.workspaces.fields.length; i++){
-						console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
-						conv_data[data.workspaces.fields[i]] = raw[i];
-					}
-					self.PCEModlist.push(new PCEMod(conv_data));
+
+		$.ajax({
+		    url: '/admin/Workspaces/PCEs',
+		    type:'POST',
+		    dataType:'json',
+		    success: function(data) {
+		        for (var x = 0; x < data.pces.length; x++){
+					var pce_data = data.pces[x];
+					self.PCEModlist.push(new PCEMod(pce_data));
 				}
-			}
-		);
+		    }
+		})
 	};
 
 	// users
 	self.refreshUsers = function () {
 		self.Userslist.removeAll();
-		$.getJSON( sessionStorage.server + "/workspaces/" + self.id() + "/users?apikey=" + JSON.parse(self.auth_data).apikey,
-			//self.auth_data,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-				console.log(JSON.stringify(data));
-				for (var x = 0; x < data.workspaces.data.length; x++){
-					var raw = data.workspaces.data[x];
-					console.log(raw);
-					var conv_data = {};
-					for(var i = 0; i < data.workspaces.fields.length; i++){
-						console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
-						conv_data[data.workspaces.fields[i]] = raw[i];
-					}
-					self.Userslist.push(new UserProfile(conv_data));
+
+		$.ajax({
+		    url: '/admin/Workspaces/Users',
+		    type:'POST',
+		    dataType:'json',
+		    data: {'workspace_id':self.id()},
+		    success: function(data) {
+		        for (var x = 0; x < data.users.length; x++){
+					var user_data = data.users[x];
+					self.Userslist.push(new UserProfile(user_data));
 				}
-			}
-		);
+		    }
+ 		})
+
+
 	};
 
 	self.addPCEModPair = function () {
 		// this will push the user info to the server as a new user
 		$.ajax({
-	      type: 'POST',
-	      url: sessionStorage.server + '/admin/workspace/' + self.id() + '/pcemodulepairs/' + self.new_pce_id() + '/' + self.new_mod_id() + '?apikey=' + JSON.parse(this.auth_data).apikey,
-	      //data: JSON.stringify({'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
-		  data: JSON.stringify({'auth': JSON.parse(self.auth_data)}),
-	      complete: self.complete_func,
-	      dataType: 'application/json',
-	      contentType: 'application/json'
+	        type: 'POST',
+	        url: '/admin/Workspaces/AddPceModPair',
+		    data: {'module_id':self.new_mod_id(), 'pce_id':self.new_pce_id(), 'workspace_id':self.id()},
+	        dataType: 'application/json',
+	        success: function(response) {
+
+	        }
 	  	} );
 	};
 
 	// creates a workspace
 	self.createWorkspace = function () {
 		$.ajax({
-	      type: 'POST',
-	      url: sessionStorage.server + '/admin/workspace?apikey=' + JSON.parse(self.auth_data).apikey,
-	      //data: JSON.stringify({'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
-		  data: JSON.stringify({'auth': JSON.parse(self.auth_data), 'name':self.name()}),
-	      complete: self.complete_func,
-	      dataType: 'application/json',
-	      contentType: 'application/json'
-	  	} );
+            type: 'POST',
+            url: '/admin/Workspaces/Create',
+            data: {'name':self.name()},
+            dataType: 'application/json',
+            success: function(response) {
+
+            }
+	  	});
 	};
 
 	self.addUser = function () {
@@ -453,8 +432,6 @@ function PCE (data) {
 	};
 }
 
-
-
 function Module(data){
 	var self = this;
 	self.id = ko.observable(data['module_id']);
@@ -500,7 +477,7 @@ function UserProfile(data) {
 
 	self.viewUser = function () {
 		// go to manage users page and start with this user
-		window.location.href = "admin_users.html";
+		window.location.href = "/admin/Users";
 	};
 
 	self.editUser = function () {
@@ -599,35 +576,21 @@ function UserProfile(data) {
 
 	self.removeOnServer = function () {
 		alert("not implemented");
-		/* * not implemented *
-		alert("removing " + self.username() + " from the server.");
-
-		$.ajax({
-	      type: 'DELETE',
-	      url: 'http://flux.cs.uwlax.edu/onramp/api/admin/user' + self.id,
-	      data: JSON.stringify({'password':this.password(), 'username':this.username()}),
-	      complete: self.complete_func,
-	      dataType: 'application/json',
-	      contentType: 'application/json'
-	  	} );
-	  */
-
 	}
 
 }
+
 function AdminWorkspaceViewModel() {
 		var self = this;
 		self.username = sessionStorage['UserID'];
 		self.userID = sessionStorage['UserID'];
 		self.auth_data = sessionStorage['auth_data'];
-		self.new_name = ko.observable('123');
+		self.new_name = ko.observable('');
 
 		self.selectedWorkspace = ko.observable();
 		self.newWorkspace = ko.observable();
 		self.Workspacelist = ko.observableArray();
 		self.AllUsers = ko.observableArray();
-
-
 
 		self.changeWorkspace = function () {
 			self.selectedWorkspace(null);
@@ -649,121 +612,48 @@ function AdminWorkspaceViewModel() {
 			this.removeOnServer();
 		};
 
-		self.complete_func = function (data){
-		  //console.log(JSON.stringify(data));
-		  //console.log(data.responseText);
-		  //console.log(data["responseText"]);
-		  console.log(data.status + 5);
-		  if(data.status == 200){
-			  //self.id(data.pce.id);
-			  //self.status(data.pce.state);
-			  alert("Success!");
-		  }
-		  else if(data.status == 401){
-			alert("Incorrect login info.  Please try again, or contact the admin to create or reset your account.");
-		  }
-		  else {
-			alert("Something went wrong with the sending or receiving of the ajax call.  Status code: " + data.status);
-		  }
-
-		};
 
 		self.addWorkspace = function () {
 			// need to get user ID from the server, maybe not until data is populated?
-			console.log(self.new_name());
 			$.ajax({
-			  type: 'POST',
-			  url: sessionStorage.server + '/admin/workspace?apikey=' + JSON.parse(self.auth_data).apikey,
-			  //data: JSON.stringify({'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
-			  data: JSON.stringify({'name': self.new_name(), 'auth': JSON.parse(this.auth_data)}),
-			  complete: self.complete_func,
-			  dataType: 'application/json',
-			  contentType: 'application/json'
-			} );
+                type: 'POST',
+			    url: '/admin/Workspaces/Add',
+			    data: {'name': self.new_name()},
+			    dataType: 'json',
+			    success: function (response) {
+			        if (response.status == 1) {
+			            self.Workspacelist.push(new adminWorkspace(response.workspace))
+			        }
+
+			    }
+			});
 		};
-			//self.Workspacelist.push(newWorkspace);
-			//self.selectedWorkspace(newWorkspace);
 
 		self.refreshWorkspaces = function () {
 			self.Workspacelist.removeAll();
 
-			$.getJSON( sessionStorage.server + "/workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
-						//self.auth_data,
-						function (data){
-						// {"status": 0,
-						//  "status_message": "Success",
-						//  "users": {
-						//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-						//    "data": [2, "alice", "", "", 0, 1]}}
-							console.log(JSON.stringify(data));
-							for (var x = 0; x < data.workspaces.data.length; x++){
-								var raw = data.workspaces.data[x];
-								console.log(raw);
-								var conv_data = {};
-								for(var i = 0; i < data.workspaces.fields.length; i++){
-									console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
-									conv_data[data.workspaces.fields[i]] = raw[i];
-								}
-								self.Workspacelist.push(new adminWorkspace(conv_data));
-							}
-						}
-			);
+            $.ajax({
+                url: '/admin/Workspaces/All',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    for (var x = 0; x < data.workspaces.length; x++){
+                        var ws_data = data.workspaces[x];
+                        self.Workspacelist.push(new adminWorkspace(ws_data));
+                    }
+                }
+            })
+
 
 		};
 
 		$(document).ready( function () {
 			// reinitialize values
-			self.Workspacelist.removeAll();
-
-			// get data from server
-			// some hard coded data for now...
-			$.getJSON( sessionStorage.server + "/workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
-						//self.auth_data,
-						function (data){
-						// {"status": 0,
-						//  "status_message": "Success",
-						//  "users": {
-						//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-						//    "data": [2, "alice", "", "", 0, 1]}}
-							console.log(JSON.stringify(data));
-							for (var x = 0; x < data.workspaces.data.length; x++){
-								var raw = data.workspaces.data[x];
-								console.log(raw);
-								var conv_data = {};
-								for(var i = 0; i < data.workspaces.fields.length; i++){
-									console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
-									conv_data[data.workspaces.fields[i]] = raw[i];
-								}
-								self.Workspacelist.push(new adminWorkspace(conv_data));
-							}
-						}
-			);
-
-			$.getJSON( sessionStorage.server + "/users?apikey=" + JSON.parse(self.auth_data).apikey,
-						//self.auth_data,
-						function (data){
-						// {"status": 0,
-						//  "status_message": "Success",
-						//  "users": {
-						//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-						//    "data": [2, "alice", "", "", 0, 1]}}
-							console.log(JSON.stringify(data));
-							for (var x = 0; x < data.users.data.length; x++){
-								var raw = data.users.data[x];
-								console.log(raw);
-								var conv_data = {};
-								for(var i = 0; i < data.users.fields.length; i++){
-									console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
-									conv_data[data.users.fields[i]] = raw[i];
-								}
-								self.AllUsers.push(new UserProfile(conv_data));
-							}
-						}
-			);
+			self.refreshWorkspaces();
 		});
 
 
-	}
+}
 
-	// Activates knockout.js
-	ko.applyBindings(new AdminWorkspaceViewModel());
+// Activates knockout.js
+ko.applyBindings(new AdminWorkspaceViewModel());

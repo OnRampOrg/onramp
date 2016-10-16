@@ -8,7 +8,7 @@
   <link href="/static/css/third_party/bootstrap.min.css" rel="stylesheet">
   <link href="/static/css/third_party/bootstrap-horizon.css" rel="stylesheet">
   <link href="/static/css/global_style.css" rel="stylesheet">
-  <script src="/static/javascript/all_global.js"></script>
+
 
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media
   queries -->
@@ -73,7 +73,7 @@
     <div class="row">
       <div class="col-sm-6 col-md-4 col-lg-3">
         <!-- Sign in -->
-        <form class="form-signin">
+        <form class="form-signin" method="post">{% csrf_token %}
           <h3 class="form-signin-heading">Please sign in</h3>
           <!-- <label for="inputEmail" class="sr-only">Email address</label>
           <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus data-bind="value: username"> -->
@@ -85,7 +85,7 @@
               <input type="checkbox" value="remember-me"> Remember me
             </label>
           </div>
-          <button class="btn btn-lg btn-primary btn-block" type="submit" data-bind="click: dummyValidate">Sign in</button>
+          <button class="btn btn-lg btn-primary btn-block" type="submit" data-bind="click:login" >Sign in</button>
         </form>
       </div>
     </div>
@@ -115,6 +115,7 @@
     </div>
 
   </div>
+ </div>
   <!--
   <div class="row">
   <div class="col-sm-6 col-md-4 col-lg-3">
@@ -133,11 +134,14 @@
   </footer>
 
   <!-- stuff to make it responsive -->
-  <script src="http://code.jquery.com/jquery-1.12.0.js"></script>
+
+  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
   <script src="/static/javascript/third_party/bootstrap.min.js"></script>
   <!-- knockout script -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
+  <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>-->
   <!-- my scripts -->
+  <script src="/static/javascript/all_global.js"></script>
+  <script src="/static/javascript/third_party/knockout-3.3.0.js"></script>
   <script src="/static/javascript/start.js"></script>
 
 </body>
