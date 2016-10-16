@@ -4,8 +4,10 @@ import sys
 import os
 
 vhost_config = """
+# CUSTOM SETTINGS FOR ONRAMP
+
 WSGIScriptAlias / {onramp_dir}/ui/wsgi.py
-WSGIPythonPath {onramp_dir}/ui:{onramp_dir}/virtual-env/lib/python2.7/site-packages
+WSGIPythonPath {onramp_dir}:{onramp_dir}/virtual-env/lib/python2.7/site-packages
 Alias /static {onramp_dir}/ui/static
 
 <VirtualHost *:{port}>
@@ -79,7 +81,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     apache_dir = raw_input("\nPlease enter in the full path to your apache 2.4 \n"
-               "directory or use the default ({}/webserver): ".format(onramp_dir.rstrip("/")))
+                 "directory or use the default ({}/webserver): ".format(onramp_dir.rstrip("/")))
     apache_dir = apache_dir or "{}/webserver/".format(onramp_dir.rstrip("/"))
     if not apache_dir.startswith("/") and not os.path.isdir(apache_dir):
         print "Please enter in a valid path!"
