@@ -73,7 +73,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ui.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
@@ -83,11 +82,10 @@ DATABASES = {
         'NAME': 'django',
         'USER': 'onramp',
         'PASSWORD': 'OnRamp_16',
-        'HOST': 'localhost',
+        'HOST': '127.0.0.1',
         'PORT': '3306',
     }
 }
-
 
 AUTHENTICATION_BACKENDS = ('ui.authentication.OnRampAuthenticator',)
 
@@ -109,9 +107,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
@@ -125,7 +120,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
@@ -133,4 +127,3 @@ STATIC_URL = '/static/'
 
 ########### Uncomment the following for DEBUG only #############
 DEBUG = True
-TEMPLATE_DEBUG = True
