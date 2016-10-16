@@ -32,10 +32,11 @@ class Installer(object):
         self.dep_dir = "{}/dependencies".format(self.build_dir)
         self.apachectl = "{}/webserver/bin/apachectl".format(self.base_dir)
         self.phases = [
-            {'phase': 0, 'func': self.install_dependencies, 'desc': '(0): Install Dependencies'},
-            {'phase': 1, 'func': self.install_apache, 'desc': '(1): Install Apache'},
-            {'phase': 2, 'func': self.install_wsgi, 'desc': '(2): Install WSGI'},
-            {'phase': 3, 'func': self.install_mysql, 'desc': '(3): Install MySQL'},
+            {'phase': 0, 'func': self.install_virtual_env, 'desc': '(0): Install Virtual Environment'},
+            {'phase': 1, 'func': self.install_dependencies, 'desc': '(1): Install Dependencies'},
+            {'phase': 2, 'func': self.install_apache, 'desc': '(2): Install Apache'},
+            {'phase': 3, 'func': self.install_wsgi, 'desc': '(3): Install WSGI'},
+            {'phase': 4, 'func': self.install_mysql, 'desc': '(4): Install MySQL'},
         ]
 
     def print_phases(self):
@@ -99,6 +100,41 @@ class Installer(object):
         print "Dependencies installed successfully!\n"
 
     @catch_exceptions
+    def install_virtual_env(self):
+        print "Preparing to install virtual environment..."
+
+        if self.reinstall:
+            self.rm("../virtual-env", force=True)
+
+        if not self.reinstall and os.path.exists("../virtual-env"):
+            answer = raw_input("\nThe virtual environment has already been installed. "
+                                    "\nWould you like to reinstall it? (y/[N]):  ")
+            if answer != 'y' and answer != 'Y':
+                return
+            else:
+                self.rm("../virtual-env", force=True)
+
+        print "Upgrading pip to the latest version..."
+        self.subproc(['pip', 'install', '--upgrade', 'pip'])
+
+        print "Installing virtualenv..."
+        self.subproc(['pip', 'install', 'virtualenv'])
+
+        print "Building virtual environment directory without site packages..."
+        self.subproc(['virtualenv', '-p', '/usr/bin/python2.7', '../virtual-env'])
+
+        print "Activating virtual environment and installing dependencies...."
+        pip_dependencies = [
+            'mysqlclient',
+            'django',
+        ]
+        for dependency in pip_dependencies:
+            self.subproc(['source ../virtual-env/bin/activate; '
+                'pip install {}'.format(dependency)], shell=True)
+
+        print "Virtual environment installed successfully!\n"
+
+    @catch_exceptions
     def install_apache(self):
         print "Preparing to install apache...\n"
 
@@ -111,7 +147,7 @@ class Installer(object):
 
         if not self.reinstall and os.path.exists("{}/webserver".format(self.base_dir)):
             answer = raw_input("Apache has already been installed. "
-                       "\nWould you like to reinstall it? (y/[N]):\t")
+                       "\nWould you like to reinstall it? (y/[N]):  ")
             if answer != 'y' and answer != 'Y':
                 return
             else:
@@ -212,9 +248,9 @@ class Installer(object):
         wsgi_so = "{}/webserver/modules/mod_wsgi.so".format(self.base_dir)
         if not self.reinstall and os.path.exists(wsgi_so):
             answer = raw_input("Mod wsgi has already been installed. "
-                       "\nWould you like to reinstall it? (y/[N]):\t")
+                       "\nWould you like to reinstall it? (y/[N]):  ")
             if answer != 'y' and answer != 'Y':
-                os._exit(0)
+                return
             else:
                 self.rm("{}/webserver/modules/mod_wsgi.so".format(self.base_dir), force=True)
                 self.rm("{}/mod_wsgi-4.5.7".format(self.dep_dir), force=True)
@@ -344,7 +380,7 @@ class Installer(object):
         print "Run the config_vhost.py script to finish setting up OnRamp\n"
 
 if __name__ == '__main__':
-    parser = ArgumentParser("Tool to build and install apache, wsgi, and mysql.")
+    parser = ArgumentParser("Tool to build and install OnRamp webserver and interface.")
     parser.add_argument("-p", nargs=1, type=int, help='The phase of the install to run')
     parser.add_argument("-l", action="store_true", help='Prints the phases of the install')
     parser.add_argument("-r", "--reinstall", action="store_true", help="Flag for reinstall")
