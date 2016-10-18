@@ -4,13 +4,13 @@ from django.db import models
 
 class workspace(models.Model):
     workspace_id = models.AutoField(primary_key=True)
-    workspace_name = models.TextField(unique=True)
+    workspace_name = models.CharField(unique=True, max_length=255)
     description = models.TextField()
 
 
 class pce(models.Model):
     pce_id = models.AutoField(primary_key=True)
-    pce_name = models.TextField(unique=True)
+    pce_name = models.CharField(unique=True, max_length=255)
     ip_addr = models.TextField(default='127.0.0.1')
     ip_port = models.IntegerField(default=0)
     state = models.IntegerField(default=0)
@@ -21,7 +21,7 @@ class pce(models.Model):
 
 class module(models.Model):
     module_id = models.AutoField(primary_key=True)
-    module_name = models.TextField(unique=True)
+    module_name = models.CharField(unique=True, max_length=255)
     version = models.TextField(default='')
     src_location = models.TextField(default='')
     description = models.TextField(default='')
