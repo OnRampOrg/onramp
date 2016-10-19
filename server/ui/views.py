@@ -1,3 +1,6 @@
+import json
+
+from django.contrib.auth import authenticate, login
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.template import loader
@@ -42,7 +45,7 @@ def onramp_login(request):
         response['message'] = "Invalid username or password"
         return HttpResponse(json.dumps(response))
     response['status'] = 1
-    # login(request, user)
+    login(request, user)
     if user.is_superuser or user.is_staff:
         response['url'] = 'admin/Dashboard/'
     else:

@@ -12,7 +12,7 @@ from ui.admin.models import job, workspace, pce, module
 
 
 
-# @login_required
+@login_required
 def main(request):
     """ Renders the main Admin dashboard on login
 
@@ -25,7 +25,7 @@ def main(request):
     template = get_template('admin_dashboard.html')
     return HttpResponse(template.render(context))
 
-# @login_required
+@login_required
 def get_all_users(request):
     """ Retrieves all OnRamp users
 

@@ -140,7 +140,7 @@
         <br>
         <!-- add users -->
         <div class="row">
-            <h4>Edit Users (<span data-bind="text: $parent.AllUsers().length"></span>)</h4>
+            <h4>Edit Users (<span data-bind="text: PotentialUserslist().length"></span>)</h4>
 
             <table class="table table-striped">
                 <thead>
@@ -149,7 +149,7 @@
                     <th>Add to Workspace</th>
                     <th>View Users</th>
                 </thead>
-                <tbody data-bind="foreach: $parent.AllUsers()">
+                <tbody data-bind="foreach: PotentialUserslist()">
                     <tr>
                         <td data-bind="text: id"></td>
                         <td data-bind="text: username"></td>
@@ -186,7 +186,7 @@
         <br>
         <!-- list current users -->
         <div class="row">
-            <h4>Current Users (<span data-bind="text: Userslist().length"></span>)</h4>
+            <h4>Current Users (<span data-bind="text: CurrentUserslist().length"></span>)</h4>
 
             <table class="table table-striped">
                 <thead>
@@ -195,7 +195,7 @@
                     <th>Remove from Workspace</th>
                     <th>View Users</th>
                 </thead>
-                <tbody data-bind="foreach: Userslist">
+                <tbody data-bind="foreach: CurrentUserslist">
                     <tr>
                         <td data-bind="text: id"></td>
                         <td data-bind="text: username"></td>

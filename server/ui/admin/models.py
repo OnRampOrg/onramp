@@ -39,16 +39,16 @@ class job(models.Model):
 
 class user_to_workspace(models.Model):
     uw_pair_id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(User)
-    workspace_id = models.ForeignKey(workspace)
+    user = models.ForeignKey(User)
+    workspace = models.ForeignKey(workspace)
 
     class Meta:
-        unique_together = ('user_id', 'workspace_id')
+        unique_together = ('user', 'workspace')
 
 class module_to_pce(models.Model):
     pm_pair_id = models.AutoField(primary_key=True)
-    pce_id = models.ForeignKey(pce)
-    module_id = models.ForeignKey(module)
+    pce = models.ForeignKey(pce)
+    module = models.ForeignKey(module)
     state = models.IntegerField(default=0)
     src_location_type = models.TextField(default='local')
     src_location_path = models.TextField(default='')
@@ -56,13 +56,13 @@ class module_to_pce(models.Model):
     is_visible = models.BooleanField(default=True)
 
     class Meta:
-        unique_together = ('pce_id', 'module_id')
+        unique_together = ('pce', 'module')
 
 class workspace_to_pce_module(models.Model):
     wpm_pair_id = models.AutoField(primary_key=True)
-    workspace_id = models.ForeignKey(workspace)
-    pm_pair_id = models.ForeignKey(module_to_pce)
+    workspace = models.ForeignKey(workspace)
+    pm_pair = models.ForeignKey(module_to_pce)
 
     class Meta:
-        unique_together = ('workspace_id', 'pm_pair_id')
+        unique_together = ('workspace', 'pm_pair')
 

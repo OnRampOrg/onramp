@@ -1,11 +1,13 @@
 import json
 
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
-from ui.admin.models import workspace, job, workspace_to_pce_module
+from ui.admin.models import workspace, job, workspace_to_pce_module, user_to_workspace
 
-# @login_required
+@login_required
 def main(request):
     """ Renders the main Admin dashboard on login
 
@@ -18,7 +20,7 @@ def main(request):
     template = get_template('admin_workspaces.html')
     return HttpResponse(template.render(context))
 
-# @login_required
+@login_required
 def get_all(request):
     """ Gets all workspaces
 
@@ -34,7 +36,7 @@ def get_all(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_requried
+@login_required
 def create_new_workspace(request):
     """ Adds a new workspace
 
@@ -50,11 +52,11 @@ def create_new_workspace(request):
         response = {
             'status':1,
             'status_message':'Success',
-            'workspace':{'workspace_name':name, 'workspace_id':ws.id, 'description':ws.description}
+            'workspace':{'workspace_name':name, 'workspace_id':ws.workspace_id, 'description':ws.description}
         }
     return HttpResponse(json.dumps(response))
 
-# @login_requried
+@login_required
 def get_jobs(request):
     """ Gets all jobs for s specified workspace
 
@@ -74,7 +76,7 @@ def get_jobs(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_requried
+@login_required
 def get_pces(request):
     """ Gets all jobs for s specified workspace
 
@@ -95,9 +97,38 @@ def get_pces(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_requried
-def get_users(request):
-    """ Gets all jobs for s specified workspace
+
+
+@login_required
+def get_potential_users(request):
+    """
+
+    :param request:
+    :return:
+    """
+    post = request.POST.dict()
+    if not post.get('workspace_id'):
+        response = {'status':-1, 'status_message':'No workspace specified'}
+        return HttpResponse(json.dumps(response))
+    qs = user_to_workspace.objects.filter(workspace_id=int(post['workspace_id']))
+    excluded_ids = [i.user.id for i in qs]
+    response = {
+        'status': 1,
+        'status_message': 'Success',
+        'users':[]
+    }
+    # we exclude admins because they cannot launch jobs anyways
+    for row in User.objects.filter(is_superuser=False).exclude(id__in=excluded_ids).values('id', 'username'):
+        response['users'].append({
+            'user_id':row['id'],
+            'username':row['username']
+        })
+    return HttpResponse(json.dumps(response))
+
+
+@login_required
+def get_workspace_users(request):
+    """ Gets all users that have access to a specified workspace
 
         URL: /admin/Workspaces/Users
 
@@ -108,16 +139,59 @@ def get_users(request):
     if workspace_id is None:
         response = {'status':-1, 'stauts_message':'No workspace_id specified'}
         return HttpResponse(json.dumps(response))
-
+    qs = user_to_workspace.objects.filter(workspace_id=int(workspace_id))
     response = {
         'status':1,
         'status_message':'Success',
-        'users':[] # TODO finish query
+        'users':[{"user_id":i.user.id, "username":i.user.username} for i in qs]
     }
     return HttpResponse(json.dumps(response))
 
+@login_required
+def add_user_to_workspace(request):
+    """ Give user permission to a specified workspace
 
-# @login_requried
+        URL: /admin/Workspaces/AddUser
+
+    :param request:
+    :return:
+    """
+    post = request.POST.dict()
+    if not post.get('workspace_id'):
+        response = {'status':-1, 'status_message':"No workspace_id specified"}
+        return HttpResponse(json.dumps(response))
+    if not post.get('user_id'):
+        response = {'status': -1, 'status_message': "No user_id specified"}
+        return HttpResponse(json.dumps(response))
+    row, created = user_to_workspace.objects.get_or_create(
+        workspace_id=int(post['workspace_id']),
+        user_id=int(post['user_id']))
+    if created:
+        response = {'status':1, 'status_message':'Success'}
+    else:
+        response = {'status':-1, 'status_message':"User already has permissions for this workspace."}
+    return HttpResponse(json.dumps(response))
+
+@login_required
+def remove_user_from_workspace(request):
+    """
+
+    :param request:
+    :return:
+    """
+    post = request.POST.dict()
+    if not post.get('workspace_id'):
+        response = {'status': -1, 'status_message': "No workspace_id specified"}
+        return HttpResponse(json.dumps(response))
+    if not post.get('user_id'):
+        response = {'status': -1, 'status_message': "No user_id specified"}
+        return HttpResponse(json.dumps(response))
+    user_to_workspace.objects.filter(workspace_id=int(post['workspace_id']), user_id=int(post['user_id'])).delete()
+    response = {'status':1, 'status_message':"Success"}
+    return HttpResponse(json.dumps(response))
+
+
+@login_required
 def add_pce_mod_pair(request):
     """ Adds a PCE/Module pair to a workspace
 

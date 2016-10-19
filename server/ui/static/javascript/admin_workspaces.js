@@ -1,12 +1,9 @@
 
+/*
+    Represents a PCE and Module pair
+*/
 function PCEMod(data){
 	var self = this;
-	/*
-	"pce_id",
-            "pce_name",
-            "module_id",
-            "module_name"
-			*/
 	self.pce_id = ko.observable(data['pce_id']);
 	self.pce_name = ko.observable(data['pce_name']);
 	self.mod_id = ko.observable(data['module_id']);
@@ -20,47 +17,29 @@ function adminWorkspace(data){
 	self.name = ko.observable(data['workspace_name']);
 	self.desc = ko.observable(data['description']);
 
-	self.auth_data = sessionStorage.auth_data;
-
 	self.Jobslist = ko.observableArray();
-	self.Userslist = ko.observableArray();
+	self.CurrentUserslist = ko.observableArray();
+	self.PotentialUserslist = ko.observableArray();
 	self.PCEModlist = ko.observableArray();
 
 	self.new_pce_id = ko.observable();
 	self.new_mod_id = ko.observable();
 
-	self.viewWorkspace = function () {
-		// go to manage Workspaces page and show this job
-		window.location.href = "admin_workspaces.html";
-	};
+//	self.viewWorkspace = function () {
+//		// go to manage Workspaces page and show this job
+//		window.location.href = "admin_workspaces.html";
+//	};
 
-	self.complete_func = function (data){
-	  //console.log(JSON.stringify(data));
-	  //console.log(data.responseText);
-	  //console.log(data["responseText"]);
-	  console.log(data.status + 5);
-	  if(data.status == 200){
-		  //self.id(data.pce.id);
-		  //self.status(data.pce.state);
-		  alert("Success!");
-	  }
-	  else if(data.status == 401){
-		alert("Incorrect login info.  Please try again, or contact the admin to create or reset your account.");
-	  }
-	  else {
-		alert("Something went wrong with the sending or receiving of the ajax call.  Status code: " + data.status);
-	  }
-
-	};
 
 	self.removeOnServer = function () {
-		alert("remove on server not implmented");
+		alert("Remove not implemented on server.");
 	};
 
 	self.editWorkspace = function () {
 		this.refreshJobs();
 		this.refreshPCEModPairs();
-		this.refreshUsers();
+		this.refreshPotentialUsers();
+		this.refreshCurrentUsers();
 	};
 
 
@@ -91,34 +70,64 @@ function adminWorkspace(data){
 		    url: '/admin/Workspaces/PCEs',
 		    type:'POST',
 		    dataType:'json',
+		    data: {'workspace_id':self.id()},
 		    success: function(data) {
-		        for (var x = 0; x < data.pces.length; x++){
-					var pce_data = data.pces[x];
-					self.PCEModlist.push(new PCEMod(pce_data));
-				}
+		        if (data.status == 1) {
+		            for (var x = 0; x < data.pces.length; x++){
+                        var pce_data = data.pces[x];
+                        self.PCEModlist.push(new PCEMod(pce_data));
+                    }
+		        } else {
+		            alert(status.status_message)
+		        }
+
 		    }
 		})
 	};
 
-	// users
-	self.refreshUsers = function () {
-		self.Userslist.removeAll();
+	/*
+	    Get all users that currently have access
+	    to this workspace
+	*/
+	self.refreshCurrentUsers = function () {
+		self.CurrentUserslist.removeAll();
 
 		$.ajax({
-		    url: '/admin/Workspaces/Users',
+		    url: '/admin/Workspaces/WorkspaceUsers',
 		    type:'POST',
 		    dataType:'json',
 		    data: {'workspace_id':self.id()},
 		    success: function(data) {
 		        for (var x = 0; x < data.users.length; x++){
 					var user_data = data.users[x];
-					self.Userslist.push(new UserProfile(user_data));
+					self.CurrentUserslist.push(new UserProfile(user_data));
 				}
 		    }
  		})
 
 
 	};
+
+    /*
+        Get all potential users that are not currently
+        on the workspace
+    */
+    self.refreshPotentialUsers = function() {
+        self.PotentialUserslist.removeAll();
+
+		$.ajax({
+		    url: '/admin/Workspaces/PotentialUsers',
+		    type:'POST',
+		    dataType:'json',
+		    data: {'workspace_id':self.id()},
+		    success: function(data) {
+		        for (var x = 0; x < data.users.length; x++){
+					var user_data = data.users[x];
+					self.PotentialUserslist.push(new UserProfile(user_data));
+				}
+		    }
+ 		})
+    }
 
 	self.addPCEModPair = function () {
 		// this will push the user info to the server as a new user
@@ -133,45 +142,47 @@ function adminWorkspace(data){
 	  	} );
 	};
 
-	// creates a workspace
-	self.createWorkspace = function () {
+	self.addUser = function (e) {
 		$.ajax({
-            type: 'POST',
-            url: '/admin/Workspaces/Create',
-            data: {'name':self.name()},
-            dataType: 'application/json',
-            success: function(response) {
-
-            }
-	  	});
-	};
-
-	self.addUser = function () {
-		// should check if user is already a member of the workspace
-		$.ajax({
-	      type: 'POST',
-	      url: sessionStorage.server + '/admin/workspace/' + self.id() + '/user/' + this.id() + '?apikey=' + JSON.parse(self.auth_data).apikey,
-	      //data: JSON.stringify({'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
-		  data: JSON.stringify({'auth': JSON.parse(self.auth_data)}),
-	      complete: self.complete_func,
-	      dataType: 'application/json',
-	      contentType: 'application/json'
-	  	} );
+		    url: '/admin/Workspaces/AddUser',
+		    type:'POST',
+		    dataType:'json',
+		    data:{'workspace_id':self.id(), 'user_id':this.id()},
+		    success: function(response) {
+		        if (response.status) {
+		            self.PotentialUserslist.remove(e);
+		            self.CurrentUserslist.push(e);
+		        } else {
+		            if (response.status_message) {
+		                alert(response.status_message);
+		            } else {
+		                alert("Unknown error occurred on the server");
+		            }
+		        }
+		    }
+		})
 	}
 
-	self.removeUser = function () {
-		alert("Not implemented");
-		/*
+	self.removeUser = function (e) {
 		$.ajax({
-		  type: 'DELETE',
-		  url: 'http://flux.cs.uwlax.edu/onramp/api/admin/workspace/' + self.id() + '/user/' + this.id() + '?apikey=' + JSON.parse(self.auth_data).apikey,
-		  //data: JSON.stringify({'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
-		  data: JSON.stringify({'auth': JSON.parse(self.auth_data)}),
-		  complete: self.complete_func,
-		  dataType: 'application/json',
-		  contentType: 'application/json'
-		} );
-		*/
+		    url: '/admin/Workspaces/RemoveUser',
+		    type:'POST',
+		    dataType:'json',
+		    data:{'workspace_id':self.id(), 'user_id':this.id()},
+		    success: function(response) {
+		        if (response.status) {
+		            self.CurrentUserslist.remove(e);
+		            self.PotentialUserslist.push(e);
+		        } else {
+		            if (response.status_message) {
+		                alert(response.status_message);
+		            } else {
+		                alert("Unknown error occurred on the server");
+		            }
+		        }
+		    }
+		})
+
 	}
 }
 
@@ -463,11 +474,11 @@ function UserProfile(data) {
 	var self = this;
 	self.id = ko.observable(data['user_id']);
 	self.username = ko.observable(data['username']);
-	self.fullName = ko.observable(data['full_name']);
-	self.email = ko.observable(data['email']);
-	self.isAdmin = ko.observable(data['is_admin']);
-	self.isEnabled = ko.observable(data['is_enabled']);
-	self.password = ko.observable('dummyPassword');
+//	self.fullName = ko.observable(data['full_name']);
+//	self.email = ko.observable(data['email']);
+//	self.isAdmin = ko.observable(data['is_admin']);
+//	self.isEnabled = ko.observable(data['is_enabled']);
+//	self.password = ko.observable('dummyPassword');
 
 	self.auth_data = sessionStorage['auth_data'];
 
@@ -480,52 +491,53 @@ function UserProfile(data) {
 		window.location.href = "/admin/Users";
 	};
 
+
 	self.editUser = function () {
 		// get jobs for this user
-		$.getJSON( sessionStorage.server + "/users/" + self.id() + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
-			//self.auth_data,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-				console.log(JSON.stringify(data));
-				for (var x = 0; x < data.users.data.length; x++){
-					var raw = data.users.data[x];
-					console.log(raw);
-					var conv_data = {};
-					for(var i = 0; i < data.users.fields.length; i++){
-						console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
-						conv_data[data.users.fields[i]] = raw[i];
-					}
-					self.Jobslist.push(new Job(conv_data, true, false));
-				}
-			}
-		);
+//		$.getJSON( sessionStorage.server + "/users/" + self.id() + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+//			//self.auth_data,
+//			function (data){
+//				// {"status": 0,
+//				//  "status_message": "Success",
+//				//  "users": {
+//				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+//				//    "data": [2, "alice", "", "", 0, 1]}}
+//				console.log(JSON.stringify(data));
+//				for (var x = 0; x < data.users.data.length; x++){
+//					var raw = data.users.data[x];
+//					console.log(raw);
+//					var conv_data = {};
+//					for(var i = 0; i < data.users.fields.length; i++){
+//						console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
+//						conv_data[data.users.fields[i]] = raw[i];
+//					}
+//					self.Jobslist.push(new Job(conv_data, true, false));
+//				}
+//			}
+//		);
 
 		// get workspaces for this user
-		$.getJSON( sessionStorage.server + "/users/" + self.id() + "/workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
-			//self.auth_data,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-				console.log(JSON.stringify(data));
-				for (var x = 0; x < data.users.data.length; x++){
-					var raw = data.users.data[x];
-					console.log(raw);
-					var conv_data = {};
-					for(var i = 0; i < data.users.fields.length; i++){
-						console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
-						conv_data[data.users.fields[i]] = raw[i];
-					}
-					self.Workspacelist.push(new adminWorkspace(conv_data));
-				}
-			}
-		);
+//		$.getJSON( sessionStorage.server + "/users/" + self.id() + "/workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
+//			//self.auth_data,
+//			function (data){
+//				// {"status": 0,
+//				//  "status_message": "Success",
+//				//  "users": {
+//				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
+//				//    "data": [2, "alice", "", "", 0, 1]}}
+//				console.log(JSON.stringify(data));
+//				for (var x = 0; x < data.users.data.length; x++){
+//					var raw = data.users.data[x];
+//					console.log(raw);
+//					var conv_data = {};
+//					for(var i = 0; i < data.users.fields.length; i++){
+//						console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
+//						conv_data[data.users.fields[i]] = raw[i];
+//					}
+//					self.Workspacelist.push(new adminWorkspace(conv_data));
+//				}
+//			}
+//		);
 	};
 
 	self.complete_func = function (data){
@@ -557,21 +569,21 @@ function UserProfile(data) {
 
 	self.updateServer = function () {
 		// this will push the user info to the server as a new user
-		$.ajax({
-	      type: 'POST',
-	      url: sessionStorage.server + '/admin/user?apikey=' + JSON.parse(this.auth_data).apikey,
-	      //data: JSON.stringify({'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
-		  data: JSON.stringify({'auth': JSON.parse(self.auth_data), 'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
-	      complete: self.complete_func,
-	      dataType: 'application/json',
-	      contentType: 'application/json'
-	  	} );
+//		$.ajax({
+//	      type: 'POST',
+//	      url: sessionStorage.server + '/admin/user?apikey=' + JSON.parse(this.auth_data).apikey,
+//	      //data: JSON.stringify({'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
+//		  data: JSON.stringify({'auth': JSON.parse(self.auth_data), 'password':this.password(), 'username':this.username(), 'is_admin':this.isAdmin(), 'is_enabled':this.isEnabled(), 'email':this.email(), 'full_name':this.fullName()}),
+//	      complete: self.complete_func,
+//	      dataType: 'application/json',
+//	      contentType: 'application/json'
+//	  	} );
 	}
 
 	self.removeFromWorkspace = function () {
 		// this is the workspace object
-		self.Workspacelist.remove(this);
-		alert("removing " + self.username() + " from workspace " + this.name);
+//		self.Workspacelist.remove(this);
+//		alert("removing " + self.username() + " from workspace " + this.name);
 	}
 
 	self.removeOnServer = function () {
@@ -590,12 +602,15 @@ function AdminWorkspaceViewModel() {
 		self.selectedWorkspace = ko.observable();
 		self.newWorkspace = ko.observable();
 		self.Workspacelist = ko.observableArray();
-		self.AllUsers = ko.observableArray();
 
 		self.changeWorkspace = function () {
 			self.selectedWorkspace(null);
 		};
 
+        /*
+            Function when a workspace get clicked on,
+            loads all grids and data for the workspace
+        */
 		self.selectWorkspace = function () {
 			self.newWorkspace(null);
 			this.editWorkspace();
@@ -603,35 +618,47 @@ function AdminWorkspaceViewModel() {
 			console.log(self.selectedWorkspace().name());
 		};
 
+        /*
+            Delete a workspace, this is not currently
+            implemented on the server
+        */
 		self.deleteWorkspace = function () {
-			// tell server to delete this user
-			self.Workspacelist.remove(this);
-			if (self.selectedWorkspace() == this) {
-				self.selectedWorkspace(null);
-			}
-			this.removeOnServer();
+			alert("Not implemented on server.")
 		};
 
-
+        /*
+            Create a new workspace on the server and
+            add it to the grid
+        */
 		self.addWorkspace = function () {
-			// need to get user ID from the server, maybe not until data is populated?
 			$.ajax({
                 type: 'POST',
-			    url: '/admin/Workspaces/Add',
+			    url: '/admin/Workspaces/Create',
 			    data: {'name': self.new_name()},
 			    dataType: 'json',
 			    success: function (response) {
 			        if (response.status == 1) {
 			            self.Workspacelist.push(new adminWorkspace(response.workspace))
+			        } else {
+			            if (response.status_message) {
+			                alert(response.status_message);
+			            } else {
+			                alert("An unknown error occurred on the server.");
+			            }
 			        }
 
 			    }
 			});
 		};
 
+
+        /*
+            Removes all workspaces from the grid and gets
+            all of the workspaces from the server to
+            re-populate the grid
+        */
 		self.refreshWorkspaces = function () {
 			self.Workspacelist.removeAll();
-
             $.ajax({
                 url: '/admin/Workspaces/All',
                 type: 'GET',
@@ -648,7 +675,7 @@ function AdminWorkspaceViewModel() {
 		};
 
 		$(document).ready( function () {
-			// reinitialize values
+			// Load all the workspaces
 			self.refreshWorkspaces();
 		});
 

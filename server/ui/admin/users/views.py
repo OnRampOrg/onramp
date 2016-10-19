@@ -74,7 +74,7 @@ def update_user(request):
     password = post.get('password')
     if password and password != "**********":
         # update the password
-        user_obj.password = password
+        user_obj.set_password(password)
     if post.get('username'):
         user_obj.username = post['username']
     user_obj.email = post.get('email')
@@ -105,16 +105,17 @@ def create_user(request):
         return HttpResponse(json.dumps(response))
     user_obj = User(
         username=username,
-        password=password,
         first_name=post.get('first_name'),
         last_name=post.get('last_name'),
         email=post.get('email'),
         is_superuser=json.loads(post.get('is_admin', 'false')),
         is_active=json.loads(post.get('is_enabled', 'false'))
     )
+    user_obj.set_password(password)
     user_obj.save()
     response = {'status':1, 'status_message':'Success'}
     return HttpResponse(json.dumps(response))
+
 
 # @login_required
 def disable_user(request):
