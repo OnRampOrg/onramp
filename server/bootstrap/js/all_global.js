@@ -79,7 +79,7 @@ function Workspace(data, view){
 
 
 	self.captureWSID = function() {
-		sessionStorage.setItem("WorkspaceID", this.id);
+            sessionStorage.WorkspaceID = self.wID;
 		//alert("workspace " + localStorage.getItem('WorkspaceID'));
 		if(sessionStorage.Username === "q" || sessionStorage.Username === "Q"){
 			window.location.href = "workspace_quiet.html";
