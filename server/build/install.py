@@ -1,12 +1,30 @@
 #!/usr/bin/env python
 
+import os, sys, site
+
+# Add the site-packages of the chosen virtualenv to work with
+site.addsitedir('../virtual-env')
+
+# Add the app's directory to the PYTHONPATH
+sys.path.append("../")
+sys.path.append('../ui')
+sys.path.append("../virtual-env/lib/python2.7/site-packages")
+
+# to set environment settings for Django apps
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ui.settings")
+
+# have to setup django before we attempt to import a model
+import django
+django.setup()
+
+from django.contrib.auth.models import User
+from django.db import IntegrityError
 from argparse import ArgumentParser
 from subprocess import *
 from time import sleep
 import traceback
 import shutil
-import sys
-import os
+import _mysql
 
 
 def catch_exceptions(func):
@@ -37,6 +55,8 @@ class Installer(object):
             {'phase': 2, 'func': self.install_apache, 'desc': '(2): Install Apache'},
             {'phase': 3, 'func': self.install_wsgi, 'desc': '(3): Install WSGI'},
             {'phase': 4, 'func': self.install_mysql, 'desc': '(4): Install MySQL'},
+            {'phase': 5, 'func': self.run_migrations, 'desc': '(5): Run Django Migrations'},
+            {'phase': 6, 'func': self.create_admin_user, 'desc': '(6): Create Admin User'},
         ]
 
     def print_phases(self):
@@ -73,7 +93,6 @@ class Installer(object):
                 sleep(1)
             except:
                 if not force: raise
-
         else:
             if not force:
                 raise OSError("{} does not exists!".format(path))
@@ -376,6 +395,54 @@ class Installer(object):
         self.subproc(auth + ['-e', "FLUSH PRIVILEGES"])
 
         print "MySQL installed successfully!\n"
+
+    @catch_exceptions
+    def run_migrations(self):
+        print "Running django migrations"
+
+        if self.reinstall:
+            # remove all of the migration files from the public and admin django apps
+            public = '{}/ui/public/migrations/'.format(self.base_dir)
+            for file in os.listdir(public):
+                path = os.path.join(public, file)
+                if '__init__' not in path:
+                    os.remove(path)
+            admin = '{}/ui/admin/migrations/'.format(self.base_dir)
+            for file in os.listdir(admin):
+                path = os.path.join(admin, file)
+                if '__init__' not in path:
+                    os.remove(path)
+            conn = _mysql.connect(host='127.0.0.1', user='onramp',
+                                  passwd='OnRamp_16', db='django')
+            conn.query('TRUNCATE django_migrations')
+            conn.query('DROP DATABASE django')
+            conn.query('CREATE DATABASE django')
+            conn.commit()
+            conn.close()
+
+        # make sure to change to the ui directory before calling migrate
+        os.chdir("{}/ui".format(self.base_dir))
+
+        # call migrate using the manage.py utility from django to build
+        # migrations and create the necessary tables in the MySQL database
+        self.subproc(['python', '{}/ui/manage.py'.format(self.base_dir), 'migrate'])
+
+        print "Migrations built successfully."
+
+    @catch_exceptions
+    def create_admin_user(self):
+        print "Creating the django admin user..."
+        if self.reinstall:
+            # TODO: figure out why this doesn't work
+            try:
+                User.objects.get(username='admin').delete()
+            except User.DoesNotExist:
+                pass
+        try:
+            User.objects.create_superuser("admin", "", "admin123")
+            print "Admin user created!\n  username: admin\n  password: admin123"
+        except IntegrityError:
+            print "Admin user with same username admin already exists."
 
     def run(self):
         self.check_perms()
