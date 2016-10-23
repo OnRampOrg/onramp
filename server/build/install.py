@@ -18,6 +18,7 @@ import django
 django.setup()
 
 from django.contrib.auth.models import User
+from utils.terminal import TerminalFonts
 from django.db import IntegrityError
 from argparse import ArgumentParser
 from subprocess import *
@@ -32,7 +33,8 @@ def catch_exceptions(func):
         try:
             func(*args, **kwargs)
         except:
-            print "\n{}[ Installation Error ]{}".format("=" * 25, "=" * 25)
+            error = TerminalFonts().format("Installation Error", 4)
+            print "\n{}[ {} ]{}".format("=" * 25, error, "=" * 25)
             print traceback.format_exc().strip()
             print "{}\n".format("=" * 72)
             os._exit(-1)
@@ -58,6 +60,7 @@ class Installer(object):
             {'phase': 5, 'func': self.run_migrations, 'desc': '(5): Run Django Migrations'},
             {'phase': 6, 'func': self.create_admin_user, 'desc': '(6): Create Admin User'},
         ]
+        self.TF = TerminalFonts()
 
     def print_phases(self):
         print
@@ -69,7 +72,8 @@ class Installer(object):
         # check to make sure we have root permissions to execute the script
         # since we need those permissions to install dependencies through yum
         if os.getuid() != 0:
-            print '\nPermission Error: Please run this script with "sudo" or as the root user.\n'
+            print '\n{}: Please run this script with "sudo" or as the ' \
+                  'root user.\n'.format(self.TF.format("Permission Error", 4))
             sys.exit(0)
 
     @catch_exceptions
@@ -89,7 +93,7 @@ class Installer(object):
                     os.remove(path)
                 if os.path.isdir(path):
                     shutil.rmtree(path)
-                print "Removed {}\n".format(path)
+                print "Removed: {}\n".format(path)
                 sleep(1)
             except:
                 if not force: raise
@@ -116,7 +120,7 @@ class Installer(object):
         for dep in dependencies:
             self.subproc(['yum', 'install', '-y', dep])
 
-        print "Dependencies installed successfully!\n"
+        print self.TF.format("Dependencies installed successfully!\n", 1)
 
     @catch_exceptions
     def install_virtual_env(self):
@@ -151,7 +155,7 @@ class Installer(object):
             self.subproc(['source ../virtual-env/bin/activate; '
                 'pip install {}'.format(dependency)], shell=True)
 
-        print "Virtual environment installed successfully!\n"
+        print self.TF.format("Virtual environment installed successfully!\n", 1)
 
     @catch_exceptions
     def install_apache(self):
@@ -261,7 +265,7 @@ class Installer(object):
         fh.write(httpd_vhost.replace("ONRAMP", self.base_dir))
         fh.close()
 
-        print "Apache installed successfully!\n"
+        print self.TF.format("Apache installed successfully!\n", 1)
 
     @catch_exceptions
     def install_wsgi(self):
@@ -308,7 +312,7 @@ class Installer(object):
         print "Cleaning up mod wsgi source...\n"
         self.rm(wsgi_src)
 
-        print "Mod wsgi installed successfully!\n"
+        print self.TF.format("Mod wsgi installed successfully!\n", 1)
 
         print "Starting up apache...\n"
         self.subproc([self.apachectl, "start"])
@@ -394,7 +398,7 @@ class Installer(object):
         # reload all privileges so that the new user can log in
         self.subproc(auth + ['-e', "FLUSH PRIVILEGES"])
 
-        print "MySQL installed successfully!\n"
+        print self.TF.format("MySQL installed successfully!\n", 1)
 
     @catch_exceptions
     def run_migrations(self):
@@ -427,7 +431,7 @@ class Installer(object):
         # migrations and create the necessary tables in the MySQL database
         self.subproc(['python', '{}/ui/manage.py'.format(self.base_dir), 'migrate'])
 
-        print "Migrations built successfully."
+        print self.TF.format("Migrations built successfully.", 1)
 
     @catch_exceptions
     def create_admin_user(self):
@@ -440,9 +444,10 @@ class Installer(object):
                 pass
         try:
             User.objects.create_superuser("admin", "", "admin123")
-            print "Admin user created!\n  username: admin\n  password: admin123"
+            print self.TF.format("Admin user created!\n  username: admin\n  password: admin123", 1)
         except IntegrityError:
-            print "Admin user with same username admin already exists."
+            print "{}: An admin user with same username \"admin\" " \
+                "already exists.".format(self.TF.format("ERROR", 4))
 
     def run(self):
         self.check_perms()
@@ -450,7 +455,7 @@ class Installer(object):
         for phase in self.phases:
             phase['func']()
             sleep(2)
-        print "INSTALLATION COMPLETE\n"
+        self.TF.format("INSTALLATION COMPLETE\n", 1)
 
 if __name__ == '__main__':
     parser = ArgumentParser("Tool to build and install OnRamp webserver and interface.")

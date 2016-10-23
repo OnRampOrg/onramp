@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 
+from utils.terminal import TerminalFonts
 from subprocess import *
 import textwrap
 import shutil
 import sys
 import os
 
-# TODO: make sure to load mod_wsgi in the httpd.conf file
-# TODO: make sure to load the other required modules for the Header, and teh Unset etc
 
-def install_wsgi(apache_dir):
+def install_wsgi(TF, apache_dir):
     print "Preparing to install Mod WSGI...\n"
 
     # removing the mod wsgi source if it exists already
@@ -54,10 +53,14 @@ def install_wsgi(apache_dir):
     print "Cleaning up mod wsgi source...\n"
     shutil.rmtree('../mod_wsgi-4.5.7')
 
-    print "Mod WSGI installed successfully!\n"
+    print TF.format("Mod WSGI installed successfully!\n", 1)
 
 
-def add_vhost_config(onramp_dir, apache_dir, port):
+def configure_vhost_conf(TF, onramp_dir, apache_dir, port):
+    print "Preparing to configure httpd-vhosts.conf...\n"
+
+    # TODO: fix the paths in this function for apache 2.2
+
     # strip off any trailing slashes so we have clean paths in the config
     if onramp_dir.endswith("/"):
         onramp_dir = onramp_dir[:-1]
@@ -74,7 +77,10 @@ def add_vhost_config(onramp_dir, apache_dir, port):
     fh = open(vhosts, "r")
     for line in fh.readlines():
         if ":{}".format(port) in line:
-            print "The virtual hosts file already contains an entry for that port!"
+            print "{}: The virtual hosts file already contains an entry for that port!".format(TF.format("ERROR", 4))
+            print "If you would like to run OnRamp under the port ({}) please remove the\n" \
+                  "current configuration for that port from your httpd-vhosts.conf file\n" \
+                  "and then re-run this script to configure your Apache 2.4 for OnRamp.\n".format(port)
             sys.exit(1)
     fh.close()
 
@@ -127,20 +133,55 @@ def add_vhost_config(onramp_dir, apache_dir, port):
     fh.write(textwrap.dedent(vhost_config))
     fh.close()
 
-    print "\nApache configured successfully!\n"
+    print TF.format("Apache's httpd-vhosts.conf was configured successfully!\n", 1)
+
+
+def configure_httpd_conf(TF, apache_dir, port_num):
+    print "Preparing to configure httpd.conf...\n"
+
+    httpd_conf = "{}/conf/httpd.conf".format(apache_dir)
+    module = False
+    port = False
+
+    with open(httpd_conf, 'r') as fh:
+        text = fh.read()
+        if "LoadModule wsgi_module" in text:
+            print "Apache is already loading the WSGI Module!\n"
+            module = True
+        if "Listen {}".format(port) in text:
+            print "Apache is already listening on that port!\n"
+            port = True
+
+    fh = open(httpd_conf, "a")
+    if not port or not module:
+        fh.write("# Custom settings for the OnRamp to Parallel Computing project\n")
+        if not module:
+            fh.write("LoadModule wsgi_module modules/mod_wsgi.so\n")
+        if not port:
+            fh.write("Listen {}\n".format(port_num))
+
+    print TF.format("Apache's httpd.conf was configured successfully!\n", 1)
 
 
 if __name__ == '__main__':
+    # create an instance of our Terminal Fonts class to help with printing
+    TF = TerminalFonts()
+
+    # check to make sure we have root permissions to execute the script
+    # since we need those permissions to install dependencies through yum
+    if os.getuid() != 0:
+        print '\n{}: Please run this script with "sudo" or as the ' \
+              'root user.\n'.format(TF.format("Permission Error", 4))
+        sys.exit(0)
+
     onramp_dir = raw_input("\nPlease enter in the full path to the OnRamp server directory: ")
     if not onramp_dir.startswith("/") and not os.path.isdir(onramp_dir):
-        print "Please enter in a valid path!"
+        print "Please enter in a valid directory path!"
         sys.exit(1)
 
-    apache_dir = raw_input("\nPlease enter in the full path to your apache 2.4 \n"
-                 "directory or use the default ({}/webserver): ".format(onramp_dir.rstrip("/")))
-    apache_dir = apache_dir or "{}/webserver/".format(onramp_dir.rstrip("/"))
+    apache_dir = raw_input("\nPlease enter in the full path to your apache 2.4 directory: ")
     if not apache_dir.startswith("/") and not os.path.isdir(apache_dir):
-        print "Please enter in a valid path!"
+        print "Please enter in a valid directory path!"
         sys.exit(1)
 
     port = raw_input("\nPlease enter in the port you wish to run OnRamp under (80): ")
@@ -149,11 +190,11 @@ if __name__ == '__main__':
         print "Please enter in a valid port!"
         sys.exit(1)
 
+    print  # Just printing a blank line here for space
+
     # add the required vhost directive to the apache httpd-vhost config
-    add_vhost_config(onramp_dir, apache_dir, port)
+    configure_vhost_conf(TF, onramp_dir, apache_dir, port)
+    configure_httpd_conf(TF, apache_dir, port)
+    install_wsgi(TF, apache_dir)
 
-    answer = raw_input("Do you want to install Mod WSGI (y/N)?: ")
-    if answer in ['y', 'Y']:
-        install_wsgi(apache_dir)
-
-    print "Please restart your apache to complete the configuration.\n"
+    print TF.format("\nPlease restart your apache to complete the configuration.\n", 1)
