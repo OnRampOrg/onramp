@@ -92,19 +92,7 @@ def configure_vhost_conf(TF, onramp_dir, apache_dir, port):
     Alias /static {onramp_dir}/ui/static
 
     <VirtualHost *:{port}>
-        RewriteEngine On
-        RewriteCond %{{REQUEST_METHOD}} ^TRACE
-        RewriteRule .* - [F]
-
         ServerAlias *.onramp.com
-
-        # disable ETag because it's inefficient and will make
-        # it so the browser won't cache our static files
-        Header unset ETag
-        FileETag None
-
-        # make sure the browser accepts all encodings
-        Header append Vary: Accept-Encoding
 
         DocumentRoot {onramp_dir}/ui/
 

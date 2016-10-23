@@ -90,10 +90,6 @@ def configure_vhost_conf(TF, onramp_dir, apache_dir, port):
     Alias /static {onramp_dir}/ui/static
 
     <VirtualHost *:{port}>
-        RewriteEngine On
-        RewriteCond %{{REQUEST_METHOD}} ^TRACE
-        RewriteRule .* - [F]
-
         ServerAlias *.onramp.com
 
         DocumentRoot {onramp_dir}/ui/
