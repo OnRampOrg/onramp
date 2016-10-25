@@ -7,6 +7,11 @@ import shutil
 import sys
 import os
 
+# TODO: test this to make sure it works
+
+# TODO: check if wsgi installs correctly since apache 2.2 needs wsgi.conf
+# TODO: and wsgi.load files in mods_available/mods_enabled directories?
+
 
 def install_wsgi(TF, apache_dir):
     print "Preparing to install Mod WSGI...\n"
@@ -57,9 +62,7 @@ def install_wsgi(TF, apache_dir):
 
 
 def configure_vhost_conf(TF, onramp_dir, apache_dir, port):
-    print "Preparing to configure httpd-vhosts.conf...\n"
-
-    # TODO: fix the paths in this function for apache 2.2
+    print "Preparing to configure virtual hosts file...\n"
 
     # strip off any trailing slashes so we have clean paths in the config
     if onramp_dir.endswith("/"):
@@ -69,9 +72,16 @@ def configure_vhost_conf(TF, onramp_dir, apache_dir, port):
     if apache_dir.endswith("/"):
         apache_dir = apache_dir[:-1]
 
-    vhosts = "{}/conf/extra/httpd-vhosts.conf".format(apache_dir)
+    # NOTE: the default apache 2.2 virtual hosts file should be the following
+    default_vhosts = "{}/sites-available/default".format(apache_dir)
+
+    # ask the user to configure the default virtual host file or enter in the correct one
+    vhosts = raw_input("Press enter to configure the default virtual host file at ({})\n"
+              "Or enter in the full path to your virtual host file: ".format(default_vhosts))
+    vhosts = vhosts.strip() or default_vhosts
     if not os.path.exists(vhosts):
-        print "Unable to find httpd-vhosts.conf file at: {}".format(vhosts)
+        print "\n{}: There is no virtual host file at the following " \
+              "path: {}\n".format(TF.format("ERROR", 4), vhosts)
         sys.exit(1)
 
     fh = open(vhosts, "r")
@@ -79,8 +89,8 @@ def configure_vhost_conf(TF, onramp_dir, apache_dir, port):
         if ":{}".format(port) in line:
             print "{}: The virtual hosts file already contains an entry for that port!".format(TF.format("ERROR", 4))
             print "If you would like to run OnRamp under the port ({}) please remove the\n" \
-                  "current configuration for that port from your httpd-vhosts.conf file\n" \
-                  "and then re-run this script to configure your Apache 2.4 for OnRamp.\n".format(port)
+                  "current configuration for that port from your enabled virtual hosts file\n" \
+                  "and then re-run this script to configure your Apache 2.2 webserver for OnRamp.\n".format(port)
             sys.exit(1)
     fh.close()
 
@@ -121,13 +131,21 @@ def configure_vhost_conf(TF, onramp_dir, apache_dir, port):
     fh.write(textwrap.dedent(vhost_config))
     fh.close()
 
-    print TF.format("Apache's httpd-vhosts.conf was configured successfully!\n", 1)
+    print TF.format("Apache's virtual hosts file was configured successfully!\n", 1)
 
 
 def configure_httpd_conf(TF, apache_dir, port_num):
     print "Preparing to configure httpd.conf...\n"
 
-    httpd_conf = "{}/conf/httpd.conf".format(apache_dir)
+    httpd_conf = "{}/httpd.conf".format(apache_dir)
+    if not os.path.exists(httpd_conf):
+        print "\n{}: Unable to find httpd.conf at the default location.\n".format(TF.format('WARNING', 3))
+        httpd_conf = raw_input("\nPlease enter in the full path to your httpd.conf file: ")
+        if not os.path.exists(httpd_conf):
+            print "\n{}: There is no httpd.conf at the following " \
+                  "path: {}\n".format(TF.format("ERROR", 4), httpd_conf)
+            sys.exit(1)
+
     module = False
     port = False
 

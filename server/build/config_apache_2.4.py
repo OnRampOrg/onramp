@@ -57,7 +57,7 @@ def install_wsgi(TF, apache_dir):
 
 
 def configure_vhost_conf(TF, onramp_dir, apache_dir, port):
-    print "Preparing to configure httpd-vhosts.conf...\n"
+    print "Preparing to configure virtual hosts file...\n"
 
     # strip off any trailing slashes so we have clean paths in the config
     if onramp_dir.endswith("/"):
@@ -69,7 +69,12 @@ def configure_vhost_conf(TF, onramp_dir, apache_dir, port):
 
     vhosts = "{}/conf/extra/httpd-vhosts.conf".format(apache_dir)
     if not os.path.exists(vhosts):
-        print "Unable to find httpd-vhosts.conf file at: {}".format(vhosts)
+        print "\nUnable to find default httpd-vhosts.conf file at: {}\n".format(vhosts)
+        httpd_conf = raw_input("\nPlease enter in the full path to your httpd-vhosts.conf file: ")
+        if not os.path.exists(httpd_conf):
+            print "\n{}: There is no httpd-vhosts.conf at the following " \
+                  "path: {}\n".format(TF.format("ERROR", 4), httpd_conf)
+            sys.exit(1)
         sys.exit(1)
 
     fh = open(vhosts, "r")
@@ -78,7 +83,7 @@ def configure_vhost_conf(TF, onramp_dir, apache_dir, port):
             print "{}: The virtual hosts file already contains an entry for that port!".format(TF.format("ERROR", 4))
             print "If you would like to run OnRamp under the port ({}) please remove the\n" \
                   "current configuration for that port from your httpd-vhosts.conf file\n" \
-                  "and then re-run this script to configure your Apache 2.4 for OnRamp.\n".format(port)
+                  "and then re-run this script to configure your Apache 2.4 webserver for OnRamp.\n".format(port)
             sys.exit(1)
     fh.close()
 
@@ -117,13 +122,21 @@ def configure_vhost_conf(TF, onramp_dir, apache_dir, port):
     fh.write(textwrap.dedent(vhost_config))
     fh.close()
 
-    print TF.format("Apache's httpd-vhosts.conf was configured successfully!\n", 1)
+    print TF.format("Apache's virtual hosts file was configured successfully!\n", 1)
 
 
 def configure_httpd_conf(TF, apache_dir, port_num):
     print "Preparing to configure httpd.conf...\n"
 
     httpd_conf = "{}/conf/httpd.conf".format(apache_dir)
+    if not os.path.exists(httpd_conf):
+        print "\n{}: Unable to find httpd.conf at the default location.\n".format(TF.format('WARNING', 3))
+        httpd_conf = raw_input("\nPlease enter in the full path to your httpd.conf file: ")
+        if not os.path.exists(httpd_conf):
+            print "\n{}: There is no httpd.conf at the following " \
+                  "path: {}\n".format(TF.format("ERROR", 4), httpd_conf)
+            sys.exit(1)
+
     module = False
     port = False
 
