@@ -229,17 +229,8 @@ function adminPCE (data) {
 		// this will add a new PCE
 		$.ajax({
 			type: 'POST',
-			url: sessionStorage.server + '/admin/pce?apikey=' + JSON.parse(this.auth_data).apikey,
-			//	"auth": { ...}, // Removed for brevity
-    		//	"contact_info": "Someone else",
-    		//	"description": "Secret Compute Resource",
-    		//	"location": "Hidden Hallway",
-    		//	"name": "Flux",
-    		//	"pce_password": "fake123",
-    		//	"pce_username": "onramp",
-    		//	"port": 9071,
-    		//	"url": "127.0.0.1"
-			data: JSON.stringify({'auth': JSON.parse(self.auth_data),
+			url: '/admin/PCEs/Add/',
+			data: {
 				'contact_info':this.contact_info(),
 				'description':this.description(),
 				'location':this.location(),
@@ -248,11 +239,15 @@ function adminPCE (data) {
 				'pce_username':this.pce_username(),
 				'port':this.port(),
 				'url':this.url()
-			}),
-			complete: self.complete_func,
-			dataType: 'application/json',
-			contentType: 'application/json'
-		} );
+			},
+			dataType: 'json',
+			success: function (data) {
+			    if (data.status != 0) {
+			        alert(data.status_message);
+			    }
+			}
+
+		});
 	}
 	self.removeOnServer = function () {
 		alert("remove on server not implmented");
@@ -473,28 +468,18 @@ function AdminPCEViewModel() {
 		// reinitialize values
 		self.PCElist.removeAll();
 		// get data from server
-		// some hard coded data for now...
-		$.getJSON( sessionStorage.server + "/pces?apikey=" + JSON.parse(self.auth_data).apikey,
-			//self.auth_data,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-				console.log(JSON.stringify(data));
-				for (var x = 0; x < data.pces.data.length; x++){
-					var raw = data.pces.data[x];
-					console.log(raw);
-					var conv_data = {};
-					for(var i = 0; i < data.pces.fields.length; i++){
-						console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
-						conv_data[data.pces.fields[i]] = raw[i];
-					}
-					self.PCElist.push(new adminPCE(conv_data));
+		$.ajax({
+		    url: '/admin/PCEs/GetAll/',
+		    type: 'GET',
+		    dataType: 'json',
+		    success: function(data) {
+		        for (var x = 0; x < data.pces.length; x++){
+					var pce_data = data.pces[x];
+					self.PCElist.push(new adminPCE(pce_data));
 				}
-			}
-		);
+		    }
+		})
+
 		self.newPCE(null);
 	});
 

@@ -1,6 +1,6 @@
 import json
 
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.template import loader
@@ -32,6 +32,10 @@ def help_page(request):
     context = {}
     template = loader.get_template("help.html")
     return HttpResponse(template.render(context, request))
+
+def logout_view(request):
+    logout(request)
+    return login_page(request)
 
 def onramp_login(request):
     post = request.POST.dict()

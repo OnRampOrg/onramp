@@ -121,7 +121,7 @@ var LoginViewModel = function() {
             // Authentication successful so redirect to proper page
             window.location += response['url']
         } else {
-            // TODO failed to login
+            alert("Invalid username or password.");
         }
     }
 

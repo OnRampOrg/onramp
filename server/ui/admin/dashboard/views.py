@@ -1,6 +1,7 @@
 
 import json
 
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
@@ -12,7 +13,7 @@ from ui.admin.models import job, workspace, pce, module
 
 
 
-@login_required
+@staff_member_required(login_url='/')
 def main(request):
     """ Renders the main Admin dashboard on login
 
@@ -25,7 +26,7 @@ def main(request):
     template = get_template('admin_dashboard.html')
     return HttpResponse(template.render(context))
 
-@login_required
+@staff_member_required(login_url='/')
 def get_all_users(request):
     """ Retrieves all OnRamp users
 
@@ -50,7 +51,7 @@ def get_all_users(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@staff_member_required(login_url='/')
 def get_all_jobs(request):
     """ Gets basic info for all OnRamp Jobs
 
@@ -70,7 +71,7 @@ def get_all_jobs(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@staff_member_required(login_url='/')
 def get_all_workspaces(request):
     """ Gets all configured workspaces
 
@@ -89,7 +90,7 @@ def get_all_workspaces(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@staff_member_required(login_url='/')
 def get_all_pces(request):
     """ Gets all configured PCE's
 
@@ -108,7 +109,7 @@ def get_all_pces(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@staff_member_required(login_url='/')
 def get_all_modules(request):
     """ Gets all loaded modules
 

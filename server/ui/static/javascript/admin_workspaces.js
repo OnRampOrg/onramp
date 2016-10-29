@@ -25,12 +25,6 @@ function adminWorkspace(data){
 	self.new_pce_id = ko.observable();
 	self.new_mod_id = ko.observable();
 
-//	self.viewWorkspace = function () {
-//		// go to manage Workspaces page and show this job
-//		window.location.href = "admin_workspaces.html";
-//	};
-
-
 	self.removeOnServer = function () {
 		alert("Remove not implemented on server.");
 	};

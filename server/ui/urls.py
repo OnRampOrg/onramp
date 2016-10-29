@@ -25,5 +25,6 @@ urlpatterns = [
     url(r'^contact/', views.contact_page),
     url(r'^help/', views.help_page),
     url(r'^login/', views.onramp_login),
+    url(r'^logout/', views.logout_view),
     url(r'^$', views.login_page)
 ]

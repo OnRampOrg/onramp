@@ -7,5 +7,5 @@ urlpatterns = [
     url(r'^Jobs/', include("ui.admin.jobs.urls")),
     url(r'^PCEs/', include("ui.admin.pces.urls")),
     url(r'^Workspaces/', include("ui.admin.workspaces.urls")),
-    url(r'^Modules/', include("ui.admin.modules.urls")),
+    # url(r'^Modules/', include("ui.admin.modules.urls")),
 ]

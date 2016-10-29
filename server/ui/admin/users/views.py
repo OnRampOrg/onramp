@@ -3,13 +3,14 @@
 
 import json
 
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
 from ui.admin.models import job, user_to_workspace
 
-# @login_required
+@login_required
 def main(request):
     """ Renders the main Admin dashboard on login
 
