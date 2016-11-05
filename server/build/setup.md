@@ -173,7 +173,7 @@ MySQL is required by both Django and other pieces of OnRamp for communication an
     - **Note:** The first commands installs the MySQL community repository so we can install MySQL and the development libraries, and the other commands actually installs MySQL and the MySQL development libraries needed for it to run successfully.
     
     ```
-    user@server:/# yum localinstall /path/to/onramp/build/dependencies/mysql57-community-release-el7-7.noarch.rpm
+    user@server:/# yum localinstall ONRAMPbuild/dependencies/mysql57-community-release-el7-7.noarch.rpm
     user@server:/# yum install -y mysql-community-server
     user@server:/# yum install -y mysql-community-devel
     ```
@@ -192,7 +192,7 @@ MySQL is required by both Django and other pieces of OnRamp for communication an
 
 - Copy the OnRamp MySQL configuration file to the default location via the following command
     ```
-    user@server:/# cp ONRAMP/build/config/my.cnf /etc/my.cnf
+    user@server:/# cp ONRAMP/server/build/config/my.cnf /etc/my.cnf
     ```
     
 - Replace every instance of `ONRAMP` in `/etc/my.cnf` with `/path/to/onramp/`
@@ -200,8 +200,8 @@ MySQL is required by both Django and other pieces of OnRamp for communication an
 - Fix SELinux so we can run MySQL under a different data directory
     - **Important:** If the following commands are not run MySQL **WILL NOT RUN** under a different directory other than its default location of `/var/lib/mysql`. The commands below tell SELinux that it is okay for MySQL to run out of a different directory. For more information on this look up the manuals for the commands via  `man semanage` and `man restorecon`
     ```
-    user@server:/# semanage fcontext -a -s system_u -t mysqld_db_t "ONRAMP/mysql(/.*)?"
-    user@server:/# restorecon -Rv ONRAMP/mysql
+    user@server:/# semanage fcontext -a -s system_u -t mysqld_db_t "ONRAMP/server/mysql(/.*)?"
+    user@server:/# restorecon -Rv ONRAMP/server/mysql
     ```
 - Start up MySQL and everything should be running
     ```
@@ -259,7 +259,7 @@ The following command is used to create all of the necessary tables in the MySQL
 - Run the following command to setup Django, migrations, and build the required MySQL tables
     - **Note:** In addition to creating the tables specified in the `models.py` files of the Django application that runs OnRamp, Django also creates their required tables as well with the following commands. 
     ```
-    users@server:/# python /path/to/onramp/ui/manage.py migrate
+    users@server:/# python ONRAMP/server/ui/manage.py migrate
     ```
 
 ##### How to create a Django admin user
