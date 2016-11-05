@@ -20,7 +20,7 @@ The installation of the server occurs in the `install.py` file found in the `/pa
 
 ##### Important:
 
-- Everywhere in this document where you see **ONRAMP** repace it with `/path/to/your/onramp/directory/`
+- Everywhere in this document where you see **ONRAMP** replace it with `/path/to/your/onramp/directory/`
 
 ---
 
@@ -95,7 +95,7 @@ The following dependencies need to be installed before attempting to install Apa
 
 ##### How to install apache from source
 
-The source for Apache 2.4.23 has already been conveniently downloaded and is available in the dependencies folder of the onramp server build directory. The version 2.4.23 isn't a strict requirement and any new version of Apache could probably be built the same way if needed. The following instructions cover un-tarring Apache's source, configuring it with some default modules loaded statically and other modules disabled for performance reasons, and the installation of it into the OnRamp server directory for convenience.
+The source for Apache 2.4.23 has already been conveniently downloaded and is available in the dependencies folder of the OnRamp server build directory. The version 2.4.23 isn't a strict requirement and any new version of Apache could probably be built the same way if needed. The following instructions cover un-tarring Apache's source, configuring it with some default modules loaded statically and other modules disabled for performance reasons, and the installation of it into the OnRamp server directory for convenience.
 
 - Un-tar the Apache 2.4.23 source with the following commands
 
@@ -202,7 +202,7 @@ MySQL is required by both Django and other pieces of OnRamp for communication an
 
 - **Note:** For further documentation on MySQL and what the following commands do please read the link in the summary section of this documentation
 
-##### How to install MySQL on Centos 7
+##### How to install MySQL on CentOS 7
 
 - Install the MySQL community repository and then install MySQL and the development libraries via the following commands
 
@@ -262,7 +262,7 @@ MySQL is required by both Django and other pieces of OnRamp for communication an
    
 - Connect to MySQL with the temporary password and set a new one for the root user
 
-    - **Note:** the --conect-expired-password is important here because without it you could not connect to mysql with the temporary password from the log.
+    - **Note:** the --connect-expired-password is important here because without it you could not connect to mysql with the temporary password from the log.
     
     ```
     user@server:/# mysql -u root --password=temp_password --conext-expired-password
@@ -271,7 +271,7 @@ MySQL is required by both Django and other pieces of OnRamp for communication an
     
 - Login to MySQL with the newly changed password and harden it by removing defaults
 
-    - **Note:** The following commands are necessary to remove all of the default users and tables that are created by MySQL on initialization. This step is technically *optionall* however, it is **recomended** that the following commands are run for security.
+    - **Note:** The following commands are necessary to remove all of the default users and tables that are created by MySQL on initialization. This step is technically *optional* however, it is **recommended** that the following commands are run for security.
     
     ```
     user@server:/# mysql -u root --password=new_password
