@@ -28,10 +28,10 @@ class module(models.Model):
 
 class job(models.Model):
     job_id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey(User)
-    workspace_id = models.ForeignKey(workspace)
-    pce_id = models.ForeignKey(pce)
-    module_id = models.ForeignKey(module)
+    user = models.ForeignKey(User)
+    workspace = models.ForeignKey(workspace)
+    pce = models.ForeignKey(pce)
+    module = models.ForeignKey(module)
     job_name = models.TextField()
     state = models.IntegerField(default=0)
     output_file = models.TextField(default='') # TODO FileField or FilePathField?
