@@ -60,6 +60,7 @@ This step is **VERY** important. A virtual environment is necessary for the OnRa
 
     ```
     (virtual-env) [user@server:/#] pip install mysqlclient 
+    (virtual-env) [user@server:/#] pip install requests 
     (virtual-env) [user@server:/#] pip install django 
     ```
 

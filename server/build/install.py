@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-import os, sys, site
+import textwrap
+import site
+import sys
+import os
 
 # Add the site-packages of the chosen virtualenv to work with
 site.addsitedir('../virtual-env')
@@ -52,13 +55,14 @@ class Installer(object):
         self.dep_dir = "{}/dependencies".format(self.build_dir)
         self.apachectl = "{}/webserver/bin/apachectl".format(self.base_dir)
         self.phases = [
-            {'phase': 0, 'func': self.install_virtual_env, 'desc': '(0): Install Virtual Environment'},
-            {'phase': 1, 'func': self.install_dependencies, 'desc': '(1): Install Dependencies'},
-            {'phase': 2, 'func': self.install_apache, 'desc': '(2): Install Apache'},
-            {'phase': 3, 'func': self.install_wsgi, 'desc': '(3): Install WSGI'},
-            {'phase': 4, 'func': self.install_mysql, 'desc': '(4): Install MySQL'},
-            {'phase': 5, 'func': self.run_migrations, 'desc': '(5): Run Django Migrations'},
-            {'phase': 6, 'func': self.create_admin_user, 'desc': '(6): Create Admin User'},
+            {'phase': 0, 'func': self.configure_environment, 'desc': '(0): Configure Environment'},
+            {'phase': 1, 'func': self.install_virtual_env, 'desc': '(1): Install Virtual Environment'},
+            {'phase': 2, 'func': self.install_dependencies, 'desc': '(2): Install Dependencies'},
+            {'phase': 3, 'func': self.install_apache, 'desc': '(3): Install Apache'},
+            {'phase': 4, 'func': self.install_wsgi, 'desc': '(4): Install WSGI'},
+            {'phase': 5, 'func': self.install_mysql, 'desc': '(5): Install MySQL'},
+            {'phase': 6, 'func': self.run_migrations, 'desc': '(6): Run Django Migrations'},
+            {'phase': 7, 'func': self.create_admin_user, 'desc': '(7): Create Admin User'},
         ]
         self.TF = TerminalFonts()
 
@@ -100,6 +104,23 @@ class Installer(object):
         else:
             if not force:
                 raise OSError("{} does not exists!".format(path))
+
+    @catch_exceptions
+    def configure_environment(self):
+        print "Preparing to configure environment...\n"
+
+        environment = """
+            DJANGO_SETTINGS_MODULE="ui.settings"
+            PYTHONPATH="{base}/virtual-env/lib/python2.7/site-packages:{base}"
+        """.format(base=self.base_dir)
+        environment = textwrap.dedent(environment).strip()
+
+        # permanently set the environment variables below for OnRamp
+        with open("/etc/environment", "a+") as fh:
+            if environment not in fh.read():
+                fh.write(environment)
+
+        print self.TF.format("Environment configured successfully!\n", 1)
 
     @catch_exceptions
     def install_dependencies(self):
@@ -149,6 +170,7 @@ class Installer(object):
         print "Activating virtual environment and installing dependencies...."
         pip_dependencies = [
             'mysqlclient',
+            'requests',
             'django',
         ]
         for dependency in pip_dependencies:
@@ -455,6 +477,8 @@ class Installer(object):
         for phase in self.phases:
             phase['func']()
             sleep(2)
+        print "Please logout then back in to complete the OnRamp installation process!"
+        sleep(3)
         self.TF.format("INSTALLATION COMPLETE\n", 1)
 
 if __name__ == '__main__':
@@ -469,6 +493,9 @@ if __name__ == '__main__':
         Installer(args).print_phases()
         sys.exit(0)
     elif args.p:
+        if (args.p[0] == 0):
+            print "\nConfiguring the environment requires logging out\n" \
+                  "then back in again for the changes to take effect.\n"
         try:
             installer = Installer(args)
             installer.check_perms()
