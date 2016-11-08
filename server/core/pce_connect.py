@@ -1,12 +1,13 @@
 """ Module for making requests to a PCE
 
 """
+
+from ui.admin.models import pce, module, module_to_pce, job
+from django.contrib.auth.models import User
+import requests
+import logging
 import json
 import os
-import requests
-from django.contrib.auth.models import User
-from ui.admin.models import pce, module, module_to_pce, job
-import logging
 
 JOB_STATES = {
     0 : "Unknown job id",
