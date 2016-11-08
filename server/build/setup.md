@@ -107,7 +107,7 @@ The source for Apache 2.4.23 has already been conveniently downloaded and is ava
     
 - Run the following command below to configure Apache for installation:
 
-    - **Note:** The following command may look quite intimidating howerver everything below is setup to optomize apache and make sure no unecessary modules are loaded into apache that aren't needed to maximize performance. All of the additional arguments below can be looked up via the link in the summary to the Apache 2.4 documentation or by typing `./configure --help | less ` in the terminal and scrolling through the output.
+    - **Note:** The following command may look quite intimidating however everything below is setup to optimize apache and make sure no unecessary modules are loaded into apache that aren't needed to maximize performance. All of the additional arguments below can be looked up via the link in the summary to the Apache 2.4 documentation or by typing `./configure --help | less ` in the terminal and scrolling through the output.
     
     ```
     user@server:/# ./configure --prefix=/Aristotle/apache2 --enable-nonportable-atomics=yes --enable-core=static --enable-unixd=static --enable-ssl=static --enable-socache_shmcb=static --enable-authz_core=static --enable-allowmethods=static --enable-headers=static --enable-expires=static --enable-alias=static --enable-rewrite=static --enable-filter=static --enable-deflate=static --enable-cache=static --enable-log_config=static --enable-mime=static --enable-env=static --enable-proxy=static --enable-proxy-wstunnel=static --disable-authn_core --disable-authn_file --disable-authz_host --disable-authz_groupfile --disable-authz_user --disable-access_compat --disable-mime_magic --disable-auth_basic --disable-setenvif --disable-version --disable-autoindex --disable-dir --disable-proxy-balancer --disable-proxy-connect --disable-proxy-ftp --disable-proxy-http --disable-proxy-fcgi --disable-proxy-scgi --disable-proxy-ajp --disable-proxy-express --disable-lbmethod_byrequests --disable-lbmethod_bytraffic --disable-lbmethod_bybusyness --disable-lbmethod_heartbeat
@@ -128,7 +128,7 @@ The source for Apache 2.4.23 has already been conveniently downloaded and is ava
 - Apache should now be installed at `ONRAMP/server/webserver`
 - Copy over `ONRAMP/server/build/config/httpd.conf` to the default Apache location via the following command
 
-    - **Note:** The following command makes sure Apache is setup correctly for OnRamp since `httpd.conf` is the main file that apache reads to determine what its settings are, in addition to the `httpd-vhost.conf` file which tells apache what to server up for what IP/port combination. The httpd.conf file in the `ONRAMP/server/build/config` directory has already been configured for OnRamp so nothing has to change besides some paths.
+    - **Note:** The following command makes sure Apache is setup correctly for OnRamp since `httpd.conf` is the main file that apache reads to determine what its settings are, in addition to the `httpd-vhost.conf` file which tells apache what to serve up for what IP/port combination. The httpd.conf file in the `ONRAMP/server/build/config` directory has already been configured for OnRamp so nothing has to change besides some paths.
     
     ```
     user@server:/# cp ONRAMP/server/build/config/httpd.conf ONRAMP/server/webserver/conf/httpd.conf
@@ -207,7 +207,7 @@ MySQL is required by both Django and other pieces of OnRamp for communication an
 
 - Install the MySQL community repository and then install MySQL and the development libraries via the following commands
 
-    - **Note:** The first commands installs the MySQL community repository so we can install MySQL and the development libraries, and the other commands actually installs MySQL and the MySQL development libraries needed for it to run successfully.
+    - **Note:** The first command installs the MySQL community repository so we can install MySQL and the development libraries, and the other commands actually installs MySQL and the MySQL development libraries needed for it to run successfully.
     
     ```
     user@server:/# yum localinstall ONRAMP/build/dependencies/mysql57-community-release-el7-7.noarch.rpm
