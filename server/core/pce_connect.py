@@ -4,6 +4,7 @@
 
 from ui.admin.models import pce, module, module_to_pce, job
 from django.contrib.auth.models import User
+from logging import getLogger
 import requests
 import logging
 import json
@@ -43,17 +44,15 @@ class PCEAccess(object):
         establish_connection: Handshake to establish authorization (JJH TODO).
     """
 
-    def __init__(self, pce_id, logger, tmp_dir):
+    def __init__(self, pce_id, tmp_dir, logger=None):
         """Initialize PCEAccess instance.
 
         Args:
             logger (logging.Logger): Logger for instance to use.
-            dbaccess (onrampdb.DBAccess): Interface to server DB.
-            pce_id (int): Id of PCE instance should provide interface to. Must
-                exist in DB provided by dbaccess.
+            pce_id (int): Id of PCE instance should provide interface to.
         """
         self._pce_id = pce_id
-        self._logger = logger
+        self._logger = logger if logger else self._get_logger()
 
         self._tmp_dir = tmp_dir
         self._pce_dir = os.path.join(self._tmp_dir, "tmp", "pce", str(self._pce_id))
@@ -68,10 +67,15 @@ class PCEAccess(object):
             os.makedirs(self._pce_job_dir)
 
         pce_info = self._get_pce_info()
-        self._url = pce_info.ip_addr
+        if pce_info.ip_addr.startswith("http://"): # TODO may want to implement SSL option
+            self._url = "{}:{}".format(pce_info.ip_addr, pce_info.ip_port)
+        else:
+            self._url = "http://{}:{}".format(pce_info.ip_addr, pce_info.ip_port)
         self._port = pce_info.ip_port
         self._name = pce_info.pce_name
 
+    def _get_logger(self):
+        return getLogger("../log/pce_access.log")
 
     def _get_pce_info(self):
         """ Gets information from the Database about the PCE
@@ -474,11 +478,11 @@ class PCEAccess(object):
 
         return module_metadata
 
-    def _update_module_in_db(self, prefix, module):
-        if module['state'] == "Does not exist":
-            self._logger.error("%s Asking to update a module that does not exist. %s" % (prefix, str(module)))
+    def _update_module_in_db(self, prefix, module_data):
+        if module_data['state'] == "Does not exist":
+            self._logger.error("%s Asking to update a module that does not exist. %s" % (prefix, str(module_data)))
             try:
-                pm_pair = module_to_pce.objects.filter(module_id=module['mod_id'], pce_id=self._pce_id)
+                pm_pair = module_to_pce.objects.filter(module_id=module_data['mod_id'], pce_id=self._pce_id)
                 pm_pair.state = 0
                 pm_pair.save()
             except Exception:
@@ -486,10 +490,10 @@ class PCEAccess(object):
                 pass
             return False
 
-        self._logger.debug("%s Add Module: %s" % (prefix, module['mod_name']))
+        self._logger.debug("%s Add Module: %s" % (prefix, module_data['mod_name']))
 
         mod_info, created = module.objects.get_or_create(
-                                module_name=module['mod_name'])
+                                module_name=module_data['mod_name'])
         module_id = int(mod_info.module_id)
 
         # Add it to the PCE/Module pair table (if not already there)
@@ -497,39 +501,39 @@ class PCEAccess(object):
         self._logger.debug("%s Add Module to PCE: %d module %d"
                            % (prefix, self._pce_id, module_id))
 
-        if 'uioptions' in module and module["uioptions"] is not None:
-            self._save_uioptions(module_id, module["uioptions"])
+        if 'uioptions' in module_data and module_data["uioptions"] is not None:
+            self._save_uioptions(module_id, module_data["uioptions"])
 
-        if 'metadata' in module and module["metadata"] is not None:
+        if 'metadata' in module_data and module["metadata"] is not None:
             self._save_metadata(module_id, module["metadata"])
 
         pm_row, created = module_to_pce.objects.get_or_create(
             pce_id=self._pce_id, module_id=module_id,
             defaults={
-                "src_location_type": module['source_location']['type'],
-                "src_location_path": module['source_location']['path']
+                "src_location_type": module_data['source_location']['type'],
+                "src_location_path": module_data['source_location']['path']
             })
 
         self._logger.debug("%s Add Module to PCE: %d module %d : State = %s"
-                           % (prefix, self._pce_id, module_id, str(module['state'])))
+                           % (prefix, self._pce_id, module_id, str(module_data['state'])))
         state = -99
-        if module['state'] == "Does not exist":
+        if module_data['state'] == "Does not exist":
             state = 0
-        elif module['state'] == "Available":
+        elif module_data['state'] == "Available":
             state = 1
-        elif module['state'] == "Checkout in progress":
+        elif module_data['state'] == "Checkout in progress":
             state = 2
-        elif module['state'] == "Checkout failed":
+        elif module_data['state'] == "Checkout failed":
             state = -2
-        elif module['state'] == "Installed":
+        elif module_data['state'] == "Installed":
             state = 3
-        elif module['state'] == "Deploy in progress":
+        elif module_data['state'] == "Deploy in progress":
             state = 4
-        elif module['state'] == "Deploy failed":
+        elif module_data['state'] == "Deploy failed":
             state = -4
-        elif module['state'] == "Admin required":
+        elif module_data['state'] == "Admin required":
             state = 5
-        elif module['state'] == "Module ready":
+        elif module_data['state'] == "Module ready":
             state = 6
         pm_row.state = state
         pm_row.save()
@@ -800,3 +804,10 @@ class PCEAccess(object):
                 or (0 != response['status_code'])):
                 return False
             return True
+
+#
+if __name__ == '__main__':
+    from logging import getLogger
+    l = getLogger("../log/pce_connect.log")
+    r = PCEAccess(1, '../tmp/')
+    print r.get_modules_avail()

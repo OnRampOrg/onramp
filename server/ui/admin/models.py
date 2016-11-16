@@ -54,6 +54,7 @@ class module_to_pce(models.Model):
     src_location_path = models.TextField(default='')
     install_location = models.TextField(default='')
     is_visible = models.BooleanField(default=True)
+    # TODO uioptions, runparams
 
     class Meta:
         unique_together = ('pce', 'module')

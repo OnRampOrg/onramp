@@ -89,11 +89,22 @@ def get_pces(request):
     if workspace_id is None:
         response = {'status':-1, 'stauts_message':'No workspace_id specified'}
         return HttpResponse(json.dumps(response))
-
+    pce_mod_pairs = {}
+    wpm_pairs = workspace_to_pce_module.objects.filter(workspace_id=int(workspace_id))
+    for row in wpm_pairs:
+        if row.pm_pair in pce_mod_pairs: continue
+        module_obj = row.pm_pair.module
+        pce_obj = row.pm_pair.pce
+        pce_mod_pairs[row.pm_pair] = {
+            'module_id':module_obj.module_id,
+            'module_name':module_obj.module_name,
+            'pce_id':pce_obj.pce_id,
+            'pce_name':pce_obj.pce_name
+        }
     response = {
-        'status':1,
+        'status':True,
         'status_message':'Success',
-        'pces':[] # TODO finish this (needs to be pce/module pairs)
+        'pces':pce_mod_pairs.values()
     }
     return HttpResponse(json.dumps(response))
 

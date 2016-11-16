@@ -297,7 +297,7 @@ function OnrampWorkspaceViewModel () {
 	//'WorkspaceName': 'default',
 	//'Description':'My personal workspace'}));
 
-	self.username = JSON.parse(self.auth_data).username;
+//	self.username = JSON.parse(self.auth_data).username;
 
 	self.PCElist = ko.observableArray();
 	self.Jobslist = ko.observableArray();
@@ -314,151 +314,81 @@ function OnrampWorkspaceViewModel () {
 
 	$(document).ready( function () {
 		// get data from server
-		$.getJSON( sessionStorage.server + "/workspaces/" + self.workspaceID + "?apikey=" + JSON.parse(self.auth_data).apikey,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-				var raw = data.workspaces.data;
-				console.log(raw);
-				var conv_data = {};
-				for(var i = 0; i < data.workspaces.fields.length; i++){
-					console.log("adding: " + data.workspaces.fields[i] + " = " + raw[i]);
-					conv_data[data.workspaces.fields[i]] = raw[i];
-				}
-				self.workspaceInfo(new myWorkspace(conv_data));
-				self.welcome1(self.username + "'s " + self.workspaceInfo().name + " workspace");
-			}
-		);
+		$.ajax({
+		    url: '/public/Workspace/GetWorkspace/',
+            type: 'POST',
+            dataType:'json',
+            data: {'workspace_id':self.workspaceID},
+            success: function(response) {
+                if (response.success) {
+                    self.welcome1("Workspace: "+response.data['workspace_name'])
+                    self.workspaceInfo(new myWorkspace(response.data))
+                } else {
+                    alert(response.status_message);
+                }
+            }
+		})
 
-		$.getJSON( sessionStorage.server + "/workspaces/" + self.workspaceID + "/pcemodulepairs?apikey=" + JSON.parse(self.auth_data).apikey,
-		//self.auth_data,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-				console.log(JSON.stringify(data));
-				var pairs = data.workspaces.data;
-				var fields = data.workspaces.fields;
-				var setOfPCEIDs = [];
-				var setOfModIDs = [];
-				for(var i = 0; i < pairs.length; i++){
-					self.pce = pairs[i][0];
-					self.mod = pairs[i][2];
-					// get data for new pce and/or module
-					console.log("PCE - Mod id pair: " + self.pce + " - " + self.mod);
-					if(setOfPCEIDs.indexOf(self.pce) == -1){
-						setOfPCEIDs.push(self.pce);
-					}
-					if(setOfModIDs.indexOf(self.mod) == -1){
-						setOfModIDs.push(self.mod);
-					}
-				}
-
-				// get data for the set of PCEs
-				for(var i = 0; i < setOfPCEIDs.length; i++){
-					$.getJSON(sessionStorage.server + "/pces/" + setOfPCEIDs[i] + "?apikey=" + JSON.parse(self.auth_data).apikey,
-						function(data){
-							var raw = data.pces.data;
-							console.log(raw);
-							var conv_data = {};
-							for(var j = 0; j < data.pces.fields.length; j++){
-								console.log("adding: " + data.pces.fields[j] + " = " + raw[j] + " (" + (raw[j] + 1 ) + ")");
-								conv_data[data.pces.fields[j]] = raw[j];
-							}
-							var newpce = new PCE(conv_data, false);
-							for(var j = 0; j < pairs.length; j++){
-								var p = pairs[j][0];
-								var m = pairs[j][2];
-								if(p == raw[0]){
-									newpce.modules.push(m);
-								}
-							}
-							self.allPCEs.push(newpce);
-							self.PCElist.push(newpce);
-						}
-					);
-				}
-
-				// get data for the set of Modules
-				for(var i = 0; i < setOfModIDs.length; i++){
-					$.getJSON(sessionStorage.server + "/modules/" + setOfModIDs[i] + "?apikey=" + JSON.parse(self.auth_data).apikey,
-						function(data){
-							var raw = data.modules.data;
-							console.log(raw);
-							var conv_data = {};
-							for(var j = 0; j < data.modules.fields.length; j++){
-								console.log("adding: " + data.modules.fields[j] + " = " + raw[j]);
-								conv_data[data.modules.fields[j]] = raw[j];
-							}
-							var newmod = new workspaceModule(conv_data);
-							for(var j = 0; j < pairs.length; j++){
-								var p = pairs[j][0];
-								var m = pairs[j][2];
-								if(m == raw[0]){
-									newmod.PCEs.push(p);
-								}
-							}
-							// need to replace with real form fields
-							//newmod.addDefaultFormFields();
-							self.allModules.push(newmod);
-							self.Modulelist.push(newmod);
-						}
-					);
-				}
-			}
-		);
+        $.ajax({
+            url: '/public/Workspace/GetPCEs/',
+            type: 'POST',
+            dataType: 'json',
+            data: {'workspace_id':self.workspaceID},
+            success: function (response) {
+                if (response.success) {
+                    for (var i=0; i<response.pces.length; i++) {
+                        var newpce = new PCE(response.pces[i]);
+                        self.PCElist.push(newpce);
+                        self.allPCEs.push(newpce);
+                    }
+                } else {
+                    alert(response.status_message);
+                }
+            }
+        })
 	});
-
-
 
 	// Behaviors
 	self.selectPCE = function (PCE) {
 		self.selectedPCE(PCE);
-		console.log("Selected PCE: " + PCE.name + " (" + PCE.modules().length + ")");
-		//self.selectedModule(null);
-		if(! self.selectedModule()){
-			self.Modulelist.removeAll();
-			for(var i = 0; i < PCE.modules().length; i++){
-				console.log("Adding module id " + PCE.modules()[i] );
-				var mm = self.findById(self.allModules, PCE.modules()[i])
-				if(mm){
-					self.Modulelist.push(mm);
-				}
-				else {
-					console.log("can't find module id " + (PCE.modules()[i] + 1));
-				}
-			}
-		}
-		else {
-			// module and pce selected
-			console.log("<<<getting form fields>>>");
-			self.selectedModule().getRealFormFields(PCE.id);
-		}
-		self.selectedPCE(PCE);
+		$.ajax({
+		    url: '/public/Workspace/GetModules/',
+		    type:'POST',
+		    dataType:'json',
+		    data: {'workspace_id':self.workspaceID, 'pce_id':PCE.id},
+		    success: function(response) {
+		        if (response.success) {
+		            $("#module-select-header").text("Now select a module to run")
+		            for (var i=0; i<response.modules.length; i++) {
+		                var newmod = new workspaceModule(response.modules[i]);
+		                self.Modulelist.push(newmod);
+		            }
+		        } else {
+		            alert(response.status_message);
+		        }
+		    }
+		})
 	}
 
 	self.selectModule = function (m) {
+//		self.selectedModule(m);
+//		console.log("Selected Module: " + self.selectedModule().name);
+//		console.log(" (" + self.selectedModule().PCEs().length + ")");
+//		if(! self.selectedPCE()){
+//			self.PCElist.removeAll();
+//			for(var i = 0; i < self.selectedModule().PCEs().length; i++){
+//				console.log("Adding pce id " + self.selectedModule().PCEs()[i] );
+//				self.PCElist.push(self.findById(self.allPCEs, self.selectedModule().PCEs()[i]));
+//			}
+//		}
+//		else {
+//			// module and pce selected
+//			console.log("????getting form fields???");
+//			m.getRealFormFields(self.selectedPCE().id);
+//		}
+
 		self.selectedModule(m);
-		console.log("Selected Module: " + self.selectedModule().name);
-		console.log(" (" + self.selectedModule().PCEs().length + ")");
-		if(! self.selectedPCE()){
-			self.PCElist.removeAll();
-			for(var i = 0; i < self.selectedModule().PCEs().length; i++){
-				console.log("Adding pce id " + self.selectedModule().PCEs()[i] );
-				self.PCElist.push(self.findById(self.allPCEs, self.selectedModule().PCEs()[i]));
-			}
-		}
-		else {
-			// module and pce selected
-			console.log("????getting form fields???");
-			m.getRealFormFields(self.selectedPCE().id);
-		}
-		self.selectedModule(m);
+		m.getRealFormFields(self.selectedPCE().id);
 		/*add module descriptions here because we need the module to be selected
 		 above or the html will not exist */
 		if(self.selectedModule().name == "monte_carlo"){
@@ -524,28 +454,6 @@ function OnrampWorkspaceViewModel () {
 
 	this.launchJob = function(formData){
 		console.log("launching job");
-// 		{
-//     "auth": {
-//         ... // Removed for brevity
-//     },
-//     "info": {
-//         "job_name": "Run Alpha 2",
-//         "module_id": 1,
-//         "pce_id": 1,
-//         "user_id": 2,
-//         "workspace_id": 1
-//     },
-//     "uioptions": {
-//         "onramp": {
-//             "nodes": 1,
-//             "np": 2
-//         },
-//         "ring": {
-//             "iters": 5,
-//             "work": 1
-//         }
-//     }
-// }
 		// construct uioptions
 		var opts = {"onramp":{}};
 		var mod_name = self.selectedModule().name;
@@ -614,71 +522,6 @@ function OnrampWorkspaceViewModel () {
 		});
 
 	}
-/*
-this.alpacaForm = function (formData) {
-$.alpaca({
-"data" : {
-"name": "Diego Maradona",
-"feedback": "Very impressive.",
-"ranking": "excellent"
-},
-"schema": {
-"title":"User Feedback",
-"description":"What do you think about Alpaca?",
-"type":"object",
-"properties": {
-"name": {
-"type":"string",
-"title":"Name"
-},
-"feedback": {
-"type":"string",
-"title":"Feedback"
-},
-"ranking": {
-"type":"string",
-"title":"Ranking",
-"enum":['excellent','ok','so so']
-}
-}
-},
-"options": {
-"form":{
-"attributes":{
-"action":"http://httpbin.org/post",
-"method":"post"
-},
-"buttons":{
-"submit":{}
-}
-},
-"helper": "Tell us what you think about Alpaca!",
-"fields": {
-"name": {
-"size": 20,
-"helper": "Please enter your name."
-},
-"feedback" : {
-"type": "textarea",
-"name": "your_feedback",
-"rows": 5,
-"cols": 40,
-"helper": "Please enter your feedback."
-},
-"ranking": {
-"type": "select",
-"helper": "Select your ranking.",
-"optionLabels": ["Awesome!",
-"It's Ok",
-"Hmm..."]
-}
-}
-},
-"view" : "bootstrap-edit"
-});
-}*/
-
-// load data from server
 
 
 // helper functions

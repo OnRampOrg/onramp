@@ -27,110 +27,66 @@ function adminPCE (data) {
 		window.location.href = "admin_pces.html";
 	};
 
-	self.complete_func = function (data){
-      // packet structure:
-      //   data.status = the status code (200 is good)
-      //   data.responseText = the JSON data from the server
-      //     data.responseText.status = server's status code (0 = successful login)
-      //     data.responseText.status_message = server's status message
-      //     data.responseText.auth = JSON object with authentication info (NEED TO SEND WITH ALL FUTURE CALLS)
-      //     data.responseText.auth.username = username
-      //     data.responseText.auth.apikey = special code to know that this user is authenticated
-      //     data.responseText.auth.user_id = user id from the server
-      //     data.responseText.auth.session_id = session id used by the server
-      console.log(JSON.stringify(data));
-      console.log(data.responseText);
-      console.log(data["responseText"]);
-      console.log(data.status + 5);
-      if(data.status == 200){
-		  //self.id(data.pce.id);
-		  //self.status(data.pce.state);
-		  alert("Success!");
-      }
-      else if(data.status == 401){
-        alert("Incorrect login info.  Please try again, or contact the admin to create or reset your account.");
-      }
-      else {
-        alert("Something went wrong with the sending or receiving of the ajax call.  Status code: " + data.status);
-      }
-
-    };
-
 	self.refreshModules = function (){
 		// get modules for this user
 		self.Moduleslist.removeAll();
-		$.getJSON( sessionStorage.server + "/pces/" + self.id() + "/modules?apikey=" + JSON.parse(self.auth_data).apikey,
-			//self.auth_data,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-				console.log(JSON.stringify(data));
-				for (var x = 0; x < data.pces.data.length; x++){
-					var raw = data.pces.data[x];
-					console.log(raw);
-					var conv_data = {};
-					for(var i = 0; i < data.pces.fields.length; i++){
-						console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
-						conv_data[data.pces.fields[i]] = raw[i];
-					}
-					self.Moduleslist.push(new Module(conv_data));
-				}
-			}
-		);
+		$.ajax({
+		    url: '/admin/PCEs/GetPCEModules/',
+		    type:'POST',
+		    dataType:'json',
+		    data: {'pce_id':self.id},
+		    success: function(response) {
+		        if (response.status) {
+		            for (var x = 0; x < response.modules.length; x++){
+                        var mod_data = response.modules[x];
+                        self.Moduleslist.push(new Module(mod_data));
+                    }
+		        } else {
+		            alert(response.status_message);
+		        }
+		    }
+		})
 	}
 
 	self.refreshWorkspaces = function (){
 		self.Workspacelist.removeAll();
 		// get workspaces for this PCE
-		$.getJSON( sessionStorage.server + "/pces/" + self.id() + "/workspaces?apikey=" + JSON.parse(self.auth_data).apikey,
-			//self.auth_data,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-				console.log(JSON.stringify(data));
-				for (var x = 0; x < data.pces.data.length; x++){
-					var raw = data.pces.data[x];
-					console.log(raw);
-					var conv_data = {};
-					for(var i = 0; i < data.pces.fields.length; i++){
-						console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
-						conv_data[data.pces.fields[i]] = raw[i];
-					}
-					self.Workspacelist.push(new Workspace(conv_data, true));
-				}
-			}
-		);
+		$.ajax({
+		    url: '/admin/PCEs/GetPCEWorkspaces/',
+		    type:'POST',
+		    dataType:'json',
+		    data: {'pce_id':self.id},
+		    success: function(response) {
+		        if (response.status) {
+		            for (var x = 0; x < response.workspaces.length; x++){
+                        var ws_data = response.workspaces[x];
+                        self.Workspacelist.push(new Workspace(ws_data, true));
+                    }
+		        } else {
+		            alert(response.status_message);
+		        }
+		    }
+		})
 	}
 
 	self.refreshJobs = function () {
 		self.Jobslist.removeAll();
-		$.getJSON( sessionStorage.server + "/pces/" + self.id() + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
-			//self.auth_data,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-				console.log(JSON.stringify(data));
-				for (var x = 0; x < data.pces.data.length; x++){
-					var raw = data.pces.data[x];
-					console.log(raw);
-					var conv_data = {};
-					for(var i = 0; i < data.pces.fields.length; i++){
-						console.log("adding: " + data.pces.fields[i] + " = " + raw[i]);
-						conv_data[data.pces.fields[i]] = raw[i];
-					}
-					self.Jobslist.push(new Job(conv_data, true, false));
-				}
-			}
-		);
+		$.ajax({
+		    url: '/admin/PCEs/GetPCEJobs/',
+		    type:'POST',
+		    dataType:'json',
+		    data: {'pce_id':self.id},
+		    success: function(response) {
+		        if (response.status) {
+		            for (var x = 0; x < response.jobs.length; x++){
+                        var job_data = response.jobs[x];
+                        self.Jobslist.push(new Job(job_data, true, false));
+                    }
+		        } else {
+		            alert(response.status_message);
+		        }
+		    }
+		})
 	}
 
 	self.editPCE = function () {
@@ -142,87 +98,92 @@ function adminPCE (data) {
 	self.addModule = function () {
 		// LEFT OFF HERE!!!!
 		//   todo: need to fix ajax call, and figure out what the paths need to be
+		alert("Not yet implemented on server.")
 		// this will add a new module to the PCE
 		// POST .../admin/pces/:ID/modules/:MODULEID
-		console.log(self.newModule().name());
-		console.log(self.newModule().id());
-		self.newModule().id(self.Moduleslist().length + 1);
-		$.ajax({
-			type: 'POST',
-			url: sessionStorage.server + '/admin/pce/' + self.id() + '/module/' + self.newModule().id() +'?apikey=' + JSON.parse(self.auth_data).apikey,
-			//	"auth": { ...}, // Removed for brevity
-    		//	"contact_info": "Someone else",
-    		//	"description": "Secret Compute Resource",
-    		//	"location": "Hidden Hallway",
-    		//	"name": "Flux",
-    		//	"pce_password": "fake123",
-    		//	"pce_username": "onramp",
-    		//	"port": 9071,
-    		//	"url": "127.0.0.1"
-			data: JSON.stringify({'auth': JSON.parse(self.auth_data),
-				'module_id':self.newModule().id(),
-				'module_name':self.newModule().name(),
-				'install_location':self.newModule().install_location(),
-				'src_location_type':self.newModule().src_location_type(),
-				'src_location_path':self.newModule().src_location_path()
-			}),
-			complete: self.complete_func,
-			dataType: 'application/json',
-			contentType: 'application/json'
-		} );
+//		console.log(self.newModule().name());
+//		console.log(self.newModule().id());
+//		self.newModule().id(self.Moduleslist().length + 1);
+//		$.ajax({
+//			type: 'POST',
+//			url: sessionStorage.server + '/admin/pce/' + self.id() + '/module/' + self.newModule().id() +'?apikey=' + JSON.parse(self.auth_data).apikey,
+//			//	"auth": { ...}, // Removed for brevity
+//    		//	"contact_info": "Someone else",
+//    		//	"description": "Secret Compute Resource",
+//    		//	"location": "Hidden Hallway",
+//    		//	"name": "Flux",
+//    		//	"pce_password": "fake123",
+//    		//	"pce_username": "onramp",
+//    		//	"port": 9071,
+//    		//	"url": "127.0.0.1"
+//			data: JSON.stringify({'auth': JSON.parse(self.auth_data),
+//				'module_id':self.newModule().id(),
+//				'module_name':self.newModule().name(),
+//				'install_location':self.newModule().install_location(),
+//				'src_location_type':self.newModule().src_location_type(),
+//				'src_location_path':self.newModule().src_location_path()
+//			}),
+//			complete: self.complete_func,
+//			dataType: 'application/json',
+//			contentType: 'application/json'
+//		} );
 	}
 
 	self.checkModuleStatus = function (mod) {
 		// need to check
 		// this will check the status of a module (GET .../admin/pces/:ID/modules/:MODULEID)
 		// get workspaces for this PCE
-		$.getJSON( sessionStorage.server + "/admin/pce/" + self.id() + "/module/" + mod.id() + "?apikey=" + JSON.parse(self.auth_data).apikey,
-			//self.auth_data,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-				console.log(JSON.stringify(data));
-				for (var x = 0; x < data.pces.data.length; x++){
-					var raw = data.pces.data[x];
-					console.log(raw);
-					//var conv_data = {};
-					console.log("updating " + mod.name() + ": " + data.users.fields["state_str"] + " = " + raw["state_str"]);
-					mod["state_str"](raw["state_str"]);
-					mod["state"](raw["state"]);
-				}
-			}
-		);
+		$.ajax({
+		    url: '/admin/PCEs/GetModuleState/',
+		    type:'POST',
+		    dataType:'json',
+		    data: {'pce_id':self.id(), 'module_id':mod.id()},
+		    success: function(response) {
+		        if (response.status) {
+		            mod['state_str'] = response.state_str;
+		            mod['state'] = response.state;
+		        } else {
+		            alert(response.status_message);
+		        }
+		    }
+		})
 	}
 
 	self.deployModule = function (mod) {
 		// this will finish adding new module to the PCE
 		// POST .../admin/pces/:ID/modules/:MODULEID
 		$.ajax({
-			type: 'POST',
-			url: sessionStorage.server + '/admin/pce/' + self.id() + '/module/' + mod.id() +'?apikey=' + JSON.parse(self.auth_data).apikey,
-			//	"auth": { ...}, // Removed for brevity
-    		//	"contact_info": "Someone else",
-    		//	"description": "Secret Compute Resource",
-    		//	"location": "Hidden Hallway",
-    		//	"name": "Flux",
-    		//	"pce_password": "fake123",
-    		//	"pce_username": "onramp",
-    		//	"port": 9071,
-    		//	"url": "127.0.0.1"
-			data: JSON.stringify({'auth': JSON.parse(self.auth_data),
-				'module_id':mod.id(),
-				'module_name':mod.name(),
-				'install_location':mod.install_location(),
-				'src_location_type':mod.src_location_type(),
-				'src_location_path':mod.src_location_path()
-			}),
-			complete: self.complete_func,
-			dataType: 'application/json',
-			contentType: 'application/json'
-		} );
+		    url: '/admin/PCEs/DeployModule/',
+		    type:'POST',
+		    dataType:'json',
+		    data: {'pce_id':self.id(), 'module_id':mod.id()},
+		    success: function(response) {
+		        alert(response.status_message);
+		    }
+		})
+//		$.ajax({
+//			type: 'POST',
+//			url: sessionStorage.server + '/admin/pce/' + self.id() + '/module/' + mod.id() +'?apikey=' + JSON.parse(self.auth_data).apikey,
+//			//	"auth": { ...}, // Removed for brevity
+//    		//	"contact_info": "Someone else",
+//    		//	"description": "Secret Compute Resource",
+//    		//	"location": "Hidden Hallway",
+//    		//	"name": "Flux",
+//    		//	"pce_password": "fake123",
+//    		//	"pce_username": "onramp",
+//    		//	"port": 9071,
+//    		//	"url": "127.0.0.1"
+//			data: JSON.stringify({'auth': JSON.parse(self.auth_data),
+//				'module_id':mod.id(),
+//				'module_name':mod.name(),
+//				'install_location':mod.install_location(),
+//				'src_location_type':mod.src_location_type(),
+//				'src_location_path':mod.src_location_path()
+//			}),
+//			complete: self.complete_func,
+//			dataType: 'application/json',
+//			contentType: 'application/json'
+//		} );
 	}
 
 	self.updateServer = function () {

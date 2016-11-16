@@ -18,7 +18,7 @@ function PCE(data, view){
 	if( view ){
 		self.viewPCE = function () {
 			// go to manage Workspaces page and show this job
-			window.location.href = "admin_pces.html";
+			window.location.href = "/admin/PCEs";
 		}
 	}
 }
@@ -37,7 +37,7 @@ function Job(data, view, details){
 	if( view ){
 		self.viewJob = function () {
 			// go to manage Jobs page and show this job
-			window.location.href = "admin_jobs.html";
+			window.location.href = "/admin/Jobs";
 		};
 	}
 	if(details){
@@ -65,7 +65,8 @@ function Module(data, view){
 	if( view ){
 		self.viewModule = function () {
 			// go to manage users page and start with this user
-			window.location.href = "admin_modules.html";
+			alert("There is currently no page for viewing modules.")
+//			window.location.href = "/admin";
 		};
 	}
 }
@@ -79,16 +80,14 @@ function Workspace(data, view){
 
 
 	self.captureWSID = function() {
-		sessionStorage.setItem("WorkspaceID", this.id);
-		//alert("workspace " + localStorage.getItem('WorkspaceID'));
+		sessionStorage.setItem("WorkspaceID", this.wID);
         window.location.href = "/public/Workspace";
-		
 	}
 	
 	if( view ){
 		self.viewWorkspace = function () {
 		// go to manage Workspaces page and show this job
-		window.location.href = "admin_workspaces.html";
+		window.location.href = "/admin/Workspaces";
 		};
 	}
 }
