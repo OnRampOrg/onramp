@@ -16,13 +16,7 @@ sys.path.append("../virtual-env/lib/python2.7/site-packages")
 # to set environment settings for Django apps
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ui.settings")
 
-# have to setup django before we attempt to import a model
-import django
-django.setup()
-
-from django.contrib.auth.models import User
 from utils.terminal import TerminalFonts
-from django.db import IntegrityError
 from argparse import ArgumentParser
 from subprocess import *
 from time import sleep
@@ -457,6 +451,13 @@ class Installer(object):
 
     @catch_exceptions
     def create_admin_user(self):
+        # have to setup django before we attempt to import a model
+        import django
+        django.setup()
+
+        from django.contrib.auth.models import User
+        from django.db import IntegrityError
+
         print "Creating the django admin user..."
         if self.reinstall:
             # TODO: figure out why this doesn't work
