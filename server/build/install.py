@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# TODO: make sure we're using 2.7
+
 import textwrap
 import site
 import sys
@@ -158,7 +160,7 @@ class Installer(object):
         self.subproc(['pip', 'install', 'virtualenv'])
 
         print "Building virtual environment directory without site packages..."
-        self.subproc(['virtualenv', '-p', '/usr/bin/python2.7', '../virtual-env'])
+        self.subproc(['virtualenv', '-p', sys.executable, '../virtual-env'])
 
         print "Activating virtual environment and installing dependencies...."
         pip_dependencies = [
