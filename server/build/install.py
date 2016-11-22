@@ -22,7 +22,6 @@ from subprocess import *
 from time import sleep
 import traceback
 import shutil
-import _mysql
 
 
 def catch_exceptions(func):
@@ -418,6 +417,8 @@ class Installer(object):
 
     @catch_exceptions
     def run_migrations(self):
+        import _mysql
+
         print "Running django migrations"
 
         if self.reinstall:
