@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -206,7 +207,7 @@ def deploy_module(request):
         response = {'status': False, 'status_message': 'No Module ID and/or PCE ID specified'}
         return HttpResponse(json.dumps(response))
     try:
-        connector = PCEAccess(int(pce_id), "/tmp")
+        connector = PCEAccess(int(pce_id))
     except Exception as e:
         response = {'status':False, 'status_message':'Failed to create PCEAccess object',
                     'error_info':e.message}
@@ -220,3 +221,5 @@ def deploy_module(request):
         response = {'status': False, 'status_message': 'Failed to deploy module',
                     'error_info': e.message}
     return HttpResponse(json.dumps(response))
+
+

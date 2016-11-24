@@ -1,11 +1,15 @@
 import json
+import logging
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
 
-from ui.admin.models import workspace, workspace_to_pce_module
+from ui.admin.models import workspace, workspace_to_pce_module, job
+
+from core.pce_connect import PCEAccess
 
 
 @login_required
@@ -97,6 +101,8 @@ def get_modules_for_pce(request):
         }
         return HttpResponse(json.dumps(response))
     try:
+        # pce_access = PCEAccess(int(pce_id))
+        # pce_access.refresh_module_states(int(pce_id))
         pairs = workspace_to_pce_module.objects.filter(workspace_id=int(ws_id))
         modules = {}
         for wpm_pair in pairs:
@@ -113,3 +119,61 @@ def get_modules_for_pce(request):
         response = {'success':False, 'status_message':'Error retrieving requested data',
                     'error_info':e.message}
     return HttpResponse(json.dumps(response))
+
+@login_required
+def get_module_options(request):
+    """
+
+    :param request:
+    :return:
+    """
+    post = request.POST.dict()
+    pce_id = post.get('pce_id')
+    module_id = post.get('module_id')
+    if not pce_id or not module_id:
+        # make sure we got a valid pce id and module id
+        response = {
+            'status': False,
+            'status_message': 'No PCE/Module ID specified'
+        }
+        return HttpResponse(json.dumps(response))
+
+    pce_access = PCEAccess(int(pce_id))
+    pce_access.refresh_module_states(module_id=int(module_id))
+    options = pce_access.get_module_uioptions(int(module_id), True)
+    meta = pce_access.get_module_metadata(int(module_id), True)
+    response = {
+        'status':True,
+        'status_message':'Success',
+        'uioptions':options,
+        'metadata':meta
+    }
+    return HttpResponse(json.dumps(response))
+
+@login_required
+def launch_job(request):
+    """ Launches a job
+
+    :param request:
+    :return:
+    """
+    post = request.POST.dict()
+    pce_id = post.get('pce_id')
+    module_id = post.get('module_id')
+    workspace_id = post.get('workspace_id')
+    job_name = post.get('job_name')
+    options = json.loads(post.get('uioptions', "{}"))
+    job_data = {
+        'name':job_name,
+        'uioptions':options
+    }
+
+    user = User.objects.get(username=request.user)
+
+    pce_conn = PCEAccess(int(pce_id))
+    pce_conn.refresh_module_states(int(module_id))
+    resp = pce_conn.launch_a_job(user.id, int(workspace_id), int(module_id), job_data)
+
+    resp['status'] = True
+    resp['status_message'] = 'Success'
+    return HttpResponse(json.dumps(resp))

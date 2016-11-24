@@ -28,64 +28,20 @@ function workspaceModule(data){
 
 	self.getRealFormFields = function (pce_id) {
 		self.formFields.removeAll();
-		//self.formFields.push({"field":"job_name","value":"new job"});
-		$.getJSON( sessionStorage.server + "/pces/" + pce_id + "/module/" + self.id + "?apikey=" + JSON.parse(sessionStorage['auth_data']).apikey,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-			       var raw = data.pces;
-			       console.log("stuff from pce mod: ");
-			       console.log(raw);
-
-				var raw = data.pces.uioptions;
-				//console.log(raw);
-
-				var raw = data.pces.uioptions.onramp;
-				//console.log(raw);
-				
-				/*
-				if(self.name == "mpi-ring"){
-					var raw = data.pces.uioptions["ring"];
-					console.log(raw);
-				}
-				else if(self.name == "template"){
-					var raw = data.pces.uioptions["hello"];
-					console.log(raw);
-				}
-				else {
-					var raw = data.pces.uioptions[self.name];
-					console.log(raw);
-				}
-				*/
-
-
-				/*
-				var onramp_fields = [{"field":"job_name", "value":""}];
-				data.pces.uioptions.onramp.forEach(function (item, index, array){
-					onramp_fields.push({"field":item, "value":""});
-					});
-				self.formFields.push({"onramp":onramp_fields});
-
-				var my_fields = [];
-				data.pces.uioptions[self.name].forEach(function (item, index, array){
-					my_fields.push({"field":item, "value":""});
-				});
-				var name = self.name.toString();
-				self.formFields().push({name : my_fields});
-				self.formFields().forEach(function (item, index, array) {"* " + console.log(item);});
-				*/
-
-				self.formFields.push({field:"job_name", data:""});
-				data.pces.uioptions.onramp.forEach(function (item, index, array){
+		$.ajax({
+		    url:'/public/Workspace/GetModuleOptions/',
+		    type:'POST',
+		    dataType:'json',
+		    data: {'pce_id':pce_id, 'module_id':self.id},
+		    success: function(response) {
+                self.formFields.push({field:"job_name", data:""});
+				response.uioptions.onramp.forEach(function (item, index, array){
 					self.formFields.push({field:"onramp " + item, data:""});
 					self.formInfo.push({formid: item});
 				});
 
 				if(self.name == "mpi-ring"){
-					data.pces.uioptions["ring"].forEach(function (item, index, array){
+					response.uioptions["ring"].forEach(function (item, index, array){
 						module_name = "ring";
 						self.formFields.push({field:"ring " + item, data:""});
 						self.formInfo.push({formid: item});
@@ -93,7 +49,7 @@ function workspaceModule(data){
 					});
 				}
 				else if(self.name == "template"){
-					data.pces.uioptions["hello"].forEach(function (item, index, array){
+					response.uioptions["hello"].forEach(function (item, index, array){
 						module_name = "hello";
 						self.formFields.push({field:"hello " + item, data:""});
 						self.formInfo.push({formid: item});
@@ -101,7 +57,7 @@ function workspaceModule(data){
 					});
 				}
 				else {
-					data.pces.uioptions[self.name].forEach(function (item, index, array){
+					response.uioptions[self.name].forEach(function (item, index, array){
 						module_name = self.name;
 						self.formFields.push({field:self.name + " " + item, data:""});
 						self.formInfo.push({formid: item});
@@ -113,8 +69,8 @@ function workspaceModule(data){
 				console.log(self.formFields());
 				//call method to set the ids of each label
 				setFormId(self.formInfo());
-			}
-		);
+		    }
+		})
 	}
 }
 
@@ -371,22 +327,6 @@ function OnrampWorkspaceViewModel () {
 	}
 
 	self.selectModule = function (m) {
-//		self.selectedModule(m);
-//		console.log("Selected Module: " + self.selectedModule().name);
-//		console.log(" (" + self.selectedModule().PCEs().length + ")");
-//		if(! self.selectedPCE()){
-//			self.PCElist.removeAll();
-//			for(var i = 0; i < self.selectedModule().PCEs().length; i++){
-//				console.log("Adding pce id " + self.selectedModule().PCEs()[i] );
-//				self.PCElist.push(self.findById(self.allPCEs, self.selectedModule().PCEs()[i]));
-//			}
-//		}
-//		else {
-//			// module and pce selected
-//			console.log("????getting form fields???");
-//			m.getRealFormFields(self.selectedPCE().id);
-//		}
-
 		self.selectedModule(m);
 		m.getRealFormFields(self.selectedPCE().id);
 		/*add module descriptions here because we need the module to be selected
@@ -404,50 +344,25 @@ function OnrampWorkspaceViewModel () {
 
 
 	self.changePCE = function () {
-
-		//self.selectedModule(null);
 		// display all PCEs
 		self.PCElist.removeAll();
-		if(self.selectedModule()){
-			console.log("Changing PCE, selected module is $$$$$" + self.selectedModule().name);
-			for(var i = 0; i < self.selectedModule().PCEs().length; i++){
-				self.PCElist.push(self.findById(self.allPCEs, self.selectedModule().PCEs()[i]));
-			}
-		}
-		else {
-			console.log("Changing PCE, selected module is null");
-			self.Modulelist.removeAll();
-			for(var i = 0; i < self.allPCEs.length; i++){
-				self.PCElist.push(self.allPCEs[i]);
-			}
-			for(var i = 0; i < self.allModules.length; i++){
-				console.log("adding module " + self.allModules[i] + " to the list");
-				self.Modulelist.push(self.allModules[i]);
-			}
-		}
+        // un-select any selected module
+        self.selectedModule(null);
+        console.log("Changing PCE, selected module is null");
+        self.Modulelist.removeAll();
+        for(var i = 0; i < self.allPCEs.length; i++){
+            self.PCElist.push(self.allPCEs[i]);
+        }
+        for(var i = 0; i < self.allModules.length; i++){
+            console.log("adding module " + self.allModules[i] + " to the list");
+            self.Modulelist.push(self.allModules[i]);
+        }
+        // unselect the selected pce
 		self.selectedPCE(null);
 	}
 
 	self.changeModule = function () {
-
-		self.Modulelist.removeAll();
-		if(self.selectedPCE()){
-			console.log("Changing module, $$$$selected PCE is " + self.selectedPCE().name );
-			for(var i = 0; i < self.selectedPCE().modules().length; i++){
-					self.Modulelist.push(self.findById(self.allModules, self.selectedPCE().modules()[i]));
-			}
-		}
-		else{
-			self.PCElist.removeAll();
-			console.log("Changing module, selected PCE is null" );
-			for(var i = 0; i < self.allModules.length; i++){
-				console.log("adding module " + self.allModules[i] + " to the list");
-				self.Modulelist.push(self.allModules[i]);
-			}
-			for(var i = 0; i < self.allPCEs.length; i++){
-				self.PCElist.push(self.allPCEs[i]);
-			}
-		}
+	    // un-select the current module
 		self.selectedModule(null);
 	}
 
@@ -487,38 +402,33 @@ function OnrampWorkspaceViewModel () {
 		console.log(formData.formFields()[0].data);
 		
 
-		var data_packet = JSON.stringify({
-			"auth": JSON.parse(self.auth_data),
-			"info": {
-				"workspace_id": parseInt(self.workspaceID),
-				"module_id" : self.selectedModule().id,
-				"pce_id" : self.selectedPCE().id,
-				"user_id" : parseInt(self.userID),
-				"job_name" : formData.formFields()[0].data
-			},
-			"uioptions" : opts
-		});
+		var data_packet = {
+            "workspace_id": parseInt(self.workspaceID),
+            "module_id" : self.selectedModule().id,
+            "pce_id" : self.selectedPCE().id,
+            "job_name" : formData.formFields()[0].data,
+			"uioptions" : JSON.stringify(opts)
+		};
 
 		// POST to jobs
 		$.ajax({
 			type: "POST",
-			url: sessionStorage.server + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
+			url: '/public/Workspace/LaunchJob/',
+			type:'POST',
+			dataType:'json',
 			data: data_packet,
-			complete: function (data){
+			success: function (response){
 				// create confirm with job id info
-				if(data.status == 200){
-					console.log(JSON.stringify(data));
-					if(window.confirm("Job created.  ID " + JSON.parse(data.responseText).job.job_id + "\nClick OK to view job results page.  Cancel to stay on this page.")){
-						window.location.href = "job_details.html";
+				if(response.status){
+					if(window.confirm("Job created.  ID " + response.job_id + "\nClick OK to view job results page.  Cancel to stay on this page.")){
+						window.location.href = "/public/Jobs";
 					}
 					// else do nothing
 				}
 				else{
 					alert("Something went wrong when connecting to the server.  Status code: " + data.status);
 				}
-			},
-			dataType: 'application/json',
-			contentType: 'application/json'
+			}
 		});
 
 	}
