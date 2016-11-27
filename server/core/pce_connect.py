@@ -389,11 +389,22 @@ class PCEAccess(object):
         if not os.path.exists(job_dir):
             return None
 
-        # need relative job dir to server location
         abs_output_file = os.path.join(job_dir, "output.txt")
-        rel_output_file = os.path.relpath(abs_output_file, self._tmp_dir)
 
-        return rel_output_file
+        return abs_output_file
+
+    def read_job_output(self, job_id):
+        """ Returns the contents of the output file for the job
+
+        :param job_id:
+        :return:
+        """
+        output = self.get_job_output(job_id)
+        if not output:
+            return ""
+        with open(output, 'r') as f:
+            return f.read()
+
 
     def _save_uioptions(self, module_id, module_options):
         prefix = ("%ssave_uioptions(%s)" % (self._name, str(module_id)))
@@ -659,7 +670,8 @@ class PCEAccess(object):
             "%s Checking on the job... %d = %s" % (prefix, state_id, JOB_STATES.get(state_id)))
 
         # Get full info from DB to return
-        job_info = model_to_dict(job.objects.get(job_id=job_id))
+        job_obj = job.objects.get(job_id=job_id)
+        job_info = model_to_dict(job_obj)
         job_info["state_str"] = JOB_STATES.get(job_info["state"])
 
         output = self.get_job_output(job_id)
@@ -667,7 +679,9 @@ class PCEAccess(object):
             output = ""
 
         job_info["output_file"] = output
-
+        # save the row with the output file in the database
+        job_obj.output_file = output
+        job_obj.save()
         # JJH Do we want this to be 'unzip'ed?
         return job_info
 

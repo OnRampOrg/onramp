@@ -7,6 +7,7 @@
   <!-- Bootstrap -->
   <link href="/static/css/third_party/bootstrap.min.css" rel="stylesheet">
   <link href="/static/css/global_style.css" rel="stylesheet">
+  <link href="/static/css/jobs.css" rel="stylesheet">
 </head>
 <body role="document">
   <!-- Fixed navbar -->
@@ -44,7 +45,7 @@
 <div class="page">
   <div class="container">
     <div class="jumbotron">
-      <h1 data-bind="text: welcome"></h1>
+      <h1>Welcome {{ username }}</h1>
     </div>
   </div>
 
@@ -56,14 +57,12 @@
   -->
 
   <div class="container">
-    <div class="row">
-      <div class="col-sm-6">
-        <h2>My Jobs</h2>
-        <!-- check out this website for a cool way to display a table of data: http://bootstrapmaster.com/live/genius/table.html -->
-      </div>
-      <div class="col-sm-6">
-        <button class="btn" data-bind="click: refreshJobs">Refresh</button>
-      </div>
+    <div class="row title-row">
+        <h2 class="heading">My Jobs</h2>
+        <div class="refresh-btn">
+            <button class="btn" data-bind="click: refreshJobs">Refresh</button>
+        </div>
+    <!-- check out this website for a cool way to display a table of data: http://bootstrapmaster.com/live/genius/table.html -->
     </div>
     <div class="row">
       <div class = "table-flow">
@@ -135,7 +134,8 @@
             -->
           <div class="col-md-8 col-md-offset-2" data-bind="with: $root.selectedFile()">
               <h5 data-bind="text: $root.selectedFile()"></h5>
-              <object data-bind="attr:{ data: $root.selectedFile() }" border=5 type="text/plain" width="100%" height="100%">alt text</object>
+              <textarea id="job_output" rows="10" cols="70" style="border: 1px solid black;"></textarea>
+
           </div>
 
       </div>
@@ -155,6 +155,6 @@
   <script src="/static/javascript/third_party/knockout-3.3.0.js"></script>
   <!-- my scripts -->
   <script src="/static/javascript/all_global.js"></script>
-  <script src="/static/javascript/workspace.js"></script>
+  <script src="/static/javascript/job_details.js"></script>
 </body>
 </html>

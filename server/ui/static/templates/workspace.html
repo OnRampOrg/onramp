@@ -62,7 +62,7 @@
             <div class="row">
 
 			<!-- PCE selection -->
-			<div class="container" data-bind="ifnot: selectedPCE()" >
+			<div data-bind="ifnot: selectedPCE()" >
 				<div id = "pick-PCE" class="row">
 					<h4>First select a <a href="#" data-toggle="tooltip" class = "myTooltip" title="PCE stands for Parallel Compute Environment, typically a cluster.">PCE</a></h4>
 					<p></p>
@@ -85,7 +85,7 @@
 			</div>
 	                         
 			<!-- display selected PCE -->
-			<div class="container" data-bind="if: selectedPCE()">
+			<div data-bind="if: selectedPCE()">
 				<div id = "pce-well" class = "well">
 					<div class="row">
 						<div class="col-sm-1">
@@ -116,7 +116,7 @@
 		<!-- MODULES -->
 
 		<!-- Module selection -->
-		<div class="container"  data-bind="ifnot: selectedModule()">
+		<div data-bind="ifnot: selectedModule()">
 			<div id = "pick-module" class="row">
 				<h4 id="module-select-header"></h4>
 				<p></p>
@@ -143,7 +143,7 @@
 		</div>
 
 		<!-- display selected Module -->
-		<div class="left-container" data-bind="if: selectedModule()">
+		<div class="container" data-bind="if: selectedModule()">
 			<div id = "module-well" class = "well">
 				<div class="row">
 					<div class="col-sm-1">

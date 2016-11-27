@@ -67,7 +67,7 @@ def get_all_jobs(request):
     response = {
         'status':0,
         'status_message':'Success',
-        'jobs':list(job.objects.all().defer("output_file"))
+        'jobs':list(job.objects.all().defer("output_file").values())
     }
     return HttpResponse(json.dumps(response))
 

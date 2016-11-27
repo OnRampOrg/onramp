@@ -16,79 +16,36 @@ function myJob(data){
 
 function JobDetailsViewModel() {
 	var self = this;
-	self.userID = sessionStorage['UserID'];
-	self.auth_data = sessionStorage['auth_data'];
-	self.username = JSON.parse(self.auth_data).username;  // want to get this from the cookie/session/server
 
 	self.selectedJob = ko.observable();
 	self.Jobslist = ko.observableArray();
 
 	self.jobStates = [];
 
-	self.welcome =   "Welcome " + self.username;
 	self.selectedFile = ko.observable("test.txt");
-	
+	self.fileOutput = ko.observable();
 
 	self.refreshJobs = function () {
 		self.selectedJob(null);
 		self.Jobslist.removeAll();
-		$.getJSON( sessionStorage.server + "/users/" + self.userID + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
-			//self.auth_data,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-				console.log(JSON.stringify(data));
-				for (var x = 0; x < data.users.data.length; x++){
-					var raw = data.users.data[x];
-					console.log(raw);
-					var conv_data = {};
-					for(var i = 0; i < data.users.fields.length; i++){
-						console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
-						conv_data[data.users.fields[i]] = raw[i];
-					}
-					self.Jobslist.push(new myJob(conv_data));
+
+		$.ajax({
+		    url:'/public/Jobs/UserJobs/',
+		    type:'GET',
+		    dataType:'json',
+		    success: function(response) {
+		        for (var x = 0; x < response.jobs.length; x++){
+					var job_data = response.jobs[x];
+					self.Jobslist.push(new myJob(job_data));
 				}
-			}
-		);
-	}
+		    }
+		})
+    }
+
+
 
 	$(document).ready( function () {
-		self.Jobslist.removeAll();
-		// get jobs for this user
-		$.getJSON( sessionStorage.server + "/users/" + self.userID + "/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
-			//self.auth_data,
-			function (data){
-				// {"status": 0,
-				//  "status_message": "Success",
-				//  "users": {
-				//    "fields": ["user_id", "username", "full_name", "email", "is_admin", "is_enabled"],
-				//    "data": [2, "alice", "", "", 0, 1]}}
-				console.log(JSON.stringify(data));
-				for (var x = 0; x < data.users.data.length; x++){
-					var raw = data.users.data[x];
-					console.log(raw);
-					var conv_data = {};
-					for(var i = 0; i < data.users.fields.length; i++){
-						console.log("adding: " + data.users.fields[i] + " = " + raw[i]);
-						conv_data[data.users.fields[i]] = raw[i];
-					}
-					self.Jobslist.push(new myJob(conv_data));
-				}
-			}
-		);
-
-		// get job states
-		$.getJSON( sessionStorage.server + "/states/jobs?apikey=" + JSON.parse(self.auth_data).apikey,
-			//self.auth_data,
-			function (data){
-				self.jobStates = data.jobs;
-				console.log(self.jobStates);
-			}
-		);
-
+	    self.refreshJobs();
 	});
 
 	self.selectFile = function () {
@@ -98,21 +55,34 @@ function JobDetailsViewModel() {
 
 	self.selectJob = function (){
 	    self.selectedJob(this);
-		$.getJSON(sessionStorage.server + "/jobs/" + this.jID + "?apikey=" + JSON.parse(self.auth_data).apikey,
-			function (data) {
-				this.output = data.jobs.output;
-				this.state_str = data.jobs.state_str;
-			}
-		);
-		$.getJSON(sessionStorage.server + "/jobs/" + this.jID + "/data?apikey=" + JSON.parse(self.auth_data).apikey,
-			function (data) {
-			      console.log(data.jobs);
-			      //this.output_str = data.jobs;
-			      self.selectedJob().output_str(data.jobs);
-			      //self.selectedFile(self.selectedJob().output_str());
-			      self.selectedFile(sessionStorage["server"] + "/../" + self.selectedJob().output_str());
-			}
-		);
+	    $.ajax({
+	        url: '/public/Jobs/GetJobInfo/',
+	        type:'POST',
+	        dataType:'json',
+	        data: {'job_id':this.jID},
+	        success: function(response) {
+	            self.selectedFile(response.file)
+	            $("#job_output").text(response.output)
+	            self.fileOutput(response.output)
+	            this.state_str = response.state;
+	        }
+	    });
+
+//		$.getJSON(sessionStorage.server + "/jobs/" + this.jID + "?apikey=" + JSON.parse(self.auth_data).apikey,
+//			function (data) {
+//				this.output = data.jobs.output;
+//				this.state_str = data.jobs.state_str;
+//			}
+//		);
+//		$.getJSON(sessionStorage.server + "/jobs/" + this.jID + "/data?apikey=" + JSON.parse(self.auth_data).apikey,
+//			function (data) {
+//			      console.log(data.jobs);
+//			      //this.output_str = data.jobs;
+//			      self.selectedJob().output_str(data.jobs);
+//			      //self.selectedFile(self.selectedJob().output_str());
+//			      self.selectedFile(sessionStorage["server"] + "/../" + self.selectedJob().output_str());
+//			}
+//		);
 	    //self.selectedJob(this);
 	}
 
