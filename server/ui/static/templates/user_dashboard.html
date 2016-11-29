@@ -126,9 +126,9 @@
             <th class="col-sm-1">Status</th>
             <!--<th class="col-sm-1">Runtime</th>-->
           </thead>
-          <tbody data-bind="foreach: Jobslist">
+          <tbody data-bind="foreach: Jobslist()">
             <tr>
-              <td data-bind="text: id"></td>
+              <td data-bind="text: jID"></td>
               <td data-bind="text: ws"></td>
               <td data-bind="text: pce"></td>
               <td data-bind="text: mod"></td>

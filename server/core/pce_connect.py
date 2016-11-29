@@ -1,10 +1,9 @@
 """ Module for making requests to a PCE
 
 """
-
+from django.forms import model_to_dict
 from ui.admin.models import pce, module, module_to_pce, job
 from django.contrib.auth.models import User
-from logging import getLogger
 import requests
 import logging
 import json
@@ -44,7 +43,7 @@ class PCEAccess(object):
         establish_connection: Handshake to establish authorization (JJH TODO).
     """
 
-    def __init__(self, pce_id, tmp_dir, logger=None):
+    def __init__(self, pce_id):
         """Initialize PCEAccess instance.
 
         Args:
@@ -52,10 +51,14 @@ class PCEAccess(object):
             pce_id (int): Id of PCE instance should provide interface to.
         """
         self._pce_id = pce_id
-        self._logger = logger if logger else self._get_logger()
 
-        self._tmp_dir = tmp_dir
-        self._pce_dir = os.path.join(self._tmp_dir, "tmp", "pce", str(self._pce_id))
+        os.chdir(os.path.dirname(os.path.realpath(__file__)))
+        self._cur_dir = os.getcwd()
+
+        self._logger = self._get_logger(pce_id)
+
+        self._tmp_dir = "/".join(self._cur_dir.split("/")[:-1])+"/tmp"
+        self._pce_dir = os.path.join(self._tmp_dir, "pce", str(self._pce_id))
         self._pce_module_dir = os.path.join(self._pce_dir, "modules")
         self._pce_job_dir = os.path.join(self._pce_dir, "jobs")
 
@@ -67,15 +70,25 @@ class PCEAccess(object):
             os.makedirs(self._pce_job_dir)
 
         pce_info = self._get_pce_info()
-        if pce_info.ip_addr.startswith("http://"): # TODO may want to implement SSL option
-            self._url = "{}:{}".format(pce_info.ip_addr, pce_info.ip_port)
-        else:
-            self._url = "http://{}:{}".format(pce_info.ip_addr, pce_info.ip_port)
+        self._url = self._get_url(pce_info.ip_addr, pce_info.ip_port)
         self._port = pce_info.ip_port
         self._name = pce_info.pce_name
 
-    def _get_logger(self):
-        return getLogger("../log/pce_access.log")
+    def _get_url(self, host, port):
+        if port:
+            # if the port is not 0 we assume we need it to
+            # connect
+            return "http://{}:{}".format(host, port)
+        else:
+            # otherwise we just use the hostname
+            return "http://{}".format(host)
+
+
+    def _get_logger(self, pce_id):
+        FORMAT = '%(asctime)-15s %(levelname)-3s %(module)s: %(message)s'
+        logfile = "/".join(self._cur_dir.split("/")[:-1])+"/log/pce_connect.log"
+        logging.basicConfig(filename=logfile, level=logging.DEBUG, format=FORMAT)
+        return logging.getLogger("[PCEAccess: {}]".format(pce_id))
 
     def _get_pce_info(self):
         """ Gets information from the Database about the PCE
@@ -338,8 +351,8 @@ class PCEAccess(object):
 
 
         if module_id is None:
-            for module in avail_mods:
-                rtn = self._update_module_in_db(prefix, module)
+            for mod in avail_mods:
+                rtn = self._update_module_in_db(prefix, mod)
                 if rtn is False:
                     return False
         else:
@@ -376,11 +389,22 @@ class PCEAccess(object):
         if not os.path.exists(job_dir):
             return None
 
-        # need relative job dir to server location
         abs_output_file = os.path.join(job_dir, "output.txt")
-        rel_output_file = os.path.relpath(abs_output_file, self._tmp_dir)
 
-        return rel_output_file
+        return abs_output_file
+
+    def read_job_output(self, job_id):
+        """ Returns the contents of the output file for the job
+
+        :param job_id:
+        :return:
+        """
+        output = self.get_job_output(job_id)
+        if not output:
+            return ""
+        with open(output, 'r') as f:
+            return f.read()
+
 
     def _save_uioptions(self, module_id, module_options):
         prefix = ("%ssave_uioptions(%s)" % (self._name, str(module_id)))
@@ -411,7 +435,6 @@ class PCEAccess(object):
         metadata_file = os.path.join(module_dir, "metadata.json")
         with open(metadata_file, 'w') as f:
             json.dump(module_metadata, f)
-
         return True
 
     def get_module_uioptions(self, module_id, fields_only=False):
@@ -504,8 +527,8 @@ class PCEAccess(object):
         if 'uioptions' in module_data and module_data["uioptions"] is not None:
             self._save_uioptions(module_id, module_data["uioptions"])
 
-        if 'metadata' in module_data and module["metadata"] is not None:
-            self._save_metadata(module_id, module["metadata"])
+        if 'metadata' in module_data and module_data["metadata"] is not None:
+            self._save_metadata(module_id, module_data["metadata"])
 
         pm_row, created = module_to_pce.objects.get_or_create(
             pce_id=self._pce_id, module_id=module_id,
@@ -591,44 +614,44 @@ class PCEAccess(object):
     def _update_job_in_db(self, prefix, job_id):
 
         self._logger.debug("%s Checking on Job %d" % (prefix, job_id))
-        job = self.get_jobs(job_id)
+        job_info = self.get_jobs(job_id)
 
         # This is a temp fix (though after analysis may prove to be THE fix). #
-        if 'job_id' not in job.keys():
-            job['job_id'] = job_id
-        if 'output' not in job.keys():
-            job['output'] = None
-        if 'state' not in job.keys():
-            job['state'] = 'Setting up launch'
+        if 'job_id' not in job_info:
+            job_info['job_id'] = job_id
+        if 'output' not in job_info:
+            job_info['output'] = None
+        if 'state' not in job_info:
+            job_info['state'] = 'Setting up launch'
         #######################################################################
 
         self._logger.debug("%s job RAW %s" % (prefix, str(job)))
-        self._save_job_output(job["job_id"], job["output"])
+        self._save_job_output(job_info["job_id"], job_info["output"])
 
         self._logger.debug("%s Response: ID = %d/%d, State = %s"
-                           % (prefix, job["job_id"], job_id, job["state"]))
+                           % (prefix, job_info["job_id"], job_id, job_info["state"]))
         state = -99
-        if job['state'] == "Setting up launch":
+        if job_info['state'] == "Setting up launch":
             state = 1
-        elif job['state'] == "Launch failed":
+        elif job_info['state'] == "Launch failed":
             state = -1
-        elif job['state'] == "Preprocessing":
+        elif job_info['state'] == "Preprocessing":
             state = 2
-        elif job['state'] == "Preprocess failed":
+        elif job_info['state'] == "Preprocess failed":
             state = -2
-        elif job['state'] == "Scheduled":
+        elif job_info['state'] == "Scheduled":
             state = 3
-        elif job['state'] == "Schedule failed":
+        elif job_info['state'] == "Schedule failed":
             state = -3
-        elif job['state'] == "Queued":
+        elif job_info['state'] == "Queued":
             state = 4
-        elif job['state'] == "Running":
+        elif job_info['state'] == "Running":
             state = 5
-        elif job['state'] == "Run failed":
+        elif job_info['state'] == "Run failed":
             state = -5
-        elif job['state'] == "Postprocessing":
+        elif job_info['state'] == "Postprocessing":
             state = 6
-        elif job['state'] == "Done":
+        elif job_info['state'] == "Done":
             state = 7
         # Update the database
         job_row = job.objects.get(job_id=job_id)
@@ -647,7 +670,8 @@ class PCEAccess(object):
             "%s Checking on the job... %d = %s" % (prefix, state_id, JOB_STATES.get(state_id)))
 
         # Get full info from DB to return
-        job_info = job.objects.get(job_id=job_id)
+        job_obj = job.objects.get(job_id=job_id)
+        job_info = model_to_dict(job_obj)
         job_info["state_str"] = JOB_STATES.get(job_info["state"])
 
         output = self.get_job_output(job_id)
@@ -655,7 +679,9 @@ class PCEAccess(object):
             output = ""
 
         job_info["output_file"] = output
-
+        # save the row with the output file in the database
+        job_obj.output_file = output
+        job_obj.save()
         # JJH Do we want this to be 'unzip'ed?
         return job_info
 
@@ -684,7 +710,7 @@ class PCEAccess(object):
 
         exists = not created
         job_id = job_row.job_id
-        run_name = job_data["job_name"]
+        run_name = job_data["name"]
         cfg_params = job_data["uioptions"]
 
         self._logger.debug("%s DEBUG: Job Info %s / %d" % (prefix, str(exists), job_id))
@@ -695,7 +721,7 @@ class PCEAccess(object):
         #
         if exists is False:
             self._logger.debug("%s Launching job ID %d on PCE... [exists=%s]" % (prefix, job_id, str(exists)))
-            result = self.launch_job(user_info["username"], module_id, job_id, run_name, cfg_params)
+            result = self.launch_job(user_info.username, module_id, job_id, run_name, cfg_params)
             if result is False:
                 return {'error_msg': "Failed to deploy the module"}
 
@@ -805,9 +831,3 @@ class PCEAccess(object):
                 return False
             return True
 
-#
-if __name__ == '__main__':
-    from logging import getLogger
-    l = getLogger("../log/pce_connect.log")
-    r = PCEAccess(1, '../tmp/')
-    print r.get_modules_avail()
