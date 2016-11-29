@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from utils.terminal import TerminalFonts
 from subprocess import *
 import textwrap
