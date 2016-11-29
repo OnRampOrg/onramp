@@ -161,13 +161,13 @@ class Installer(object):
             self.rm(mysql_dir, force=True)
 
         # TODO: check version of centos here for install
-        self.subproc(['sudo', 'yum', 'localinstall', '-y', '{}/mysql57-community-release-el6-7.noarch.rpm'.format(self.dep_dir)])
+        # self.subproc(['sudo', 'yum', 'localinstall', '-y', '{}/mysql57-community-release-el6-7.noarch.rpm'.format(self.dep_dir)])
 
         print "Installing mysql-community-server..."
-        self.subproc(['sudo', 'yum', 'install', '-y', 'mysql-community-server'])
+        self.subproc(['sudo', 'yum', 'localinstall', '-y', '{}/MySQL-server-5.5.53-1.el6.x86_64.rpm'.format(self.dep_dir)])
 
         print "Installing mysql-community-devel..."
-        self.subproc(['sudo', 'yum', 'install', '-y', 'mysql-community-devel'])
+        self.subproc(['sudo', 'yum', 'localinstall', '-y', '{}/MySQL-devel-5.5.53-1.el6.x86_64.rpm'.format(self.dep_dir)])
 
         print "Stopping any running MySQL services..."
         self.subproc(['sudo', 'systemctl', 'stop', 'mysqld.service'], ignore=True)
