@@ -160,7 +160,8 @@ class Installer(object):
             self.rm('/etc/my.cnf', force=True)
             self.rm(mysql_dir, force=True)
 
-        self.subproc(['sudo', 'yum', 'localinstall', '-y', '{}/mysql57-community-release-el7-7.noarch.rpm'.format(self.dep_dir)])
+        # TODO: check version of centos here for install
+        self.subproc(['sudo', 'yum', 'localinstall', '-y', '{}/mysql57-community-release-el6-7.noarch.rpm'.format(self.dep_dir)])
 
         print "Installing mysql-community-server..."
         self.subproc(['sudo', 'yum', 'install', '-y', 'mysql-community-server'])
