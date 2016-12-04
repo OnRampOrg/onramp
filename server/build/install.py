@@ -19,6 +19,7 @@ from argparse import ArgumentParser
 from subprocess import *
 from time import sleep
 import traceback
+import platform
 import textwrap
 import shutil
 
@@ -26,7 +27,7 @@ import shutil
 def catch_exceptions(func):
     def run(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except:
             error = TerminalFonts().format("Installation Error", 4)
             print "\n{}[ {} ]{}".format("=" * 25, error, "=" * 25)
@@ -93,6 +94,24 @@ class Installer(object):
                 raise OSError("{} does not exists!".format(path))
 
     @catch_exceptions
+    def confirm_password(self, password, prompt_txt):
+        tmp_password = raw_input("Please confirm typed password: ")
+        while tmp_password != password:
+            print "\nError: Passwords do not match!\n"
+            password = raw_input(prompt_txt)
+            tmp_password = raw_input("Please confirm typed password: ")
+        print # just adding a print here for spacing
+        return tmp_password
+
+    @catch_exceptions
+    def confirm_reinstall(self, text):
+        print self.TF.format(text, 3)
+        answer = raw_input("\nAre you sure you want to continue (y/n): ")
+        while answer not in ['y', 'Y', 'n', 'N']:
+            answer = raw_input("Are you sure you want to continue (y/n): ")
+        return answer in ['y', 'Y']
+
+    @catch_exceptions
     def configure_environment(self):
         print "Preparing to configure environment...\n"
 
@@ -150,82 +169,125 @@ class Installer(object):
 
         mysql_dir = '{}/mysql'.format(self.base_dir)
 
-        if self.reinstall:
+        try:
+            check_output(['mysql', '--version'])
+            mysql_installed = True
+        except OSError:
+            mysql_installed = False
+
+        if mysql_installed and self.reinstall:
+            message = "WARNING: Are you sure you want to reinstall MySQL? Reinstalling MySQL will stop and\n" \
+                      "disable the service. Remove both the community server and development libraries and\n" \
+                      "remove MySQL from ALL default locations. In addition to removing the log, default\n" \
+                      "directory, and configuration file. "
+            if self.confirm_reinstall(message):
+                self.subproc(['sudo', 'systemctl', 'stop', 'mysqld.service'], ignore=True)
+                self.subproc(['sudo', 'systemctl', 'disable', 'mysqld.service'], ignore=True)
+                self.subproc(['sudo', 'yum', 'remove', '-y', 'mysql-community-server'], ignore=True)
+                self.subproc(['sudo', 'yum', 'remove', '-y', 'mysql-community-devel'], ignore=True)
+                self.rm('/var/log/mysqld.log', force=True)
+                self.rm('/var/lib/mysql', force=True)
+                self.rm('/etc/my.cnf', force=True)
+                self.rm(mysql_dir, force=True)
+                # set the mysql installed flag to false since we just removed it
+                mysql_installed = False
+            else:
+                print "\nMySQL re-installation aborted"
+                return
+
+        # MySQL is not installed so we want to install the latest version for the user
+        if not mysql_installed:
+            # TODO: support more operating system here besides CentOS 6 & 7
+            os_info = platform.platform()
+            if 'centos-7' in os_info:
+                rpm = '{}/mysql57-community-release-el7-7.noarch.rpm'.format(self.dep_dir)
+            elif 'centos-6' in os_info:
+                rpm = '{}/mysql57-community-release-el6-7.noarch.rpm'.format(self.dep_dir)
+            else:
+                rpm = None
+
+            self.subproc(['sudo', 'yum', 'localinstall', '-y', rpm])
+
+            print "Installing mysql-community-server..."
+            self.subproc(['sudo', 'yum', 'install', '-y', 'mysql-community-server'])
+
+            print "Installing mysql-community-devel..."
+            self.subproc(['sudo', 'yum', 'install', '-y', 'mysql-community-devel'])
+
+            print "Stopping any running MySQL services..."
             self.subproc(['sudo', 'systemctl', 'stop', 'mysqld.service'], ignore=True)
-            self.subproc(['sudo', 'systemctl', 'disable', 'mysqld.service'], ignore=True)
-            self.subproc(['sudo', 'yum', 'remove', '-y', 'mysql-community-server'], ignore=True)
-            self.subproc(['sudo', 'yum', 'remove', '-y', 'mysql-community-devel'], ignore=True)
-            self.rm('/var/log/mysqld.log', force=True)
-            self.rm('/var/lib/mysql', force=True)
-            self.rm('/etc/my.cnf', force=True)
-            self.rm(mysql_dir, force=True)
 
-        # TODO: check version of centos here for install
-        # self.subproc(['sudo', 'yum', 'localinstall', '-y', '{}/mysql57-community-release-el6-7.noarch.rpm'.format(self.dep_dir)])
+            print "Initializing MySQL data directory..."
+            self.subproc(['sudo', 'mysqld', '--initialize', '--user=mysql', '--datadir={}'.format(mysql_dir)])
 
-        print "Installing mysql-community-server..."
-        self.subproc(['sudo', 'yum', 'localinstall', '-y', '{}/MySQL-server-5.5.53-1.el6.x86_64.rpm'.format(self.dep_dir)])
+            print "Removing the default MySQL data directory..."
+            self.rm("/var/lib/mysql")
 
-        print "Installing mysql-community-devel..."
-        self.subproc(['sudo', 'yum', 'localinstall', '-y', '{}/MySQL-devel-5.5.53-1.el6.x86_64.rpm'.format(self.dep_dir)])
+            print "Copying over MySQL configuration file...\n"
+            fh = open("{}/build/config/my.cnf".format(self.base_dir), 'r')
+            mysql_conf = fh.read().strip()
+            fh.close()
+            # write out the new lines to a temp file to copy over with sudo
+            with open("/tmp/mysql_conf", "w") as fh:
+                fh.writelines(mysql_conf.replace("ONRAMP", self.base_dir))
+            # write over the /etc/environment file with the new lines from the tmp file
+            self.subproc(['sudo', 'cp', '/tmp/mysql_conf', '/etc/my.cnf'])
+            # remove the temporary file that was created
+            self.rm('/tmp/mysql_conf', force=True)
 
-        print "Stopping any running MySQL services..."
-        self.subproc(['sudo', 'systemctl', 'stop', 'mysqld.service'], ignore=True)
+            print "Fixing SELinux for new MySQL data directory..."
+            self.subproc(['sudo', 'semanage', 'fcontext', '-a', '-s', 'system_u',
+                          '-t', 'mysqld_db_t', '"{}(/.*)?"'.format(mysql_dir)])
+            self.subproc(['sudo', 'restorecon', '-Rv', mysql_dir])
 
-        print "Initializing MySQL data directory..."
-        self.subproc(['sudo', 'mysqld', '--initialize', '--user=mysql', '--datadir={}'.format(mysql_dir)])
+            print "Starting MySQL service..."
+            self.subproc(['sudo', 'systemctl', 'start', 'mysqld.service'])
 
-        print "Removing the default MySQL data directory..."
-        self.rm("/var/lib/mysql")
+            # have to get the password this way because can't get it in python without root privileges
+            p = Popen(['sudo grep "temporary password" /var/log/mysqld.log'],
+                      shell=True, stdout=PIPE, stderr=PIPE)
+            stdout, stderr = p.communicate()
+            password = stdout.split("localhost: ")[1].strip()
 
-        print "Copying over MySQL configuration file...\n"
-        fh = open("{}/build/config/my.cnf".format(self.base_dir), 'r')
-        mysql_conf = fh.read().strip()
-        fh.close()
-        # write out the new lines to a temp file to copy over with sudo
-        with open("/tmp/mysql_conf", "w") as fh:
-            fh.writelines(mysql_conf.replace("ONRAMP", self.base_dir))
-        # write over the /etc/environment file with the new lines from the tmp file
-        self.subproc(['sudo', 'cp', '/tmp/mysql_conf', '/etc/my.cnf'])
-        # remove the temporary file that was created
-        self.rm('/tmp/mysql_conf', force=True)
+            # authenticate with the default temporary root password from the mysql log
+            auth = ['sudo', 'mysql', '-u', 'root', '--password={}'.format(password), '--connect-expired-password']
 
-        print "Fixing SELinux for new MySQL data directory..."
-        self.subproc(['sudo', 'semanage', 'fcontext', '-a', '-s', 'system_u',
-                      '-t', 'mysqld_db_t', '"{}(/.*)?"'.format(mysql_dir)])
-        self.subproc(['sudo', 'restorecon', '-Rv', mysql_dir])
+            print "Changing the root password for MySQL..."
+            # change the password for the root user from the default temporary password in the log
+            self.subproc(auth + ['-e', "ALTER USER 'root'@'localhost' IDENTIFIED BY '0nR@mp!'"])
 
-        print "Starting MySQL service..."
-        self.subproc(['sudo', 'systemctl', 'start', 'mysqld.service'])
+            # authenticate with the new super user password for root
+            auth = ['sudo', 'mysql', '-u', 'root', '--password=0nR@mp!']
 
-        # have to get the password this way because can't get it in python without root privileges
-        p = Popen(['sudo grep "temporary password" /var/log/mysqld.log'],
-                  shell=True, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = p.communicate()
-        password = stdout.split("localhost: ")[1].strip()
+            print "Removing default users and directories for MySQL..."
+            # make sure to remove the default users and default databases
+            self.subproc(auth + ['-e', "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')"])
+            self.subproc(auth + ['-e', "DELETE FROM mysql.user WHERE User=''"])
+            self.subproc(auth + ['-e', "DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%'"])
 
-        # authenticate with the default temporary root password from the mysql log
-        auth = ['sudo', 'mysql', '-u', 'root', '--password={}'.format(password), '--connect-expired-password']
+        # MySQL is already installed on the system so ask the user for the root password
+        else:
+            # authenticate with the current super user password for root
+            username = raw_input("Please enter in the name of the MySQL user to authenticate with: ")
+            prompt_txt = "Please enter in the password for the MySQL user: "
+            password = self.confirm_password(raw_input(prompt_txt), prompt_txt)
+            auth = ['sudo', 'mysql', '-u', username, '--password={}'.format(password)]
 
-        print "Changing the root password for MySQL..."
-        # change the password for the root user from the default temporary password in the log
-        self.subproc(auth + ['-e', "ALTER USER 'root'@'localhost' IDENTIFIED BY '0nR@mp!'"])
-
-        # authenticate with the new super user password for root
-        auth = ['sudo', 'mysql', '-u', 'root', '--password=0nR@mp!']
-
-        print "Removing default users and directories for MySQL..."
-        # make sure to remove the default users and default databases
-        self.subproc(auth + ['-e', "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')"])
-        self.subproc(auth + ['-e', "DELETE FROM mysql.user WHERE User=''"])
-        self.subproc(auth + ['-e', "DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%'"])
-        print "Creating MySQL user for django..."
+        print "Creating the MySQL user for django..."
         # creating onramp user for django to authenticate with
-        self.subproc(auth + ['-e', "CREATE USER 'onramp'@'localhost' IDENTIFIED BY 'OnRamp_16'"])
-        self.subproc(auth + ['-e', "GRANT ALL PRIVILEGES ON * . * TO 'onramp'@'localhost'"])
-        print "Creating MySQL database for django..."
+        try:
+            check_call(auth + ['-e', "CREATE USER 'onramp'@'localhost' IDENTIFIED BY 'OnRamp_16'"])
+            check_call(auth + ['-e', "GRANT ALL PRIVILEGES ON * . * TO 'onramp'@'localhost'"])
+        except CalledProcessError:
+            print self.TF.format("The user already exists or the connection to mysql was unsuccessful!\n", 3)
+
+        print "Creating the MySQL database for django..."
         # creating the default database for django to use
-        self.subproc(auth + ['-e', "CREATE DATABASE django"])
+        try:
+            check_call(auth + ['-e', "CREATE DATABASE django"])
+        except CalledProcessError:
+            print self.TF.format("The django database already exists or the connection to mysql was unsuccessful!\n", 3)
+
         print "Reloading all permissions for MySQL..."
         # reload all privileges so that the new user can log in
         self.subproc(auth + ['-e', "FLUSH PRIVILEGES"])
