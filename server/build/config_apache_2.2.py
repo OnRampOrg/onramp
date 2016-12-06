@@ -140,7 +140,7 @@ def install_wsgi(TF, apache_dir):
     # apparently the configure script will find the apxs
     # executable automatically if it is installed in its
     # standard location
-    check_call("./configure --with-python=/usr/bin/python2.7")
+    check_call("./configure --with-python=%s" % sys.executable)
 
     print "Building mod wsgi...\n"
     check_call(['make'])
