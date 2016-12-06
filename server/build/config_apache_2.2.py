@@ -12,9 +12,9 @@ def validate_path(path, filename=None, remove_slash=False):
             print
             return path if not remove_slash else path.rstrip("/")
     while not os.path.exists(path):
-        print "Nothing at the following path exists: {}\n".format(path)
-        path = raw_input("Please enter in a valid path for the {} file: ".format(file))
-        answer = raw_input("Is the following path correct? ({}) (y/N): ".format(path))
+        print "Nothing at the following path exists: %s\n" % path
+        path = raw_input("Please enter in a valid path for the %s file: " % file)
+        answer = raw_input("Is the following path correct? (%s) (y/N): " % path)
         if answer in ['y', 'Y'] and os.path.exists(path):
             if filename is None:
                 break
@@ -41,11 +41,11 @@ def configure_apache(TF, onramp_dir, apache_dir, port_num):
 
     fh = open(vhosts, "r")
     for line in fh.readlines():
-        if ":{}".format(port_num) in line:
-            print "{}: The virtual hosts file already contains an entry for that port!".format(TF.format("ERROR", 4))
-            print "If you would like to run OnRamp under the port ({}) please remove the\n" \
+        if ":%s" % port_num in line:
+            print "%s: The virtual hosts file already contains an entry for that port!" % TF.format("ERROR", 4)
+            print "If you would like to run OnRamp under the port (%s) please remove the\n" \
                   "current configuration for that port from your enabled virtual hosts file\n" \
-                  "and then re-run this script to configure your Apache 2.2 webserver for OnRamp.\n".format(port_num)
+                  "and then re-run this script to configure your Apache 2.2 webserver for OnRamp.\n" % port_num
             sys.exit(1)
     fh.close()
 
@@ -94,7 +94,7 @@ def configure_apache(TF, onramp_dir, apache_dir, port_num):
     with open(ports_conf, "a+") as fh:
         if port_num not in fh.read():
             fh.write("# CUSTOM SETTINGS FOR ONRAMP\n")
-            fh.write("Listen {}".format(port_num))
+            fh.write("Listen %s" % port_num)
             fh.close()
             print "Apache's ports.conf file configured successfully!\n"
         else:
@@ -113,7 +113,7 @@ def install_wsgi(TF, apache_dir):
     modules_dir = raw_input("Please enter in the full path to your apache modules directory: ")
     modules_dir = validate_path(modules_dir, filename=None, remove_slash=True)
 
-    wsgi_so = "{}/mod_wsgi.so".format(modules_dir)
+    wsgi_so = "%s/mod_wsgi.so" % modules_dir
     if os.path.exists(wsgi_so):
         answer = raw_input("Mod WSGI has already been installed. "
                     "\nWould you like to reinstall it? (y/[N]):  ")
@@ -154,17 +154,17 @@ def install_wsgi(TF, apache_dir):
     mods_enabled_dir = raw_input("Please enter in the full path to your mods-enabled directory: ")
     mods_enabled_dir = validate_path(mods_enabled_dir, filename=None, remove_slash=True)
 
-    mods_enabled = os.listdir(mods_enabled_dir)
-    if "wsgi" not in "".join(mods_enabled):
-        # create the required conf file for wsgi
-        fh = open("{}/wsgi.conf", 'w')
-        fh.write("LoadModule wsgi_module {}/mod_wsgi.so".format(modules_dir))
-        fh.close()
-        # create the required load file for wsgi
-        # NOTE: no need to add anything to this
-        # because all of our settings are in the
-        # virtual hosts file
-        open("{}/wsgi.conf", 'w').close()
+    # mods_enabled = os.listdir(mods_enabled_dir)
+    # if "wsgi" not in "".join(mods_enabled):
+    #     # create the required conf file for wsgi
+    #     fh = open("{}/wsgi.conf", 'w')
+    #     fh.write("LoadModule wsgi_module %s/mod_wsgi.so" % modules_dir)
+    #     fh.close()
+    #     # create the required load file for wsgi
+    #     # NOTE: no need to add anything to this
+    #     # because all of our settings are in the
+    #     # virtual hosts file
+    #     open("{}/wsgi.conf", 'w').close()
 
     print TF.format("Mod WSGI installed successfully!\n", 1)
 
@@ -176,8 +176,8 @@ if __name__ == '__main__':
     # check to make sure we have root permissions to execute the script
     # since we need those permissions to install dependencies through yum
     if os.getuid() != 0:
-        print '\n{}: Please run this script with "sudo" or as the ' \
-              'root user.\n'.format(TF.format("Permission Error", 4))
+        print '\n%s: Please run this script with "sudo" or as the ' \
+              'root user.\n' % TF.format("Permission Error", 4)
         sys.exit(0)
 
     onramp_dir = raw_input("\nPlease enter in the full path to the OnRamp server directory: ")
