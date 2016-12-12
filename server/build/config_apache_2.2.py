@@ -1,7 +1,6 @@
 from utils.terminal import TerminalFonts
 from subprocess import *
 import textwrap
-import shutil
 import sys
 import os
 
@@ -26,35 +25,41 @@ def validate_path(path, filename=None, remove_slash=False):
     return path if not remove_slash else path.rstrip("/")
 
 
-def configure_apache(TF, onramp_dir, apache_dir, port_num):
+def configure_apache(TF, onramp_dir, mod_dir, port_num):
     print "Preparing to configure apache...\n"
 
     # strip off any trailing slashes so we have clean paths in the config
-    if onramp_dir.endswith("/"): onramp_dir = onramp_dir[:-1]
+    if onramp_dir.endswith("/"):
+        onramp_dir = onramp_dir[:-1]
 
-    # strip off any trailing slashes so we have clean paths in the config
-    if apache_dir.endswith("/"): apache_dir = apache_dir[:-1]
+    # get the full path to the httpd.conf file so we can append our OnRamp configuration
+    httpd_path = raw_input("Please enter in the full path to your httpd.conf: ")
+    httpd_path = validate_path(httpd_path, filename=None)  # leaving filename as none because it could be anything
 
-    # NOTE: the default apache 2.2 virtual hosts file should be the following
-    vhosts = raw_input("Please enter in the full path to your virtual host file: ")
-    vhosts = validate_path(vhosts, filename=None)  # leaving filename as none because it could be anything
-
-    fh = open(vhosts, "r")
+    # read in the current httpd.conf lines so we can append our OnRamp configuration
+    httpd_config = []
+    fh = open(httpd_path, "r")
     for line in fh.readlines():
-        if ":%s" % port_num in line:
-            print "%s: The virtual hosts file already contains an entry for that port!" % TF.format("ERROR", 4)
-            print "If you would like to run OnRamp under the port (%s) please remove the\n" \
-                  "current configuration for that port from your enabled virtual hosts file\n" \
-                  "and then re-run this script to configure your Apache 2.2 webserver for OnRamp.\n" % port_num
+        httpd_config.append(line)
+        if "CUSTOM SETTINGS FOR ONRAMP" in line:
+            print "%s: The httpd.conf file already contains custom setting for OnRamp!" % TF.format("ERROR", 4)
+            print "Please remove the custom settings for OnRamp if you would like to\n" \
+                  "re-configure your Apache 2.2 webserver for OnRamp.\n" % port_num
             sys.exit(1)
     fh.close()
 
-    vhost_config = """
+    # custom setting for Django and the OnRamp webserver
+    onramp_config = """
+
     # CUSTOM SETTINGS FOR ONRAMP
+
+    LoadModule wsgi_module {mod_dir}/mod_wsgi.so
 
     WSGIScriptAlias / {onramp_dir}/ui/wsgi.py
     WSGIPythonPath {onramp_dir}:{onramp_dir}/virtual-env/lib/python2.7/site-packages
     Alias /static {onramp_dir}/ui/static
+
+    Listen {port}
 
     <VirtualHost *:{port}>
         ServerAlias *.onramp.com
@@ -73,45 +78,23 @@ def configure_apache(TF, onramp_dir, apache_dir, port_num):
             Order allow,deny
             Allow from all
         </Location>
-
-        # limit the type of HTTP methods possible
-        <location / >
-            AllowMethods GET POST PUT DELETE
-        </location>
     </VirtualHost>
-    """.format(onramp_dir=onramp_dir, port=port)
+    """.format(onramp_dir=onramp_dir, mod_dir=mod_dir, port=port)
 
-    fh = open(vhosts, "a")
-    fh.write("\n")
-    fh.write(textwrap.dedent(vhost_config))
-    fh.close()
+    # write out the new lines to a temp file to copy over with sudo
+    with open("/tmp/httpd_conf", "w") as fh:
+        httpd_config += "".join(textwrap.dedent(onramp_config))
+        fh.writelines(httpd_config)
+    # write over the /etc/environment file with the new lines from the tmp file
+    check_call(['sudo', 'cp', '/tmp/httpd_conf', httpd_path])
+    # remove the temporary file that was created
+    check_call(['sudo', 'rm', '-f', '/tmp/httpd_conf'])
 
-    print "Apache's virtual hosts file was configured successfully!\n"
-
-    print "Configuring apache's ports.conf file..."
-    ports_conf = raw_input("Please enter in the full path to your ports.conf file: ")
-    ports_conf = validate_path(ports_conf, filename="ports.conf")
-    with open(ports_conf, "a+") as fh:
-        if port_num not in fh.read():
-            fh.write("# CUSTOM SETTINGS FOR ONRAMP\n")
-            fh.write("Listen %s" % port_num)
-            fh.close()
-            print "Apache's ports.conf file configured successfully!\n"
-        else:
-            print 'Apache is already configured to listen on that port!\n'
-
-    print TF.format("Apache's was configured successfully!\n", 1)
+    print TF.format("Apache was configured successfully!\n", 1)
 
 
-def install_wsgi(TF, apache_dir):
+def install_wsgi(TF, modules_dir):
     print "Preparing to install Mod WSGI...\n"
-
-    # removing the mod wsgi source if it exists already
-    if os.path.exists("./dependencies/mod_wsgi-4.5.7"):
-        shutil.rmtree("./dependencies/mod_wsgi-4.5.7")
-
-    modules_dir = raw_input("Please enter in the full path to your apache modules directory: ")
-    modules_dir = validate_path(modules_dir, filename=None, remove_slash=True)
 
     wsgi_so = "%s/mod_wsgi.so" % modules_dir
     if os.path.exists(wsgi_so):
@@ -119,52 +102,52 @@ def install_wsgi(TF, apache_dir):
                     "\nWould you like to reinstall it? (y/[N]):  ")
         if answer in ['y', 'Y']:
             try:
-                os.remove(wsgi_so)
-                shutil.rmtree("./dependencies/mod_wsgi-4.5.7")
+                check_call(['sudo', 'rm', '-f', wsgi_so])
+                check_call(['sudo', 'rm', '-rf', './dependencies/mod_wsgi-4.5.7'])
             except:
                 pass
         else:
             return
 
+    # change to the dependency directory to build mod WSGI
     os.chdir('./dependencies')
 
+    # un-tar mod wsgi source so we can build it manually
     wsgi_tar_src = './mod_wsgi-4.5.7.tar.gz'
     wsgi_src = './mod_wsgi-4.5.7'
-
     print "Un-tarring mod wsgi 4.5.7 source...\n"
     check_call(['tar', '-zxpvf', wsgi_tar_src])
 
+    # change to the un-tarred mod wsgi directory
     os.chdir(wsgi_src)
 
     print "Running mod wsgi configure...\n"
-    # apparently the configure script will find the apxs
-    # executable automatically if it is installed in its
-    # standard location
-    check_call("./configure --with-python=%s" % sys.executable)
+    # apparently the configure script will find the apxs executable
+    # automatically if apache is installed in a findable location
+    check_call(['sudo', './configure', '--with-python=%s' % sys.executable])
 
     print "Building mod wsgi...\n"
-    check_call(['make'])
+    check_call(['sudo', 'make'])
 
     print "Installing mod wsgi...\n"
-    check_call(['make', 'install'])
+    check_call(['sudo', 'make', 'install'])
 
     print "Cleaning up mod wsgi source...\n"
-    shutil.rmtree('../mod_wsgi-4.5.7')
+    check_call(['sudo', 'rm', '-rf', '../mod_wsgi-4.5.7'])
 
-    mods_enabled_dir = raw_input("Please enter in the full path to your mods-enabled directory: ")
-    mods_enabled_dir = validate_path(mods_enabled_dir, filename=None, remove_slash=True)
+    print "Making symlinks for python for Mod WSGI..."
 
-    # mods_enabled = os.listdir(mods_enabled_dir)
-    # if "wsgi" not in "".join(mods_enabled):
-    #     # create the required conf file for wsgi
-    #     fh = open("{}/wsgi.conf", 'w')
-    #     fh.write("LoadModule wsgi_module %s/mod_wsgi.so" % modules_dir)
-    #     fh.close()
-    #     # create the required load file for wsgi
-    #     # NOTE: no need to add anything to this
-    #     # because all of our settings are in the
-    #     # virtual hosts file
-    #     open("{}/wsgi.conf", 'w').close()
+    print 'If you don\'t know the path to the following files try using the "locate" command\n'
+
+    link_1 = raw_input("Please enter in the full path to your libpython2.7.so.1.0 file: ")
+    link_1 = validate_path(link_1, filename='libpython2.7.so.1.0', remove_slash=True)
+    if not link_1.startswith("/usr/lib64"):
+        check_call(['sudo', 'ln', '-s', link_1, '/usr/lib64'])
+
+    link_2 = raw_input("Please enter in the full path to your libpython2.7.so file: ")
+    link_2 = validate_path(link_2, filename='libpython2.7.so', remove_slash=True)
+    if not link_2.startswith("/usr/"):
+        check_call(['sudo', 'ln', '-s', link_2, '/usr/'])
 
     print TF.format("Mod WSGI installed successfully!\n", 1)
 
@@ -173,33 +156,22 @@ if __name__ == '__main__':
     # create an instance of our Terminal Fonts class to help with printing
     TF = TerminalFonts()
 
-    # check to make sure we have root permissions to execute the script
-    # since we need those permissions to install dependencies through yum
-    if os.getuid() != 0:
-        print '\n%s: Please run this script with "sudo" or as the ' \
-              'root user.\n' % TF.format("Permission Error", 4)
-        sys.exit(0)
-
+    # ask for the full path to the OnRamp server directory since we're gonna need it later
     onramp_dir = raw_input("\nPlease enter in the full path to the OnRamp server directory: ")
-    if not onramp_dir.startswith("/") and not os.path.isdir(onramp_dir):
-        print "Please enter in a valid directory path!"
-        sys.exit(1)
+    onramp_dir = validate_path(onramp_dir, remove_slash=True)
 
-    apache_dir = raw_input("\nPlease enter in the full path to your apache 2.2 directory: ")
-    if not apache_dir.startswith("/") and not os.path.isdir(apache_dir):
-        print "Please enter in a valid directory path!"
-        sys.exit(1)
+    # ask for the full path to the apache 2.2 modules directory because we have to install mod_wsgi there
+    modules_dir = raw_input("Please enter in the full path to your apache modules directory: ")
+    modules_dir = validate_path(modules_dir, filename='httpd.conf', remove_slash=True)
 
-    port = raw_input("\nPlease enter in the port you wish to run OnRamp under (80): ")
-    port = port or "80"
-    if not port.isdigit():
-        print "Please enter in a valid port!"
-        sys.exit(1)
+    # ask for the port to run the OnRamp webserver under
+    port = raw_input("\nPlease enter in the port you wish to run OnRamp under: ")
+    while not port.isdigit():
+        port = raw_input("Please enter in a valid port to run OnRamp under: ")
 
-    print  # Just printing a blank line here for space
-
-    # add the required vhost directive to the apache httpd-vhost config
-    configure_apache(TF, onramp_dir, apache_dir, port)
-    install_wsgi(TF, apache_dir)
+    # add the special settings we need for OnRamp to the httpd.conf file
+    configure_apache(TF, onramp_dir, modules_dir, port)
+    # build mod wsgi from source since we need it run django
+    install_wsgi(TF, modules_dir)
 
     print TF.format("\nPlease restart your apache to complete the configuration.\n", 1)
