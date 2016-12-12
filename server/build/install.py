@@ -1,4 +1,3 @@
-
 import site
 import sys
 import os
@@ -20,8 +19,6 @@ from subprocess import *
 from time import sleep
 import traceback
 import platform
-import textwrap
-import shutil
 
 
 def catch_exceptions(func):
@@ -139,7 +136,7 @@ class Installer(object):
         # remove the temporary file that was created
         self.rm('/tmp/etc_environment', force=True)
 
-        print self.TF.format("Environment configured successfully!\n", 1)
+        print self.TF.format("Environment configured successfully!", 1)
 
     @catch_exceptions
     def install_dependencies(self):
@@ -161,7 +158,7 @@ class Installer(object):
         for dep in dependencies:
             self.subproc(['sudo', 'yum', 'install', '-y', dep])
 
-        print self.TF.format("Dependencies installed successfully!\n", 1)
+        print self.TF.format("Dependencies installed successfully!", 1)
 
     @catch_exceptions
     def install_mysql(self):
@@ -169,13 +166,22 @@ class Installer(object):
 
         mysql_dir = '{}/mysql'.format(self.base_dir)
 
+        # default the reinstall answer to False
+        reinstall_answer = False
+
         try:
             check_output(['mysql', '--version'])
             mysql_installed = True
         except OSError:
             mysql_installed = False
 
-        if mysql_installed and self.reinstall:
+        if not self.reinstall and mysql_installed:
+            answer = raw_input("MySQL has already been installed. "
+                       "\nWould you like to reinstall it? (y/[N]):  ")
+            if answer in ['y', 'Y']:
+                reinstall_answer = True
+
+        if mysql_installed and (reinstall_answer or self.reinstall):
             message = "WARNING: Are you sure you want to reinstall MySQL? Reinstalling MySQL will stop and\n" \
                       "disable the service. Remove both the community server and development libraries and\n" \
                       "remove MySQL from ALL default locations. In addition to removing the log, default\n" \
@@ -279,20 +285,20 @@ class Installer(object):
             check_call(auth + ['-e', "CREATE USER 'onramp'@'localhost' IDENTIFIED BY 'OnRamp_16'"])
             check_call(auth + ['-e', "GRANT ALL PRIVILEGES ON * . * TO 'onramp'@'localhost'"])
         except CalledProcessError:
-            print self.TF.format("The user already exists or the connection to mysql was unsuccessful!\n", 3)
+            print self.TF.format("The user already exists or the connection to mysql was unsuccessful!", 3)
 
         print "Creating the MySQL database for django..."
         # creating the default database for django to use
         try:
             check_call(auth + ['-e', "CREATE DATABASE django"])
         except CalledProcessError:
-            print self.TF.format("The django database already exists or the connection to mysql was unsuccessful!\n", 3)
+            print self.TF.format("The django database already exists or the connection to mysql was unsuccessful!", 3)
 
         print "Reloading all permissions for MySQL..."
         # reload all privileges so that the new user can log in
         self.subproc(auth + ['-e', "FLUSH PRIVILEGES"])
 
-        print self.TF.format("MySQL installed successfully!\n", 1)
+        print self.TF.format("MySQL installed successfully!", 1)
 
     @catch_exceptions
     def install_virtual_env(self):
@@ -332,11 +338,11 @@ class Installer(object):
         for dependency in pip_dependencies:
             self.subproc(['pip', 'install', dependency])
 
-        print self.TF.format("Virtual environment installed successfully!\n", 1)
+        print self.TF.format("Virtual environment installed successfully!", 1)
 
     @catch_exceptions
     def install_apache(self):
-        print "Preparing to install apache...\n"
+        print "Preparing to install apache 2.4...\n"
 
         if self.reinstall:
             if os.path.exists(self.apachectl):
@@ -405,10 +411,10 @@ class Installer(object):
         print "Running apache configure...\n"
         self.subproc(config.strip().split())
 
-        print "Building apache...\n"
+        print "Building apache 2.4...\n"
         self.subproc(['sudo', 'make'])
 
-        print "Installing apache...\n"
+        print "Installing apache 2.4...\n"
         self.subproc(['sudo', 'make', 'install'])
 
         print "Cleaning up apache source...\n"
@@ -455,7 +461,7 @@ class Installer(object):
         # remove the temporary file that was created
         self.rm('/tmp/httpd_vhosts', force=True)
 
-        print self.TF.format("Apache installed successfully!\n", 1)
+        print self.TF.format("Apache installed successfully!", 1)
 
     @catch_exceptions
     def install_wsgi(self):
@@ -502,10 +508,10 @@ class Installer(object):
         print "Cleaning up mod wsgi source...\n"
         self.rm(wsgi_src)
 
-        print self.TF.format("Mod wsgi installed successfully!\n", 1)
-
         print "Starting up apache...\n"
         self.subproc(['sudo', self.apachectl, "start"])
+
+        print self.TF.format("Mod wsgi installed successfully!", 1)
 
     @catch_exceptions
     def run_migrations(self):
@@ -576,12 +582,20 @@ class Installer(object):
         # make sure this script is ran with nothing less than python 2.7
         assert (not sys.version_info < (2, 7))
         # loop over all of the phases in the install process and run them
+        print "%s: Skipping phases may not fully install OnRamp" % self.TF.format("WARNING", 3)
         for phase in self.phases:
-            phase['func']()
+            answer = raw_input("\n[%s] Run phase? (y/n): " % phase['desc'])
+            while answer not in ['y', 'Y', 'n', 'N']:
+                answer = raw_input("Please answer yes or no (y/n): ")
+            if answer not in ['y', 'Y']:
+                print "[%s] skipped." % phase['desc']
+            else:
+                print # printing here for space
+                phase['func']()
             sleep(2)
-        print "Please logout then back in to complete the OnRamp installation process!"
+        print "\nPlease logout then back in to complete the OnRamp installation process!"
         sleep(3)
-        self.TF.format("INSTALLATION COMPLETE\n", 1)
+        self.TF.format("INSTALLATION COMPLETE", 1)
 
 if __name__ == '__main__':
     parser = ArgumentParser("Tool to build and install OnRamp webserver and interface.")
