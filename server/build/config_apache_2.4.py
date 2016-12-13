@@ -56,7 +56,11 @@ def install_wsgi(TF, modules_dir):
     print "Running mod wsgi configure...\n"
     # apparently the configure script will find the apxs executable
     # automatically if apache is installed in a findable location
-    check_call(['sudo', './configure', '--with-python=%s' % sys.executable])
+    check_call([
+        'sudo', './configure',
+        '--with-apxs=%s/bin/apxs' % apache_dir,
+        '--with-python=%s' % sys.executable
+    ])
 
     print "Building mod wsgi...\n"
     check_call(['sudo', 'make'])
@@ -68,7 +72,6 @@ def install_wsgi(TF, modules_dir):
     check_call(['sudo', 'rm', '-rf', '../mod_wsgi-4.5.7'])
 
     print "Making symlinks for python for Mod WSGI..."
-
     print 'If you don\'t know the path to the following files try using the "locate" command\n'
 
     link_1 = raw_input("Please enter in the full path to your libpython2.7.so.1.0 file: ")
@@ -107,6 +110,7 @@ def configure_vhost_conf(TF, onramp_dir, apache_dir, port):
     fh.close()
 
     onramp_config = """
+
     # CUSTOM SETTINGS FOR ONRAMP
 
     WSGIScriptAlias / {onramp_dir}/ui/wsgi.py
@@ -137,7 +141,7 @@ def configure_vhost_conf(TF, onramp_dir, apache_dir, port):
     """.format(onramp_dir=onramp_dir, port=port)
 
     # write out the new lines to a temp file to copy over with sudo
-    with open("/tmp/httpd_conf", "w") as fh:
+    with open("/tmp/httpd_vhosts_conf", "w") as fh:
         vhost_config += "".join(textwrap.dedent(onramp_config))
         fh.writelines(vhost_config)
     # write over the /etc/environment file with the new lines from the tmp file
@@ -175,7 +179,7 @@ def configure_httpd_conf(TF, apache_dir, port_num):
     # write out the new lines to a temp file to copy over with sudo
     with open("/tmp/httpd_conf", "w") as fh:
         if not port or not module:
-            httpd_config.append("# CUSTOM SETTINGS FOR ONRAMP\n")
+            httpd_config.append("\n# CUSTOM SETTINGS FOR ONRAMP\n")
             if not module:
                 httpd_config.append("LoadModule wsgi_module modules/mod_wsgi.so\n")
             if not port:
@@ -201,7 +205,7 @@ if __name__ == '__main__':
     apache_dir = validate_path(apache_dir, remove_slash=True)
 
     # ask for the full path to the apache 2.2 modules directory because we have to install mod_wsgi there
-    modules_dir = raw_input("Please enter in the full path to your apache modules directory: ")
+    modules_dir = raw_input("\nPlease enter in the full path to your apache modules directory: ")
     modules_dir = validate_path(modules_dir, filename='httpd.conf', remove_slash=True)
 
     # ask for the port to run the OnRamp webserver under
