@@ -116,7 +116,7 @@ def install_wsgi(TF, modules_dir):
     wsgi_tar_src = './mod_wsgi-4.5.7.tar.gz'
     wsgi_src = './mod_wsgi-4.5.7'
     print "Un-tarring mod wsgi 4.5.7 source...\n"
-    check_call(['tar', '-zxpvf', wsgi_tar_src])
+    check_call(['sudo', 'tar', '-zxpvf', wsgi_tar_src])
 
     # change to the un-tarred mod wsgi directory
     os.chdir(wsgi_src)
