@@ -113,11 +113,14 @@ def configure_vhost_conf(TF, onramp_dir, apache_dir, port):
 
     # CUSTOM SETTINGS FOR ONRAMP
 
-    WSGIScriptAlias / {onramp_dir}/ui/wsgi.py
+    WSGIScriptAlias /onramp {onramp_dir}/ui/wsgi.py
     WSGIPythonPath {onramp_dir}:{onramp_dir}/virtual-env/lib/python2.7/site-packages
-    Alias /static {onramp_dir}/ui/static
+    Alias /onramp/static {onramp_dir}/ui/static
 
     <VirtualHost *:{port}>
+        RewriteEngine On
+        RewriteRule ^/(.*)$ /onramp/$1 [PT,L]
+
         ServerAlias *.onramp.com
 
         DocumentRoot {onramp_dir}/ui/

@@ -55,13 +55,16 @@ def configure_apache(TF, onramp_dir, mod_dir, port_num):
 
     LoadModule wsgi_module {mod_dir}/mod_wsgi.so
 
-    WSGIScriptAlias / {onramp_dir}/ui/wsgi.py
+    WSGIScriptAlias /onramp {onramp_dir}/ui/wsgi.py
     WSGIPythonPath {onramp_dir}:{onramp_dir}/virtual-env/lib/python2.7/site-packages
-    Alias /static {onramp_dir}/ui/static
+    Alias /onramp/static {onramp_dir}/ui/static
 
     Listen {port}
 
     <VirtualHost *:{port}>
+        RewriteEngine On
+        RewriteRule ^/(.*)$ /onramp/$1 [PT,L]
+
         ServerAlias *.onramp.com
 
         DocumentRoot {onramp_dir}/ui/
