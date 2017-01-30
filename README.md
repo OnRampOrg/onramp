@@ -18,7 +18,7 @@ The OnRamp project provides a web portal interface to parallel compute environme
 
 ## Progress
 
-This project is still being designed and implemented.  We hope to have a first implementation available on github by then end of the year 2015.
+This branch of the project is out of date and we are in the process of moving to the Django implementation.  The new version of OnRamp is intended to be more scalable, robust, and secure.
 
 
 -----------------------------------
