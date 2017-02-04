@@ -7,6 +7,8 @@ from django.template.loader import get_template
 
 from ui.admin.models import user_to_workspace, job
 
+from core.definitions import JOB_STATES
+
 
 @login_required
 def main(request):
@@ -55,6 +57,21 @@ def get_jobs(request):
     response = {
         'status':0,
         'status_message':'Success',
-        'jobs':list(job.objects.filter(user_id=request.user.id).values())
+        'jobs':[]
     }
+    curs = job.objects.filter(user_id=request.user.id)
+    for row in curs:
+        response['jobs'].append({
+            'job_id':row.job_id,
+            'job_name':row.job_name,
+            'user_id':row.user.id,
+            'username':row.user.username,
+            'workspace_id':row.workspace.workspace_id,
+            'workspace_name':row.workspace.workspace_name,
+            'pce_id':row.pce.pce_id,
+            'pce_name':row.pce.pce_name,
+            'module_id':row.module.module_id,
+            'module_name':row.module.module_name,
+            'state':JOB_STATES.get(row.state, row.state)
+        })
     return HttpResponse(json.dumps(response))

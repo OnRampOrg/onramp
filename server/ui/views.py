@@ -1,10 +1,13 @@
 import json
 
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.template import loader
 from django.views.decorators.csrf import ensure_csrf_cookie
+
+from ui.admin.models import workspace, pce, module
 
 
 @ensure_csrf_cookie
@@ -55,3 +58,34 @@ def onramp_login(request):
     else:
         response['url'] = 'public/Dashboard/'
     return HttpResponse(json.dumps(response))
+
+
+def workspace_id_to_name(workspace_id):
+    """ Get the name of a workspace from its ID
+
+    :param workspace_id:
+    :return:
+    """
+    ws_id = int(workspace_id)
+    ws_row = workspace.objects.get(workspace_id=ws_id)
+    return ws_row.workapce_name
+
+def pce_id_to_name(pce_id):
+    """ Get the name of a pce from its ID
+
+    :param pce_id:
+    :return:
+    """
+    p_id = int(pce_id)
+    pce_row = pce.objects.get(pce_id=p_id)
+    return pce_row.pce_name
+
+def module_id_to_name(module_id):
+    """ Get the name of a module from its ID
+
+    :param module_id:
+    :return:
+    """
+    mod_id = int(module_id)
+    mod_row = module.objects.get(module_id=mod_id)
+    return mod_row.module_name

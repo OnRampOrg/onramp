@@ -6,10 +6,10 @@
 function myJob(data){
 	var self = this;
 	self.jID = data['job_id'];
-	self.user = data['user_id'];
-	self.ws = data['workspace_id'];
-	self.pce = data['pce_id'];
-	self.mod = data['module_id'];
+	self.user = data['username'];
+	self.ws = data['workspace_name'];
+	self.pce = data['pce_name'];
+	self.mod = data['module_name'];
 	self.name = data['job_name'];
 	self.status = data['state'];
 	self.time = data['Runtime'];
@@ -17,12 +17,12 @@ function myJob(data){
 
 	self.viewJob = function () {
 		// go to manage Jobs page and show this job
-		window.location.href = "/Public/Jobs";
+		window.location.href = "/public/Jobs";
 	};
 
 	self.viewJobResults = function () {
 		// figure out if this user can see the results...
-		alert("results page not available");
+		window.location.href = "/public/Jobs";
 	};
 
 	self.removeOnServer = function () {

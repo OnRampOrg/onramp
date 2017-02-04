@@ -1,10 +1,10 @@
 function myJob(data){
 	var self = this;
 	self.jID = data['job_id'];
-	self.user = data['user_id'];
-	self.ws = data['workspace_id'];
-	self.pce = data['pce_id'];
-	self.mod = data['module_id'];
+	self.user = data['username'];
+	self.ws = data['workspace'];
+	self.pce = data['pce'];
+	self.mod = data['module'];
 	self.name = data['job_name'];
 	self.status = data['state'];
 	self.time = "0:00";  // not implemented yet
@@ -67,6 +67,8 @@ function JobDetailsViewModel() {
 	            this.state_str = response.state;
 	        }
 	    });
+    }
+}
 
 //		$.getJSON(sessionStorage.server + "/jobs/" + this.jID + "?apikey=" + JSON.parse(self.auth_data).apikey,
 //			function (data) {
@@ -84,9 +86,6 @@ function JobDetailsViewModel() {
 //			}
 //		);
 	    //self.selectedJob(this);
-	}
-
-}
 
 // Activates knockout.js
 ko.applyBindings(new JobDetailsViewModel());

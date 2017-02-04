@@ -10,7 +10,7 @@ from django.template import Context
 from django.template.loader import get_template
 from ui.admin.models import job, workspace, pce, module
 
-
+from core.definitions import JOB_STATES, PCE_STATES
 
 
 @staff_member_required(login_url='/')
@@ -63,12 +63,26 @@ def get_all_jobs(request):
     :param request:
     :return:
     """
-    # TODO In production this could be a lot of data may need to limit it somehow
     response = {
         'status':0,
         'status_message':'Success',
-        'jobs':list(job.objects.all().defer("output_file").values())
+        'jobs':[]
     }
+    curs = job.objects.all()
+    for row in curs:
+        response['jobs'].append({
+            'job_id': row.job_id,
+            'job_name': row.job_name,
+            'user_id': row.user.id,
+            'username': row.user.username,
+            'workspace_id': row.workspace.workspace_id,
+            'workspace_name': row.workspace.workspace_name,
+            'pce_id': row.pce.pce_id,
+            'pce_name': row.pce.pce_name,
+            'module_id': row.module.module_id,
+            'module_name': row.module.module_name,
+            'state': JOB_STATES.get(row.state, row.state)
+        })
     return HttpResponse(json.dumps(response))
 
 @staff_member_required(login_url='/')
@@ -105,8 +119,16 @@ def get_all_pces(request):
     response = {
         'status':0,
         'status_message':'Success',
-        'pces':list(pce.objects.all().values("pce_id", "pce_name", "state"))
+        'pces':[]
     }
+    curs = pce.objects.all().values("pce_id", "pce_name", "state", "location")
+    for row in curs:
+        response['pces'].append({
+            'pce_id':row['pce_id'],
+            'pce_name':row['pce_name'],
+            'state':PCE_STATES.get(row['state'], row['state']),
+            'location':row['location']
+        })
     return HttpResponse(json.dumps(response))
 
 @staff_member_required(login_url='/')

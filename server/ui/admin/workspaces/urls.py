@@ -4,6 +4,7 @@ import views
 
 urlpatterns = [
     url(r'^All$', views.get_all),
+    url(r'^Update$', views.update_workspace),
     url(r'^AddUser$', views.add_user_to_workspace),
     url(r'^RemoveUser$', views.remove_user_from_workspace),
     url(r'^Jobs$', views.get_jobs),

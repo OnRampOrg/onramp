@@ -83,23 +83,29 @@
         <div class="row">
             <h3>Workspace Info: <span data-bind="text:name"></span> (Workspace ID: <span data-bind="text: id"></span>)</h3>
         </div>
+        <div class="row">
+            <div class="edit-table-col table-header"><p>Field</p></div>
+            <div class="edit-table-col table-header"><p>Current Value</p></div>
+            <div class="edit-table-col table-header"><p>New Value</p></div>
+        </div>
+        <div class="row">
+            <div class="edit-table-col"><p>Name</p></div>
+            <div class="edit-table-col"><p data-bind="text: name"></p></div>
+            <div class="edit-table-col"><input data-bind="value: name"/></div>
+        </div>
+        <div class="row">
+            <div class="edit-table-col"><p>Description</p></div>
+            <div class="edit-table-col"><p data-bind="text: desc"></p></div>
+            <div class="edit-table-col"><input data-bind="value: desc"/></div>
+        </div>
 
+        <!-- Save Changes button -->
         <div class="row">
-            <div class="edit-table-col">
-                <p>Name</p>
-            </div>
-            <div class="edit-table-col">
-                <p data-bind="text: name"></p>
+            <div class="col-lg-4 col-md-5 col-sm-6">
+            <button class="btn" data-bind="click: updateWorkspace">Save Changes</button>
             </div>
         </div>
-        <div class="row">
-            <div class="edit-table-col">
-                <p>Description</p>
-            </div>
-            <div class="edit-table-col">
-                <p data-bind="text: desc"></p>
-            </div>
-        </div>
+        <br>
 
         <!-- Add a new pair to workspace -->
         <div class="row">
@@ -227,10 +233,10 @@
                     <tr>
                         <td data-bind="text: jID"></td>
                         <td data-bind="text: name"></td>
-                        <td data-bind="text: user"></td>
-                        <td data-bind="text: ws"></td>
-                        <td data-bind="text: pce"></td>
-                        <td data-bind="text: mod"></td>
+                        <td data-bind="text: username"></td>
+                        <td data-bind="text: ws_name"></td>
+                        <td data-bind="text: pce_name"></td>
+                        <td data-bind="text: module"></td>
                         <td data-bind="text: status"></td>
                         <td data-bind="text: time"></td>
                         <td><button class="btn" data-bind="click: viewJob">View Job</button></td>

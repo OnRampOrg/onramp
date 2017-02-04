@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
 from ui.admin.models import workspace, job
+from core.definitions import JOB_STATES
 
 # @login_required
 def main(request):
@@ -29,6 +30,18 @@ def get_all_jobs(request):
     response = {
         'status':1,
         'status_message':'Success',
-        'jobs':list(job.objects.all().values())
+        'jobs':[]
     }
+    curs = job.objects.all()
+    for row in curs:
+        response['jobs'].append({
+            'job_id': row.job_id,
+            'job_name': row.job_name,
+            'username': row.user.username,
+            'workspace_name': row.workspace.workspace_name,
+            'pce_name': row.pce.pce_name,
+            'module_name': row.module.module_name,
+            'state': JOB_STATES.get(row.state, row.state),
+            'output_file':row.output_file
+        })
     return HttpResponse(json.dumps(response))
