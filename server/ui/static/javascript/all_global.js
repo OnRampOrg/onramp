@@ -27,13 +27,9 @@ function Job(data, view, details){
 	var self = this;
 	self.jID = data['job_id'];
 	self.user = data['user_id'];
-	self.username = data['username'];
 	self.ws = data['workspace_id'];
-	self.ws_name = data['workspace_name']
 	self.pce = data['pce_id'];
-	self.pce_name = data['pce_name']
 	self.mod = data['module_id'];
-	self.module = data['module_name']
 	self.name = data['job_name'];
 	self.status = data['state'];
 	self.time = "0:00";  // not implemented yet

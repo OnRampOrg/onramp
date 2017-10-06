@@ -10,8 +10,6 @@ from ui.admin.models import workspace, workspace_to_pce_module, job
 
 from core.pce_connect import PCEAccess
 
-from core.definitions import JOB_STATES
-
 
 @login_required
 def main(request):
@@ -71,17 +69,6 @@ def get_user_jobs(request):
     response = {
         'status':True,
         'status_message':'Success',
-        'jobs':[]
+        'jobs':list(job.objects.filter(user__username=username).values())
     }
-    curs = job.objects.filter(user__username=username)
-    for row in curs:
-        response['jobs'].append({
-            'job_id':row.job_id,
-            'job_name':row.job_name,
-            'username':row.user.username,
-            'workspace':row.workspace.workspace_name,
-            'pce':row.pce.pce_name,
-            'module':row.module.module_name,
-            'state':JOB_STATES.get(row.state, row.state)
-        })
     return HttpResponse(json.dumps(response))

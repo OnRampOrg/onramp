@@ -6,8 +6,6 @@ from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
 from ui.admin.models import workspace, job, workspace_to_pce_module, user_to_workspace
-from core.definitions import JOB_STATES
-
 
 @login_required
 def main(request):
@@ -59,31 +57,6 @@ def create_new_workspace(request):
     return HttpResponse(json.dumps(response))
 
 @login_required
-def update_workspace(request):
-    """ Updates the name/description of a workspace
-
-        URL: /admin/Workspace/Update
-
-    :param request:
-    :return:
-    """
-    post = request.POST.dict()
-    ws_id = int(post.get('ws_id'))
-    ws_name = post.get('ws_name')
-    ws_desc = post.get('ws_desc')
-    row = workspace.objects.get(workspace_id=ws_id)
-    if ws_name:
-        row.workspace_name = ws_name
-    if ws_desc:
-        row.description = ws_desc
-    row.save()
-    response = {
-        'status':1,
-        'status_message':'Success'
-    }
-    return HttpResponse(json.dumps(response))
-
-@login_required
 def get_jobs(request):
     """ Gets all jobs for s specified workspace
 
@@ -99,23 +72,8 @@ def get_jobs(request):
     response = {
         'status':1,
         'status_message':'Success',
-        'jobs':[]
+        'jobs':list(job.objects.filter(workspace_id=workspace_id).values())
     }
-    curs = job.objects.filter(workspace_id=workspace_id)
-    for row in curs:
-        response['jobs'].append({
-            'job_id': row.job_id,
-            'job_name': row.job_name,
-            'user_id': row.user.id,
-            'username': row.user.username,
-            'workspace_id': row.workspace.workspace_id,
-            'workspace_name': row.workspace.workspace_name,
-            'pce_id': row.pce.pce_id,
-            'pce_name': row.pce.pce_name,
-            'module_id': row.module.module_id,
-            'module_name': row.module.module_name,
-            'state': JOB_STATES.get(row.state, row.state)
-        })
     return HttpResponse(json.dumps(response))
 
 @login_required

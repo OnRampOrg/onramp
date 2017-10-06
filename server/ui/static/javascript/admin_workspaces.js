@@ -36,21 +36,6 @@ function adminWorkspace(data){
 		this.refreshCurrentUsers();
 	};
 
-    self.updateWorkspace = function () {
-        $.ajax({
-            url: '/admin/Workspaces/Update',
-            type:'POST',
-            dataType:'json',
-            data: {'ws_id':self.id(), 'ws_name':self.name(), 'ws_desc':self.desc()},
-            success: function(response) {
-                if (!response.status) {
-                    alert(response.status_message);
-                } else {
-                    self.editWorkspace();
-                }
-            }
-        })
-    }
 
 	self.refreshJobs = function () {
 		self.Jobslist.removeAll();

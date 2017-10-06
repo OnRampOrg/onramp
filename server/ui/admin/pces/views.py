@@ -11,8 +11,6 @@ from core.definitions import MODULE_STATES
 
 from core.pce_connect import PCEAccess
 
-from core.definitions import PCE_STATES, JOB_STATES
-
 
 @login_required
 def main(request):
@@ -40,18 +38,8 @@ def get_all_pces(request):
     response = {
         'status':0,
         'status_message':'Success',
-        'pces':[]
+        'pces':list(pce.objects.all().values())
     }
-    curs = pce.objects.all()
-    for row in curs:
-        response['pces'].append({
-            'pce_id':row.pce_id,
-            'pce_name':row.pce_name,
-            'state':PCE_STATES.get(row.state, row.state),
-            'description':row.description,
-            'location':row.location,
-            'contact_info':row.contact_info
-        })
     return HttpResponse(json.dumps(response))
 
 @login_required
@@ -169,22 +157,8 @@ def get_pce_jobs(request):
         response = {'status': False, 'status_message': 'No PCE ID specified'}
         return HttpResponse(json.dumps(response))
     try:
-        curs = job.objects.filter(pce_id=int(pce_id))
-        jobs = []
-        for row in curs:
-            jobs.append({
-                'job_id': row.job_id,
-                'job_name': row.job_name,
-                'user_id': row.user.id,
-                'username': row.user.username,
-                'workspace_id': row.workspace.workspace_id,
-                'workspace_name': row.workspace.workspace_name,
-                'pce_id': row.pce.pce_id,
-                'pce_name': row.pce.pce_name,
-                'module_id': row.module.module_id,
-                'module_name': row.module.module_name,
-                'state': JOB_STATES.get(row.state, row.state)
-            })
+        fields = ['job_id', 'pce_id', 'workspace_id', 'module_id', 'job_name', 'state']
+        jobs = list(job.objects.filter(pce_id=int(pce_id)).values(*fields))
         response = {'status': True, 'status_message': 'Success', 'jobs':jobs}
     except Exception as e:
         response = {

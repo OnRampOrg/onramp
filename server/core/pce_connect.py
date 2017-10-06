@@ -78,17 +78,17 @@ class PCEAccess(object):
         if port:
             # if the port is not 0 we assume we need it to
             # connect
-            return "http://%s:%s" % (host, port)
+            return "http://{}:{}".format(host, port)
         else:
             # otherwise we just use the hostname
-            return "http://%s" % host
+            return "http://{}".format(host)
 
 
     def _get_logger(self, pce_id):
         FORMAT = '%(asctime)-15s %(levelname)-3s %(module)s: %(message)s'
         logfile = "/".join(self._cur_dir.split("/")[:-1])+"/log/pce_connect.log"
         logging.basicConfig(filename=logfile, level=logging.DEBUG, format=FORMAT)
-        return logging.getLogger("[PCEAccess: %s]" % pce_id)
+        return logging.getLogger("[PCEAccess: {}]".format(pce_id))
 
     def _get_pce_info(self):
         """ Gets information from the Database about the PCE
@@ -688,13 +688,17 @@ class PCEAccess(object):
     def launch_a_job(self, user_id, workspace_id, module_id, job_data):
         prefix = ("%slaunch_a_job()" % self._name)
 
+        #
         # Make sure the IDs are valid
+        #
         self._logger.debug(
             "%s Checking IDs (%d, %d, %d) with %s" % (prefix, user_id, workspace_id, module_id, str(job_data)))
 
         user_info = User.objects.get(id=user_id)
 
+        #
         # Get a job id from the DB
+        #
         self._logger.debug("%s Getting Job ID from DB..." % prefix)
         try:
             job_row, created = job.objects.get_or_create(
@@ -712,7 +716,9 @@ class PCEAccess(object):
         self._logger.debug("%s DEBUG: Job Info %s / %d" % (prefix, str(exists), job_id))
         self._logger.debug("%s CFG Params: %s" % (prefix, str(cfg_params)))
 
+        #
         # Launch the job with this configuration
+        #
         if exists is False:
             self._logger.debug("%s Launching job ID %d on PCE... [exists=%s]" % (prefix, job_id, str(exists)))
             result = self.launch_job(user_info.username, module_id, job_id, run_name, cfg_params)
@@ -722,12 +728,16 @@ class PCEAccess(object):
         else:
             self._logger.debug("%s -Not- Launching job ID %d on PCE... [exists=%s]" % (prefix, job_id, str(exists)))
 
+        #
         # Update status in the DB
+        #
         state_id = self._update_job_in_db(prefix, job_id)
         self._logger.debug(
             "%s Checking on the job... %d = %s" % (prefix, state_id, JOB_STATES.get(state_id)))
 
+        #
         # Return to the user
+        #
         return {'exists': exists, 'job_id': job_id, 'state': state_id,
                 'state_str': JOB_STATES.get(state_id)}
 
