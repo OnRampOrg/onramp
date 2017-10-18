@@ -150,6 +150,7 @@ class Installer(object):
             'pcre-devel',
             'zlib-devel',
             'apr-devel',
+            'policycoreutils-python',  # for semanage
         ]
         if self.reinstall:
             for dep in dependencies:
@@ -223,8 +224,11 @@ class Installer(object):
             print "Stopping any running MySQL services..."
             self.subproc(['sudo', 'systemctl', 'stop', 'mysqld.service'], ignore=True)
 
+
+            # --explicit_defaults_for_timestamp fixed an error about files existing in the directory (SSF - 10/11/17)
+            # this is where things broke.  needed to manually delete the dir and then run this command again
             print "Initializing MySQL data directory..."
-            self.subproc(['sudo', 'mysqld', '--initialize', '--user=mysql', '--datadir={}'.format(mysql_dir)])
+            self.subproc(['sudo', 'mysqld', '--initialize', '--user=mysql',  '--datadir={}'.format(mysql_dir), '--explicit_defaults_for_timestamp'])
 
             print "Removing the default MySQL data directory..."
             self.rm("/var/lib/mysql")
@@ -241,6 +245,8 @@ class Installer(object):
             # remove the temporary file that was created
             self.rm('/tmp/mysql_conf', force=True)
 
+
+            # SSF - 10/11/17
             print "Fixing SELinux for new MySQL data directory..."
             self.subproc(['sudo', 'semanage', 'fcontext', '-a', '-s', 'system_u',
                           '-t', 'mysqld_db_t', '"{}(/.*)?"'.format(mysql_dir)])
@@ -533,14 +539,25 @@ class Installer(object):
                     os.remove(path)
             conn = _mysql.connect(host='127.0.0.1', user='onramp',
                                   passwd='OnRamp_16', db='django')
+            """
             try:
                 conn.query('TRUNCATE django_migrations')
             except _mysql.ProgrammingError:
                 pass  # just ignore the error if the table doesn't exists
+            except _mysql.CalledProcessError:
+                pass
+            except _mysql.OperationalError:
+                pass
+
             try:
                 conn.query('DROP DATABASE django')
             except _mysql.ProgrammingError:
                 pass  # just ignore the error if the database doesn't exists
+            except _mysql.CalledProcessError:
+                pass
+            except _mysql.OperationalError:
+                pass
+            """
             conn.query('CREATE DATABASE django')
             conn.commit()
             conn.close()
