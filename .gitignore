@@ -33,3 +33,4 @@ server/src/.*.pid
 server/bin/onramp_server_config.cfg
 server/.htaccess
 /.vs
+/server/mysql

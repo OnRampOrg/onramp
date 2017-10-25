@@ -20,6 +20,9 @@ from time import sleep
 import traceback
 import platform
 
+os_info = platform.platform()
+
+installer = "apt-get" if platform.linux_distribution()[0] == "Ubuntu" else "yum"
 
 def catch_exceptions(func):
     def run(*args, **kwargs):
@@ -141,23 +144,38 @@ class Installer(object):
     @catch_exceptions
     def install_dependencies(self):
         print "Preparing to install dependencies...\n"
-
-        dependencies = [
-            'apr-util-devel',
-            'openssl-devel',
-            'python-devel',
-            'python-pip',
-            'pcre-devel',
-            'zlib-devel',
-            'apr-devel',
-            'policycoreutils-python',  # for semanage
-        ]
+        
+        if 'Ubuntu' in os_info:
+            dependencies = [
+                'libaprutil1-dev',
+                'libssl-dev',
+                'python2.7-dev',
+                'python-pip',
+                'libpcre3-dev',
+                'zlib1g-dev',
+                'libapr1-dev',
+                'python-sepolgen' # for semanage
+            ]
+        elif 'centos' in os_info:
+            dependencies = [
+                'apr-util-devel',
+                'openssl-devel',
+                'python-devel',
+                'python-pip',
+                'pcre-devel',
+                'zlib-devel',
+                'apr-devel',
+                'policycoreutils-python-utils',  # for semanage
+            ]
+        else:
+            dependancies = []
+        
         if self.reinstall:
             for dep in dependencies:
-                self.subproc(['sudo', 'yum', 'remove', '-y', dep])
+                self.subproc(['sudo', installer, 'remove', '-y', dep])
 
         for dep in dependencies:
-            self.subproc(['sudo', 'yum', 'install', '-y', dep])
+            self.subproc(['sudo', installer, 'install', '-y', dep])
 
         print self.TF.format("Dependencies installed successfully!", 1)
 
@@ -190,8 +208,11 @@ class Installer(object):
             if self.confirm_reinstall(message):
                 self.subproc(['sudo', 'systemctl', 'stop', 'mysqld.service'], ignore=True)
                 self.subproc(['sudo', 'systemctl', 'disable', 'mysqld.service'], ignore=True)
-                self.subproc(['sudo', 'yum', 'remove', '-y', 'mysql-community-server'], ignore=True)
-                self.subproc(['sudo', 'yum', 'remove', '-y', 'mysql-community-devel'], ignore=True)
+                if 'centos' in os_info:
+                    self.subproc(['sudo', 'yum', 'remove', '-y', 'mysql-community-server'], ignore=True)
+                    self.subproc(['sudo', 'yum', 'remove', '-y', 'mysql-community-devel'], ignore=True)
+                elif 'Ubuntu' in os_info:
+                    self.subproc(['sudo', 'apt-get', 'remove', '-y', '--purge', 'mysql-server'])
                 self.rm('/var/log/mysqld.log', force=True)
                 self.rm('/var/lib/mysql', force=True)
                 self.rm('/etc/my.cnf', force=True)
@@ -205,28 +226,44 @@ class Installer(object):
         # MySQL is not installed so we want to install the latest version for the user
         if not mysql_installed:
             # TODO: support more operating system here besides CentOS 6 & 7
-            os_info = platform.platform()
-            if 'centos-7' in os_info:
-                rpm = '{}/mysql57-community-release-el7-7.noarch.rpm'.format(self.dep_dir)
-            elif 'centos-6' in os_info:
-                rpm = '{}/mysql57-community-release-el6-7.noarch.rpm'.format(self.dep_dir)
+            # os_info = platform.platform()
+            print os_info
+            if 'centos' in os_info:
+                if 'centos-7' in os_info:
+                    rpm = '{}/mysql57-community-release-el7-7.noarch.rpm'.format(self.dep_dir)
+                elif 'centos-6' in os_info:
+                    rpm = '{}/mysql57-community-release-el6-7.noarch.rpm'.format(self.dep_dir)
+                else:
+                    rpm = None
+
+                self.subproc(['sudo', 'yum', 'localinstall', '-y', rpm])
+
+                print "Installing mysql-community-server..."
+                self.subproc(['sudo', 'yum', 'install', '-y', 'mysql-community-server'])
+
+                print "Installing mysql-community-devel..."
+                self.subproc(['sudo', 'yum', 'install', '-y', 'mysql-community-devel'])
+            elif 'Ubuntu' in os_info:
+
+                self.subproc(['sudo', 'debconf-set-selections', '<<<', "'mysql-server mysql-server/root_password password your_password'"])
+                self.subproc(['sudo', 'debconf-set-selections', '<<<', "'mysql-server mysql-server/root_password password your_password'"])
+
+                print 'Installing mysql-server...'
+                self.subproc(['sudo', 'apt-get', 'install', '-y', 'mysql-server'])
             else:
-                rpm = None
-
-            self.subproc(['sudo', 'yum', 'localinstall', '-y', rpm])
-
-            print "Installing mysql-community-server..."
-            self.subproc(['sudo', 'yum', 'install', '-y', 'mysql-community-server'])
-
-            print "Installing mysql-community-devel..."
-            self.subproc(['sudo', 'yum', 'install', '-y', 'mysql-community-devel'])
+                # Support more
+                print 'Unsupported OS'
+                return
 
             print "Stopping any running MySQL services..."
             self.subproc(['sudo', 'systemctl', 'stop', 'mysqld.service'], ignore=True)
-
-
+            
             # --explicit_defaults_for_timestamp fixed an error about files existing in the directory (SSF - 10/11/17)
             # this is where things broke.  needed to manually delete the dir and then run this command again
+
+            print "Removing Old MySQL data directory..."
+            # self.subproc(['sudo', 'rm', '-rf', mysql_dir])
+
             print "Initializing MySQL data directory..."
             self.subproc(['sudo', 'mysqld', '--initialize', '--user=mysql',  '--datadir={}'.format(mysql_dir), '--explicit_defaults_for_timestamp'])
 
