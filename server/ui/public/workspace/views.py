@@ -21,9 +21,8 @@ def main(request):
     :param request:
     :return:
     """
-    context = Context({'username': request.user})
     template = get_template('workspace.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render({'username': request.user}, request))
 
 
 @login_required

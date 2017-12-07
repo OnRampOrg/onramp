@@ -14,6 +14,5 @@ def main(request):
     :param request:
     :return:
     """
-    context = Context()
     template = get_template('admin_modules.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render({}, request))
