@@ -4,19 +4,20 @@
 
 <html>
 <head>
-  <!--<meta charset="utf-8">-->
-  <title>OnRamp</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!--<link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">-->
-  <link href="/static/css/third_party/bootstrap.min.css" rel="stylesheet">
-  <link href="/static/css/third_party/bootstrap-horizon.css" rel="stylesheet">
-  <link href="/static/css/global_style.css" rel="stylesheet">
-  <script src="/static/javascript/all_global.js"></script>
+    <!--<meta charset="utf-8">-->
+    <title>OnRamp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap -->
+    {% load static %}
+    <link href='{% static "css/third_party/bootstrap.min.css" %}' rel="stylesheet">
+    <link href='{% static "css/third_party/bootstrap-horizon.css" %}' rel="stylesheet">
+    <!-- Custom Global CSS -->
+    <link href='{% static "css/global_style.css" %}' rel="stylesheet">
 </head>
 <body>
-  <!-- Fixed navbar -->
+    <!-- Fixed navbar -->
 
-  <nav class="navbar navbar-inverse navbar-fixed-top">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="NavContainer">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -28,49 +29,53 @@
             </div>
             <div id="navbar" class="navbar-collapse collapse">
                 <a class="navbar-brand" id="brand">OnRamp</a>
-				<ul class="nav navbar-nav navbar-left">
+                <ul class="nav navbar-nav navbar-left">
                     <li><a href="/public/Dashboard">Home</a></li>
                     <li><a href="/about">About</a></li>
                     <li><a href="/profile">Profile</a></li>
                     <li class="active"><a href="/contact">Contact</a></li>
                     <li><a href="/help">Help</a></li>
-				</ul>
-				<ul class="nav navbar-nav navbar-right">
-					<li>
-						<button type="button" class="btn btn-default" onclick = logout()>Logout</button>
-					</li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <button type="button" class="btn btn-default" onclick=logout()>Logout</button>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
-  <br>
+    <br>
 
-  <div class="container">
-    <div class="jumbotron">
-      <h1>Contact Us</h1>
+    <div class="container">
+        <div class="jumbotron">
+            <h1>Contact Us</h1>
+        </div>
     </div>
-  </div>
 
-  <div class="container">
-    <div class="row">
-      <p>Please let us know what you think!<p>
-        <br>
-        <a href="mailto:">Email address</a>
-      </div>
+    <div class="container">
+        <div class="row">
+            <p>Please let us know what you think!<p>
+                <br>
+                <a href="mailto:">Email address</a>
+        </div>
     </div>
 
 
     <!-- footer -->
     <footer class="footer">
-      <div class="container" class="footer">
-        <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
-      </div>
+        <div class="container footer">
+            <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
+        </div>
     </footer>
 
-    <!-- put all scripty scripts below this line -->
-    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-    <script src="/static/javascript/third_party/bootstrap.min.js"></script>
+
+
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src='{% static "javascript/third_party/bootstrap.min.js" %}'></script>
     <!-- knockout script -->
-    <script src="/static/javascript/third_party/knockout-3.3.0.js"></script>
-  </body>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>-->
+    <!-- my scripts -->
+    <script src='{% static "javascript/all_global.js" %}'></script>
+    <script src='{% static "javascript/third_party/knockout-3.3.0.js" %}'></script>
+</body>
   </html>

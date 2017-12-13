@@ -4,9 +4,12 @@
 <head>
   <title>OnRamp</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Bootstrap -->
-    <link href="/static/css/third_party/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/global_style.css" rel="stylesheet">
+    <!-- Bootstrap -->
+    {% load static %}
+    <link href='{% static "css/third_party/bootstrap.min.css" %}' rel="stylesheet">
+    <link href='{% static "css/third_party/bootstrap-horizon.css" %}' rel="stylesheet">
+    <!-- Custom Global CSS -->
+    <link href='{% static "css/global_style.css" %}' rel="stylesheet">
 
 </head>
 <body role="document">
@@ -62,10 +65,12 @@
         <div class="row">
             <table class="table table-striped">
                 <thead >
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Delete</th>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Delete</th>
+                    </tr>
                 </thead>
                 <tbody data-bind="foreach: Workspacelist()">
                     <tr data-bind="click: $parent.selectWorkspace">
@@ -144,10 +149,12 @@
 
             <table class="table table-striped">
                 <thead>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Add to Workspace</th>
-                    <th>View Users</th>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Add to Workspace</th>
+                        <th>View Users</th>
+                    </tr>
                 </thead>
                 <tbody data-bind="foreach: PotentialUserslist()">
                     <tr>
@@ -155,7 +162,7 @@
                         <td data-bind="text: username"></td>
                         <td><button class="btn btn-primary" data-bind="click: $parent.addUser">Add</button></td>
                         <td><button class="btn" data-bind="click: viewUser">Details</button></td>
-                </tr>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -168,10 +175,12 @@
 
             <table class="table table-striped">
                 <thead>
-                    <th>PCE ID</th>
-                    <th>PCE Name</th>
-                    <th>Module ID</th>
-                    <th>Module Name</th>
+                    <tr>
+                        <th>PCE ID</th>
+                        <th>PCE Name</th>
+                        <th>Module ID</th>
+                        <th>Module Name</th>
+                    </tr>
                 </thead>
                 <tbody data-bind="foreach: PCEModlist">
                     <tr>
@@ -190,10 +199,12 @@
 
             <table class="table table-striped">
                 <thead>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Remove from Workspace</th>
-                    <th>View Users</th>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Remove from Workspace</th>
+                        <th>View Users</th>
+                    </tr>
                 </thead>
                 <tbody data-bind="foreach: CurrentUserslist">
                     <tr>
@@ -213,15 +224,17 @@
 
             <table class="table table-striped">
                 <thead>
-                    <th>ID</th>
-                    <th>Run Name</th>
-                    <th>User</th>
-                    <th>Workspace</th>
-                    <th>PCE</th>
-                    <th>Module</th>
-                    <th>Status</th>
-                    <th>Runtime</th>
-                    <th>View/Edit</th>
+                    <tr>
+                        <th>ID</th>
+                        <th>Run Name</th>
+                        <th>User</th>
+                        <th>Workspace</th>
+                        <th>PCE</th>
+                        <th>Module</th>
+                        <th>Status</th>
+                        <th>Runtime</th>
+                        <th>View/Edit</th>
+                    </tr>
                 </thead>
                 <tbody data-bind="foreach: Jobslist">
                     <tr>
@@ -251,9 +264,9 @@
 <!-- put all scripty scripts below this line -->
 <!-- Order Matters here JQuery needs to be first then all_global.js -->
 <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-<script src="/static/javascript/all_global.js"></script>
-<script src="/static/javascript/third_party/bootstrap.min.js"></script>
-<script src="/static/javascript/third_party/knockout-3.3.0.js"></script>
-<script src="/static/javascript/admin_workspaces.js"></script>
+<script src='{% static "javascript/all_global.js" %}'></script>
+<script src='{% static "javascript/third_party/bootstrap.min.js" %}'></script>
+<script src='{% static "javascript/third_party/knockout-3.3.0.js" %}'></script>
+<script src='{% static "javascript/admin_workspaces.js" %}'></script>
 </body>
 </html>

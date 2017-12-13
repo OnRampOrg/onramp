@@ -2,51 +2,55 @@
 
 <html>
 <head>
-  <title>OnRamp</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Bootstrap -->
-  <link href="/static/css/third_party/bootstrap.min.css" rel="stylesheet">
-  <link href="/static/css/global_style.css" rel="stylesheet">
-  <link href="/static/css/workspace.css" rel="stylesheet">
+    <title>OnRamp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    {% load static %}
+    <link href='{% static "css/third_party/bootstrap.min.css" %}' rel="stylesheet">
+    <link href='{% static "css/third_party/bootstrap-horizon.css" %}' rel="stylesheet">
+    <!-- Custom Global CSS -->
+    <link href='{% static "css/global_style.css" %}' rel="stylesheet">
+    <!-- Custom Workspace CSS -->
+    <link href='{% static "css/workspace.css" %}' rel="stylesheet">
 </head>
 <body role="document">
-	<!-- Navigation Bar -->
-	<nav class="navbar navbar-inverse navbar-fixed-top">
-		<div class="NavContainer">
-			<div class="navbar-header">
-				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-					<span class="sr-only">Toggle navigation</span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button>
-			</div>
-			<div id="navbar" class="navbar-collapse collapse">
-				<a class="navbar-brand" id="brand" href="start.html">OnRamp</a>
-				<ul class="nav navbar-nav navbar-left">
-					<li class="active"><a href="/public/Dashboard">Home</a></li>
-					<li><a href="about.html">About</a></li>
-					<li><a href="myprofile.html">Profile</a></li>
-					<li><a href="contact.html">Contact</a></li>
-					<li><a href="#help">Help</a></li>
-				</ul>
-				<ul class="nav navbar-nav navbar-right">
-					<li>
-						<button id = "logout" type="button" class="btn btn-default hover" onclick=logout()>Logout</button>
-					</li>
-				</ul>
-			</div>
-		</div>
-	</nav>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="NavContainer">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <a class="navbar-brand" id="brand" href="start.html">OnRamp</a>
+                <ul class="nav navbar-nav navbar-left">
+                    <li class="active"><a href="/public/Dashboard">Home</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="myprofile.html">Profile</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="#help">Help</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <button id="logout" type="button" class="btn btn-default hover" onclick=logout()>Logout</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
     <br>
-	<!-- Body of Page -->
+    <!-- Body of Page -->
     <div class="page">
         <!-- Welcome information -->
         <div class="container">
             <div class="jumbotron">
                 <div class="container">
                     <h1 data-bind="text: welcome1"></h1>
-                    <hr style = "border-width: 5px">
+                    <hr style="border-width: 5px">
                     <div data-bind="if: workspaceInfo.desc">
                         <p data-bind="text: workspaceInfo.desc"></p>
                     </div>
@@ -61,457 +65,463 @@
         <div class="container">
             <div class="row">
 
-			<!-- PCE selection -->
-			<div data-bind="ifnot: selectedPCE()" >
-				<div id = "pick-PCE" class="row">
-					<h4>First select a <a href="#" data-toggle="tooltip" class = "myTooltip" title="PCE stands for Parallel Compute Environment, typically a cluster.">PCE</a></h4>
-					<p></p>
+                <!-- PCE selection -->
+                <div data-bind="ifnot: selectedPCE()">
+                    <div id="pick-PCE" class="row">
+                        <h4>First select a <a href="#" data-toggle="tooltip" class="myTooltip" title="PCE stands for Parallel Compute Environment, typically a cluster.">PCE</a></h4>
+                        <p></p>
 
-					<div class="row row-horizon" data-bind="foreach: PCElist()">
-						<div class="col-md-4 col-sm-5">
-							<div class="thumbnail">
-								<!--<img alt="Workspace 1 Image" src="http://lorempixel.com/output/people-q-c-600-200-1.jpg" />-->
-								<div class="caption">
-									<h3 data-bind="text: $data.name">
-									</h3>
-									<p data-bind="text: $data.description">
-									</p>
-									<a class="btn btn-primary" data-bind="click: $parent.selectPCE">Let's launch some jobs!</a>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-	                         
-			<!-- display selected PCE -->
-			<div data-bind="if: selectedPCE()">
-				<div id = "pce-well" class = "well">
-					<div class="row">
-						<div class="col-sm-1">
-							<button id = "changePCE" class="btn btn-xs btn-primary" data-bind="click: changePCE">
-									<span class="glyphicon glyphicon-arrow-left"></span>
-							</button>
-						</div>
-						<div class="col-lg-5 col-md-6 col-sm-7 col-xs-6">
-							<p style = "display: inline; font-size: 175%">Running on: </p>
-							<div id ="PCE-title" class = "col-sm-4" data-bind="with: selectedPCE()">
-								<p data-bind="text: name"></p>
-							</div>
-						</div>
-					</div>
-				<div class="row">
-					<div class="col-sm-8" data-bind="with: selectedPCE()">
-						<div class = "thumbnail">
-								<p data-bind="text: description"></p>
-								<p><a data-bind="attr:{href:url}">More Info</a></p>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
+                        <div class="row row-horizon" data-bind="foreach: PCElist()">
+                            <div class="col-md-4 col-sm-5">
+                                <div class="thumbnail">
+                                    <!--<img alt="Workspace 1 Image" src="http://lorempixel.com/output/people-q-c-600-200-1.jpg" />-->
+                                    <div class="caption">
+                                        <h3 data-bind="text: $data.name"></h3>
+                                        <p data-bind="text: $data.description">
+                                        </p>
+                                        <a class="btn btn-primary" data-bind="click: $parent.selectPCE">Let's launch some jobs!</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- display selected PCE -->
+                <div data-bind="if: selectedPCE()">
+                    <div id="pce-well" class="well">
+                        <div class="row">
+                            <div class="col-sm-1">
+                                <button id="changePCE" class="btn btn-xs btn-primary" data-bind="click: changePCE">
+                                    <span class="glyphicon glyphicon-arrow-left"></span>
+                                </button>
+                            </div>
+                            <div class="col-lg-5 col-md-6 col-sm-7 col-xs-6">
+                                <p style="display: inline; font-size: 175%">Running on: </p>
+                                <div id="PCE-title" class="col-sm-4" data-bind="with: selectedPCE()">
+                                    <p data-bind="text: name"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-8" data-bind="with: selectedPCE()">
+                                <div class="thumbnail">
+                                    <p data-bind="text: description"></p>
+                                    <p><a data-bind="attr:{href:url}">More Info</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
 
-		<!-- MODULES -->
 
-		<!-- Module selection -->
-		<div data-bind="ifnot: selectedModule()">
-			<div id = "pick-module" class="row">
-				<h4 id="module-select-header"></h4>
-				<p></p>
-			
+                <!-- MODULES -->
+                <!-- Module selection -->
+                <div data-bind="ifnot: selectedModule()">
+                    <div id="pick-module" class="row">
+                        <h4 id="module-select-header"></h4>
+                        <p></p>
 
-				<div class="row row-horizon" data-bind="foreach: Modulelist()">
-					<div class="col-md-4 col-sm-5">
-						<div class="thumbnail">
-							<!--<img alt="Workspace 1 Image" src="http://lorempixel.com/output/people-q-c-600-200-1.jpg" />-->
-							<div class="caption">
-								<h3 data-bind="text: $data.name">
-								</h3>
-								<p data-bind="text: $data.desc">
-								</p>
-								<p>
-									<!-- <a class="btn btn-primary"  data-bind="click: $parent.selectPCE(this)">Let's launch some jobs!</a> -->
-									<a class="btn btn-primary" data-bind="click: $parent.selectModule">Let's launch some jobs!</a>
-								</p>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
 
-		<!-- display selected Module -->
-		<div class="container" data-bind="if: selectedModule()">
-			<div id = "module-well" class = "well">
-				<div class="row">
-					<div class="col-sm-1">
-						<!--<button id = "changeMod" class="btn btn-primary" data-bind="click: changeModule">Pick a different Module</button>-->
-						<button id = "changeMod" type="button" class="btn btn-xs btn-primary" data-bind="click: changeModule">
-							<span class="glyphicon glyphicon-arrow-left"></span>
-						</button>
-					</div>
-					<div class="col-lg-5 col-md-6 col-sm-7 col-xs-6">
-						<p style = "display: inline; font-size: 175%">Module Selected:</p>
-						<div id = "module-title" class = "col-sm-4" data-bind="with: selectedModule()">
-								<p data-bind="text: name + ' module'"></p>
-						</div>
-					</div>
-				</div>
-				<div style = "padding-top: 25px" class = "row">
-					<div class = "col-sm-12" data-bind="with: selectedModule()">
-						<div data-bind="if: desc">
-							<div class = "thumbnail">
-								<p data-bind="text: desc"></p>
-							</div>	 
-						</div>
-						<div data-bind="ifnot: desc">
-							<div class = "thumbnail">
-								<p id = "module-desc"></p>
-							</div>	  
-						</div>
-							<form class="form-horizontal" data-bind="if: $parent.selectedPCE()">
-								<div class = "form-group" data-bind="foreach: formFields()">
-									<div class="col-sm-7">
-										<!--<label for="launch-field" data-bind="text: field"></label>-->
-										<label style = "font-weight:bold" class = "formLabel" for="launch-field" data-bind="text: field"></label>
-									</div>
-									<div class="col-sm-5">
-										<input type="text" id="launch-field" data-bind="value: data">
-									</div>
-								</div>
-								<button class="btn btn-primary" type="submit" data-bind="click: $root.launchJob">Launch Job!</button>
-							</form>
+                        <div class="row row-horizon" data-bind="foreach: Modulelist()">
+                            <div class="col-md-4 col-sm-5">
+                                <div class="thumbnail">
+                                    <!--<img alt="Workspace 1 Image" src="http://lorempixel.com/output/people-q-c-600-200-1.jpg" />-->
+                                    <div class="caption">
+                                        <h3 data-bind="text: $data.name"></h3>
+                                        <p data-bind="text: $data.desc">
+                                        </p>
+                                        <p>
+                                            <!-- <a class="btn btn-primary"  data-bind="click: $parent.selectPCE(this)">Let's launch some jobs!</a> -->
+                                            <a class="btn btn-primary" data-bind="click: $parent.selectModule">Let's launch some jobs!</a>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-					</div><!--end col-sm-8 -->
-				</div>
-			</div> <!--end row -->
-		</div><!--end well -->
-	</div>
-	
-		<!-- AUC CONCEPTS -->
-		<div class="col-md-5" data-bind="if: selectedModule()">
-			<!-- module must exist before you can do below if statement -->	
-			<div class="info-div" data-bind="if: selectedModule().name == 'AUC'">
-				<div class="panel-group" aria-multiselectable="true">
-				  <div class="panel panel-default">
-					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingOne">
-					  <h4 class="panel-title">
-						<div data-parent="#accordion" aria-expanded="true" aria-controls="collapseOne">
-						  <strong>Scaling</strong>
-						</div>
-					  </h4>
-					</div>
-					<div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
-					  <div class="panel-body">
-						<p>More parallel processors can be used to model a bigger problem in the same amount of time it would take fewer parallel processors to model a smaller problem. 
-								A common analogy to this is that one person in one boat in one hour can catch a lot fewer fish than ten people in ten boats in one hour.
-								<ul>
-									<li> Strong Scaling - Increase number of cores but keep problem size fixed. Commonly used for long-running programs.</li>
-										<!--<ul>
-											<li> For the Pi module, submit a job using the default inputs, and record the time for reference. Then continue to submit jobs and record the times, altering the number of 
-												processes and/or the number threads per process, each time, but keeping the number of rectangles the same.
-											</li>
-										</ul>-->
-									<li> Weak Scaling - Increase problem size while increasing number of cores. Commonly used for memory intensive programs. (Link this idea to Gustafson's Law!)
-										<!--<ul>
-											<li> For the Pi module, submit a job using the default inputs, and record the time for reference. Then continue to submit jobs and record the times, 
-												altering the number of processes and/or the number threads per process, each time. Each time you change the number of processes or threads, increase the number of rectangles commensurately.
-											</li>
-										</ul>-->
-								</ul>
-							</p>
-					  </div>
-					</div>
-				  </div>
-				  <div class="panel panel-default">
-					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingTwo">
-					  <h4 class="panel-title">
-						<div data-parent="#accordion" aria-expanded="false" aria-controls="collapseTwo">
-						  <strong>Amdahl's Law </strong>
-						</div>
-					  </h4>
-					</div>
-					<div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-					  <div class="panel-body">
-							<p>As the number of processors devoted to the problem increases, the advantages of parallelism diminish as the 
-								serial regions become the only parts of the code that take significant time to execute
-							</p>
-					  </div>
-					</div>
-				  </div>
-				  <div class="panel panel-default">
-					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingThree">
-					  <h4 class="panel-title">
-						<div data-parent="#accordion" aria-expanded="false" aria-controls="collapseThree">
-						  <strong>Gustafson's Law</strong>
-						</div>
-					  </h4>
-					</div>
-					<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
-					  <div class="panel-body">
-						<p>Bigger problems can be modeled in the same amount of time as smaller problems if the processor count is increased.</p>
-					  </div>
-					</div>
-				  </div>
-				  <div class="panel panel-default">
-					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingFour">
-					  <h4 class="panel-title">
-						<div data-parent="#accordion" aria-expanded="false" aria-controls="collapseThree">
-						  <strong>Berkeley's Dwarfs</strong>
-						</div>
-					  </h4>
-					</div>
-					<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
-					  <div class="panel-body">
-						<p>Equivalence classes of important applications of scientific computing. Applications are grouped into dwarfs based on their computation 
-						and communication patterns. When an application is run in parallel, a certain percentage of time is spent performing calculations, 
-						while another percentage is spent communicating the results of those calculations.<br><br>
-						Approximating the area under a curve falls into the
-						MapReduce dwarf. Applications in this class are characterized by a single
-						function that is applied in parallel to unique sets of data. In the case of
-						area under a curve, the function is simply the calculation of the area of a
-						rectangle (a number that you specified). In MapReduce applications,
-						after the calculations have been mapped to the execution flows, they are
-						communicated to a single execution flow (usually Thread 0),
-						where they are reduced. In the case of area under a curve, this "reduction"
-						takes the form of a summation. Applications in the MapReduce dwarf are
-						<i><b>embarrassingly parallel</b></i> because the calculations can be performed in their
-						entirety without need for communication in between. Communication
-						happens once, at the end, to perform the reduction.
-						</p>
-					  </div>
-					</div>
-				  </div>
-				  <div class="panel panel-default">
-					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingFour">
-					  <h4 class="panel-title">
-						<div data-parent="#accordion" aria-expanded="false" aria-controls="collapseThree">
-						  <strong>Reimann Sum</strong>
-						</div>
-					  </h4>
-					</div>
-					<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFive">
-					  <div class="panel-body">
-						<p>A Riemann sum is a summation that takes the form:</p>
-						<img src = "/static/images/riemann_equation.PNG" class = "img-responsive" alt = "reimann sum picture">
-						<p>
-							Riemann sums can be used to approximate the area under a curve by
-							dividing the area into multiple component shapes and summing their areas.
-							The specific Riemann method explored in this module involves dividing
-							the domain of integration into several rectangles. The height of an arbitrary
-							rectangle is given by f(x) and the width is &#9651;x. The sum of the areas of the
-							rectangles formed by this method is the approximation of the area under the
-							curve. This module considers the Left Riemann sum, in which f(x) indicates
-							the height of the left-most side of each rectangle. A pictorial example below.
-						</p>
-						<img src = "/static/images/reimann_pic.png" class = "img-responsive" alt = "reimann sum picture">
-					  </div>
-					</div>
-				  </div>
-				  
-				</div>
-			</div>
-		</div>
-		
-		<!--monte carlo -->
-		<div class="col-md-5" data-bind="if: selectedModule()">
-			<!-- module must exist before you can do below if statement -->	
-			<div class="info-div" data-bind="if: selectedModule().name == 'monte_carlo'">
-				<div class="panel-group" aria-multiselectable="true">
-				  <div class="panel panel-default">
-					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingOne">
-					  <h4 class="panel-title">
-						<div data-parent="#accordion" aria-expanded="true" aria-controls="collapseOne">
-						  <strong>Scaling</strong>
-						</div>
-					  </h4>
-					</div>
-					<div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
-					  <div class="panel-body">
-						<p>More parallel processors can be used to model a bigger problem in the same amount of time it would take fewer parallel processors to model a smaller problem. 
-								A common analogy to this is that one person in one boat in one hour can catch a lot fewer fish than ten people in ten boats in one hour.
-								<ul>
-									<li> Strong Scaling - Increase number of cores but keep problem size fixed. Commonly used for long-running programs.</li>
-										<!--<ul>
-											<li> For the Pi module, submit a job using the default inputs, and record the time for reference. Then continue to submit jobs and record the times, altering the number of 
-												processes and/or the number threads per process, each time, but keeping the number of rectangles the same.
-											</li>
-										</ul>-->
-									<li> Weak Scaling - Increase problem size while increasing number of cores. Commonly used for memory intensive programs. (Link this idea to Gustafson's Law!)
-										<!--<ul>
-											<li> For the Pi module, submit a job using the default inputs, and record the time for reference. Then continue to submit jobs and record the times, 
-												altering the number of processes and/or the number threads per process, each time. Each time you change the number of processes or threads, increase the number of rectangles commensurately.
-											</li>
-										</ul>-->
-								</ul>
-							</p>
-					  </div>
-					</div>
-				  </div>
-				  <div class="panel panel-default">
-					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingTwo">
-					  <h4 class="panel-title">
-						<div data-parent="#accordion" aria-expanded="false" aria-controls="collapseTwo">
-						  <strong>Embarrassingly Parallel </strong>
-						</div>
-					  </h4>
-					</div>
-					<div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-					  <div class="panel-body">
-						<p> 
-							Since, typically, a single workhorse for-loop is used to generate the repeated and independent simulations of a Monte Carlo Algortihm, the numerous 
-							simulations are independent of each other. This means they can be easily split among multiple processing units. A problem such as this, where little 
-							effort is required to separate the problem into parallel tasks is known as "embarrassingly parallel"</p>
-						</p>
-					  </div>
-					</div>
-				  </div>
-				  <div class="panel panel-default">
-					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingThree">
-					  <h4 class="panel-title">
-						<div data-parent="#accordion" aria-expanded="false" aria-controls="collapseThree">
-						  <strong>How Computers Generate Random Numbers</strong>
-						</div>
-					  </h4>
-					</div>
-					<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
-					  <div class="panel-body">
-							<p>Computers cannot produce true random numbers. Rather, the standard library random number generator takes some relatively random 32-bit or 64-bit 
-								integer input, called the seed, and transforms it sequentially to produce astream of pseudo-random numbers. A random number 
-								generator is created with the seed as input to a function called srand(), and each time a new random number is requested 
-								using the rand() function, the integer pattern is changed to produce a new number. However, it is important to realize that for a given 
-								input seed a pseudorandom number generator function such as rand() creates the same sequence of numbers every time.
-							</p>
-					  </div>
-					</div>
-				  </div>
-				  <div class="panel panel-default">
-					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingFour">
-					  <h4 class="panel-title">
-						<div data-parent="#accordion" aria-expanded="false" aria-controls="collapseThree">
-						  <strong>Parallel Code with Threads</strong>
-						</div>
-					  </h4>
-					</div>
-					<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
-					  <div class="panel-body">
-						<p>
-							A common mechanism for running code on multiple cores simultaneously
-							is to start threads that can execute part of our code independently and in
-							parallel on separate cores, sharing data values in memory if needed. When
-							a program using threads begins execution, it is always running on a single
-							main thread, which we conceptually label as thread 0. Then within the
-							code we can designate that more threads should start executing in parallel
-							along with thread 0. We call a point in the code where multiple threads
-							are executing concurrently a fork of those threads. Then when they are
-							done executing, we think of them as joining back with the main thread.
-							Conceptually, this looks like this
-							</p>
-							
-							<!--add image!!!!!!-->
-							<img src = "/static/images/threads.png" class = "img-responsive" alt = "threads picture">
-							
-					  </div>
-					</div>
-				  </div>
-				  <div class="panel panel-default">
-					<div style = "background-color: #ffd700" class="panel-heading" role="tab" id="headingFour">
-					  <h4 class="panel-title">
-						<div data-parent="#accordion" aria-expanded="false" aria-controls="collapseThree">
-						  <strong>Simulations</strong>
-						</div>
-					  </h4>
-					</div>
-					<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
-					  <div class="panel-body">
-						<p>
-							<ul><!--coin flips-->
-								<li>A simple way to test a random number generator is to simulate flipping a
-											coin for a large number of trials
-									<ul>
-										<li>
-											We will use srand() to seed our random number generator with a large
-											integer and then make numerous calls to rand_r() to obtain a series of
-											random integers. If the integer is even, we call it a "head", otherwise it is
-											a "tail". This code sets up trials of coin flips with ever increasing numbers
-											of flips. 
-										</li>
-										<li>
-											We can speed this up by designating portions of our program to run
-											concurrently in parallel on different cores, computing part of the overall
-											solution. In the case of flipping a coin, we can think of this as each core we have available carrying
-											out some portion of the flips independently while other cores are taking
-											care of the rest of the needed flips.
-										</li>
-									</ul>
-								</li>
-								<!--roulette-->
-								<li>Roulette 
-									<ul>
-										<li>
-											Simulation of spinning the Roulette wheel.
-											An American Roulette wheel has 38 slots: 18 are red, 18 are black, and 2 are
-											green, which the house always wins. When a person bets on either red or
-											black, the odds of winning are 18/38, or 47.37% of the time.
-										</li>
-										<li>
-											Add parallelism by running the loop of random spins for each trial on several threads.
-										</li>
-									</ul>
-								</li>
-								
-								<!--four cards-->
-								<li>Drawing Four Cards of the Same Suit 
-									<ul>
-										<li>
-											Simulating the card game of Poker examines the probability that given a random hand of 5 cards, four
-											cards will each have a different suit. In the code, the deck of cards is represented as an array of integers. 
-											The function for simulating deck shuffling mimics how a traditional "fan" shuffle.
-										</li>
-										<li>
-											For the parallel simulation, each
-											of the threads partial results are combined by summing to find the total number of hands
-											that contained all four suits.
-										</li>
-									</ul>
-								</li>
-							</ul>
-						</p>
-					  </div>
-					</div>
-				  </div>
-				  
-				</div>
-			</div>
-		</div>
+                <!-- display selected Module -->
+                <div class="container" data-bind="if: selectedModule()">
+                    <div id="module-well" class="well">
+                        <div class="row">
+                            <div class="col-sm-1">
+                                <!--<button id = "changeMod" class="btn btn-primary" data-bind="click: changeModule">Pick a different Module</button>-->
+                                <button id="changeMod" type="button" class="btn btn-xs btn-primary" data-bind="click: changeModule">
+                                    <span class="glyphicon glyphicon-arrow-left"></span>
+                                </button>
+                            </div>
+                            <div class="col-lg-5 col-md-6 col-sm-7 col-xs-6">
+                                <p style="display: inline; font-size: 175%">Module Selected:</p>
+                                <div id="module-title" class="col-sm-4" data-bind="with: selectedModule()">
+                                    <p data-bind="text: name + ' module'"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding-top: 25px" class="row">
+                            <div class="col-sm-12" data-bind="with: selectedModule()">
+                                <div data-bind="if: desc">
+                                    <div class="thumbnail">
+                                        <p data-bind="text: desc"></p>
+                                    </div>
+                                </div>
+                                <div data-bind="ifnot: desc">
+                                    <div class="thumbnail">
+                                        <p id="module-desc"></p>
+                                    </div>
+                                </div>
+                                <form class="form-horizontal" data-bind="if: $parent.selectedPCE()">
+                                    <div class="form-group" data-bind="foreach: formFields()">
+                                        <div class="col-sm-7">
+                                            <!--<label for="launch-field" data-bind="text: field"></label>-->
+                                            <label style="font-weight:bold" class="formLabel" for="launch-field" data-bind="text: field"></label>
+                                        </div>
+                                        <div class="col-sm-5">
+                                            <input type="text" id="launch-field" data-bind="value: data">
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary" type="submit" data-bind="click: $root.launchJob">Launch Job!</button>
+                                </form>
+
+                            </div><!--end col-sm-8 -->
+                        </div>
+                    </div> <!--end row -->
+                </div><!--end well -->
+            </div>
+
+            <!-- AUC CONCEPTS -->
+            <div class="col-md-5" data-bind="if: selectedModule()">
+                <!-- module must exist before you can do below if statement -->
+                <div class="info-div" data-bind="if: selectedModule().name == 'AUC'">
+                    <div class="panel-group" aria-multiselectable="true">
+                        <div class="panel panel-default">
+                            <div style="background-color: #ffd700" class="panel-heading" role="tab" id="headingOne">
+                                <h4 class="panel-title">
+                                    <div data-parent="#accordion" aria-expanded="true" aria-controls="collapseOne">
+                                        <strong>Scaling</strong>
+                                    </div>
+                                </h4>
+                            </div>
+                            <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+                                <div class="panel-body">
+                                    <p>
+                                        More parallel processors can be used to model a bigger problem in the same amount of time it would take fewer parallel processors to model a smaller problem.
+                                        A common analogy to this is that one person in one boat in one hour can catch a lot fewer fish than ten people in ten boats in one hour.
+                                        <ul>
+                                            <li> Strong Scaling - Increase number of cores but keep problem size fixed. Commonly used for long-running programs.</li>
+                                            <!--<ul>
+                                                <li> For the Pi module, submit a job using the default inputs, and record the time for reference. Then continue to submit jobs and record the times, altering the number of
+                                                    processes and/or the number threads per process, each time, but keeping the number of rectangles the same.
+                                                </li>
+                                            </ul>-->
+                                            <li>
+                                                Weak Scaling - Increase problem size while increasing number of cores. Commonly used for memory intensive programs. (Link this idea to Gustafson's Law!)
+                                                <!--<ul>
+                                                    <li> For the Pi module, submit a job using the default inputs, and record the time for reference. Then continue to submit jobs and record the times,
+                                                        altering the number of processes and/or the number threads per process, each time. Each time you change the number of processes or threads, increase the number of rectangles commensurately.
+                                                    </li>
+                                                </ul>-->
+                                        </ul>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div style="background-color: #ffd700" class="panel-heading" role="tab" id="headingTwo">
+                                <h4 class="panel-title">
+                                    <span data-parent="#accordion" aria-expanded="false" aria-controls="collapseTwo">
+                                        <strong>Amdahl's Law </strong>
+                                    </span>
+                                </h4>
+                            </div>
+                            <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                                <div class="panel-body">
+                                    <p>
+                                        As the number of processors devoted to the problem increases, the advantages of parallelism diminish as the
+                                        serial regions become the only parts of the code that take significant time to execute
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div style="background-color: #ffd700" class="panel-heading" role="tab" id="headingThree">
+                                <h4 class="panel-title">
+                                    <span data-parent="#accordion" aria-expanded="false" aria-controls="collapseThree">
+                                        <strong>Gustafson's Law</strong>
+                                    </span>
+                                </h4>
+                            </div>
+                            <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                                <div class="panel-body">
+                                    <p>Bigger problems can be modeled in the same amount of time as smaller problems if the processor count is increased.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div style="background-color: #ffd700" class="panel-heading" role="tab" id="headingFour">
+                                <h4 class="panel-title">
+                                    <span data-parent="#accordion" aria-expanded="false" aria-controls="collapseThree">
+                                        <strong>Berkeley's Dwarfs</strong>
+                                    </span>
+                                </h4>
+                            </div>
+                            <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
+                                <div class="panel-body">
+                                    <p>
+                                        Equivalence classes of important applications of scientific computing. Applications are grouped into dwarfs based on their computation
+                                        and communication patterns. When an application is run in parallel, a certain percentage of time is spent performing calculations,
+                                        while another percentage is spent communicating the results of those calculations.<br><br>
+                                        Approximating the area under a curve falls into the
+                                        MapReduce dwarf. Applications in this class are characterized by a single
+                                        function that is applied in parallel to unique sets of data. In the case of
+                                        area under a curve, the function is simply the calculation of the area of a
+                                        rectangle (a number that you specified). In MapReduce applications,
+                                        after the calculations have been mapped to the execution flows, they are
+                                        communicated to a single execution flow (usually Thread 0),
+                                        where they are reduced. In the case of area under a curve, this "reduction"
+                                        takes the form of a summation. Applications in the MapReduce dwarf are
+                                        <i><b>embarrassingly parallel</b></i> because the calculations can be performed in their
+                                        entirety without need for communication in between. Communication
+                                        happens once, at the end, to perform the reduction.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div style="background-color: #ffd700" class="panel-heading" role="tab" id="headingFour">
+                                <h4 class="panel-title">
+                                    <div data-parent="#accordion" aria-expanded="false" aria-controls="collapseThree">
+                                        <strong>Reimann Sum</strong>
+                                    </div>
+                                </h4>
+                            </div>
+                            <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFive">
+                                <div class="panel-body">
+                                    <p>A Riemann sum is a summation that takes the form:</p>
+                                    <img src="/static/images/riemann_equation.PNG" class="img-responsive" alt="reimann sum picture">
+                                    <p>
+                                        Riemann sums can be used to approximate the area under a curve by
+                                        dividing the area into multiple component shapes and summing their areas.
+                                        The specific Riemann method explored in this module involves dividing
+                                        the domain of integration into several rectangles. The height of an arbitrary
+                                        rectangle is given by f(x) and the width is &#9651;x. The sum of the areas of the
+                                        rectangles formed by this method is the approximation of the area under the
+                                        curve. This module considers the Left Riemann sum, in which f(x) indicates
+                                        the height of the left-most side of each rectangle. A pictorial example below.
+                                    </p>
+                                    <img src="/static/images/reimann_pic.png" class="img-responsive" alt="reimann sum picture">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!--monte carlo -->
+            <div class="col-md-5" data-bind="if: selectedModule()">
+                <!-- module must exist before you can do below if statement -->
+                <div class="info-div" data-bind="if: selectedModule().name == 'monte_carlo'">
+                    <div class="panel-group" aria-multiselectable="true">
+                        <div class="panel panel-default">
+                            <div style="background-color: #ffd700" class="panel-heading" role="tab" id="headingOne">
+                                <h4 class="panel-title">
+                                    <div data-parent="#accordion" aria-expanded="true" aria-controls="collapseOne">
+                                        <strong>Scaling</strong>
+                                    </div>
+                                </h4>
+                            </div>
+                            <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+                                <div class="panel-body">
+                                    <p>
+                                        More parallel processors can be used to model a bigger problem in the same amount of time it would take fewer parallel processors to model a smaller problem.
+                                        A common analogy to this is that one person in one boat in one hour can catch a lot fewer fish than ten people in ten boats in one hour.
+                                        <ul>
+                                            <li> Strong Scaling - Increase number of cores but keep problem size fixed. Commonly used for long-running programs.</li>
+                                            <!--<ul>
+                                                <li> For the Pi module, submit a job using the default inputs, and record the time for reference. Then continue to submit jobs and record the times, altering the number of
+                                                    processes and/or the number threads per process, each time, but keeping the number of rectangles the same.
+                                                </li>
+                                            </ul>-->
+                                            <li>
+                                                Weak Scaling - Increase problem size while increasing number of cores. Commonly used for memory intensive programs. (Link this idea to Gustafson's Law!)
+                                                <!--<ul>
+                                                    <li> For the Pi module, submit a job using the default inputs, and record the time for reference. Then continue to submit jobs and record the times,
+                                                        altering the number of processes and/or the number threads per process, each time. Each time you change the number of processes or threads, increase the number of rectangles commensurately.
+                                                    </li>
+                                                </ul>-->
+                                        </ul>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div style="background-color: #ffd700" class="panel-heading" role="tab" id="headingTwo">
+                                <h4 class="panel-title">
+                                    <span data-parent="#accordion" aria-expanded="false" aria-controls="collapseTwo">
+                                        <strong>Embarrassingly Parallel </strong>
+                                    </span>
+                                </h4>
+                            </div>
+                            <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                                <div class="panel-body">
+                                    <p>
+                                        Since, typically, a single workhorse for-loop is used to generate the repeated and independent simulations of a Monte Carlo Algortihm, the numerous
+                                        simulations are independent of each other. This means they can be easily split among multiple processing units. A problem such as this, where little
+                                        effort is required to separate the problem into parallel tasks is known as "embarrassingly parallel"
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div style="background-color: #ffd700" class="panel-heading" role="tab" id="headingThree">
+                                <h4 class="panel-title">
+                                    <span data-parent="#accordion" aria-expanded="false" aria-controls="collapseThree">
+                                        <strong>How Computers Generate Random Numbers</strong>
+                                    </span>
+                                </h4>
+                            </div>
+                            <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                                <div class="panel-body">
+                                    <p>
+                                        Computers cannot produce true random numbers. Rather, the standard library random number generator takes some relatively random 32-bit or 64-bit
+                                        integer input, called the seed, and transforms it sequentially to produce astream of pseudo-random numbers. A random number
+                                        generator is created with the seed as input to a function called srand(), and each time a new random number is requested
+                                        using the rand() function, the integer pattern is changed to produce a new number. However, it is important to realize that for a given
+                                        input seed a pseudorandom number generator function such as rand() creates the same sequence of numbers every time.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div style="background-color: #ffd700" class="panel-heading" role="tab" id="headingFour">
+                                <h4 class="panel-title">
+                                    <span data-parent="#accordion" aria-expanded="false" aria-controls="collapseThree">
+                                        <strong>Parallel Code with Threads</strong>
+                                    </span>
+                                </h4>
+                            </div>
+                            <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
+                                <div class="panel-body">
+                                    <p>
+                                        A common mechanism for running code on multiple cores simultaneously
+                                        is to start threads that can execute part of our code independently and in
+                                        parallel on separate cores, sharing data values in memory if needed. When
+                                        a program using threads begins execution, it is always running on a single
+                                        main thread, which we conceptually label as thread 0. Then within the
+                                        code we can designate that more threads should start executing in parallel
+                                        along with thread 0. We call a point in the code where multiple threads
+                                        are executing concurrently a fork of those threads. Then when they are
+                                        done executing, we think of them as joining back with the main thread.
+                                        Conceptually, this looks like this
+                                    </p>
+
+                                    <!--add image!!!!!!-->
+                                    <img src="/static/images/threads.png" class="img-responsive" alt="threads picture">
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div style="background-color: #ffd700" class="panel-heading" role="tab" id="headingFour">
+                                <h4 class="panel-title">
+                                    <span data-parent="#accordion" aria-expanded="false" aria-controls="collapseThree">
+                                        <strong>Simulations</strong>
+                                    </span>
+                                </h4>
+                            </div>
+                            <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
+                                <div class="panel-body">
+                                    <p>
+                                        <ul>
+                                            <!--coin flips-->
+                                            <li>
+                                                A simple way to test a random number generator is to simulate flipping a
+                                                coin for a large number of trials
+                                                <ul>
+                                                    <li>
+                                                        We will use srand() to seed our random number generator with a large
+                                                        integer and then make numerous calls to rand_r() to obtain a series of
+                                                        random integers. If the integer is even, we call it a "head", otherwise it is
+                                                        a "tail". This code sets up trials of coin flips with ever increasing numbers
+                                                        of flips.
+                                                    </li>
+                                                    <li>
+                                                        We can speed this up by designating portions of our program to run
+                                                        concurrently in parallel on different cores, computing part of the overall
+                                                        solution. In the case of flipping a coin, we can think of this as each core we have available carrying
+                                                        out some portion of the flips independently while other cores are taking
+                                                        care of the rest of the needed flips.
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <!--roulette-->
+                                            <li>
+                                                Roulette
+                                                <ul>
+                                                    <li>
+                                                        Simulation of spinning the Roulette wheel.
+                                                        An American Roulette wheel has 38 slots: 18 are red, 18 are black, and 2 are
+                                                        green, which the house always wins. When a person bets on either red or
+                                                        black, the odds of winning are 18/38, or 47.37% of the time.
+                                                    </li>
+                                                    <li>
+                                                        Add parallelism by running the loop of random spins for each trial on several threads.
+                                                    </li>
+                                                </ul>
+                                            </li>
+
+                                            <!--four cards-->
+                                            <li>
+                                                Drawing Four Cards of the Same Suit
+                                                <ul>
+                                                    <li>
+                                                        Simulating the card game of Poker examines the probability that given a random hand of 5 cards, four
+                                                        cards will each have a different suit. In the code, the deck of cards is represented as an array of integers.
+                                                        The function for simulating deck shuffling mimics how a traditional "fan" shuffle.
+                                                    </li>
+                                                    <li>
+                                                        For the parallel simulation, each
+                                                        of the threads partial results are combined by summing to find the total number of hands
+                                                        that contained all four suits.
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Alpaca is cool, but we will look at it later.
+    <div class="container">
+    <div class="row">
+    <h2>Test Alpaca</h2>
+    <div id="form1"></div>
 
     </div>
-</div>
+    </div>
+    -->
+    <!-- footer -->
+    <footer class="footer">
+        <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
+    </footer>
 
+    <!-- put all scripty scripts below this line -->
 
-<!-- Alpaca is cool, but we will look at it later.
-<div class="container">
-<div class="row">
-<h2>Test Alpaca</h2>
-<div id="form1"></div>
-
-</div>
-</div>
--->
-<!-- footer -->
-<footer class="footer">
-    <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
-</footer>
-
-  <!-- put all scripty scripts below this line -->
-  <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-  <script src="/static/javascript/third_party/bootstrap.min.js"></script>
-  <!-- knockout script -->
-  <script src="/static/javascript/third_party/knockout-3.3.0.js"></script>
-  <!-- my scripts -->
-  <script src="/static/javascript/all_global.js"></script>
-  <script src="/static/javascript/workspace.js"></script>
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src='{% static "javascript/third_party/bootstrap.min.js" %}'></script>
+    <!-- my scripts -->
+    <script src='{% static "javascript/all_global.js" %}'></script>
+    <script src='{% static "javascript/third_party/knockout-3.3.0.js" %}'></script>
+    <script src='{% static "javascript/workspace.js" %}'></script>
 </body>
 </html>
