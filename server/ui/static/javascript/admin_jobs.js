@@ -26,7 +26,14 @@ function myJob(data){
 	};
 
 	self.removeOnServer = function () {
-		alert("removing on server - not implemented yet");
+        alert("removing on server - not implemented yet");
+        $ajax({
+            type: "DELETE",
+            url: "admin/Dashboard/jobs/" + this.id(),
+            error: function (response) {
+                alert(response["status_message"]);
+            }
+        });
 	};
 }
 
@@ -37,8 +44,17 @@ function AdminJobsViewModel() {
 	self.userID = sessionStorage['UserID'];
 	self.auth_data = sessionStorage['auth_data'];
 
+    self.selectedJob = ko.observable();
 
-	self.Jobslist = ko.observableArray();
+    self.Jobslist = ko.observableArray();
+
+    self.addJob = function () {
+
+    }
+
+    self.selectedJob = function (job) {
+
+    }
 
 	self.deleteJob = function () {
 		// tell server to delete this job

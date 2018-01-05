@@ -1,6 +1,4 @@
-
-
-function UserProfile(data) {
+    function UserProfile(data) {
 	var self = this;
 	self.id = ko.observable(data['user_id']);
 	self.username = ko.observable(data['username']);
@@ -9,7 +7,7 @@ function UserProfile(data) {
 	self.email = ko.observable(data['email']);
 	self.isAdmin = ko.observable(data['is_admin']);
 	self.isEnabled = ko.observable(data['is_enabled']);
-	self.password = ko.observable('**********'); //fake security
+	self.password = ko.observable('');
 
 	self.auth_data = sessionStorage['auth_data'];
 
@@ -114,13 +112,9 @@ function UserProfile(data) {
       		        alert(response['status_message'])
       		    }
       		}
-
 	  	} );
 		this.isEnabled(false);
-	  
-
 	}
-
 }
 
 
@@ -144,9 +138,13 @@ function AdminUserViewModel() {
         this.editUser();
     }
 
+    self.disableUser = function () {
+
+    }
+
     self.deleteUser = function () {
         // tell server to delete this user
-        //self.Userslist.remove(this);
+        // self.Userslist.remove(this);
         if (self.selectedUser() == this) {
             self.selectedUser(null);
         }
@@ -160,6 +158,8 @@ function AdminUserViewModel() {
         self.selectedUser(newUser);
     }
 
+    // This function fires when the page first loads
+    // It will populate the userlist to be displayed
     $(document).ready( function () {
         // reinitialize values
         self.Userslist([]);
@@ -168,11 +168,10 @@ function AdminUserViewModel() {
             url: '/admin/Users/GetAll/',
             type: 'GET',
             dataType:'json',
-            success: function(data) {
-                for (var x = 0; x < data.users.length; x++){
-                    var user_data = data.users[x];
-                    self.Userslist.push(new UserProfile(user_data));
-                }
+            success: function (data) {
+                data.users.forEach(function (user) {
+                    self.Userslist.push(new UserProfile(user));
+                });
             }
         })
     });
