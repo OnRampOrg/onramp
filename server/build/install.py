@@ -154,6 +154,7 @@ class Installer(object):
                 'libpcre3-dev',
                 'zlib1g-dev',
                 'libapr1-dev',
+                'python-semanage',
                 'python-sepolgen' # for semanage
             ]
         elif 'centos' in os_info:
@@ -212,7 +213,8 @@ class Installer(object):
                     self.subproc(['sudo', 'yum', 'remove', '-y', 'mysql-community-server'], ignore=True)
                     self.subproc(['sudo', 'yum', 'remove', '-y', 'mysql-community-devel'], ignore=True)
                 elif 'Ubuntu' in os_info:
-                    self.subproc(['sudo', 'apt-get', 'remove', '-y', '--purge', 'mysql-server'])
+                    print "skipped removal"
+                    #self.subproc(['sudo', 'apt-get', 'remove', '-y', '--purge', 'mysql-server'], ignore=True)
                 self.rm('/var/log/mysqld.log', force=True)
                 self.rm('/var/lib/mysql', force=True)
                 self.rm('/etc/my.cnf', force=True)
@@ -243,32 +245,37 @@ class Installer(object):
 
                 print "Installing mysql-community-devel..."
                 self.subproc(['sudo', 'yum', 'install', '-y', 'mysql-community-devel'])
-            elif 'Ubuntu' in os_info:
 
-                self.subproc(['sudo', 'debconf-set-selections', '<<<', "'mysql-server mysql-server/root_password password your_password'"])
-                self.subproc(['sudo', 'debconf-set-selections', '<<<', "'mysql-server mysql-server/root_password password your_password'"])
+                print "Stopping any running MySQL services..."
+                self.subproc(['sudo', 'systemctl', 'stop', 'mysqld.service'], ignore=True)
+            elif 'Ubuntu' in os_info:
+                self.subproc(['sudo', 'debconf-set-selections', '<<<', "'mysql-server mysql-server/0nR@mp! 0nR@mp!'"])
+                self.subproc(['sudo', 'debconf-set-selections', '<<<', "'mysql-server mysql-server/0nR@mp! 0nR@mp!'"])
 
                 print 'Installing mysql-server...'
                 self.subproc(['sudo', 'apt-get', 'install', '-y', 'mysql-server'])
+
+                print "Stopping any running MySQL services..."
+                self.subproc(['sudo', 'service', 'mysql', 'stop'], ignore=True)
+
             else:
                 # Support more
                 print 'Unsupported OS'
                 return
+            
+            # this is where things broke.  needed to manually delete the dir and then run this command again
+            print "Removing Old MySQL data directory..."
+            #self.subproc(['sudo', 'rm', '-rf', mysql_dir])
 
-            print "Stopping any running MySQL services..."
-            self.subproc(['sudo', 'systemctl', 'stop', 'mysqld.service'], ignore=True)
             
             # --explicit_defaults_for_timestamp fixed an error about files existing in the directory (SSF - 10/11/17)
-            # this is where things broke.  needed to manually delete the dir and then run this command again
 
-            print "Removing Old MySQL data directory..."
-            # self.subproc(['sudo', 'rm', '-rf', mysql_dir])
-
-            print "Initializing MySQL data directory..."
-            self.subproc(['sudo', 'mysqld', '--initialize', '--user=mysql',  '--datadir={}'.format(mysql_dir), '--explicit_defaults_for_timestamp'])
+            #print "Initializing MySQL data directory..."
+            #self.subproc(['sudo', 'mysqld', '--initialize', '--user=mysql',  '--datadir={}'.format(mysql_dir), '--explicit_defaults_for_timestamp'])
+            self.subproc(['sudo', 'mysqld', '--initialize', '--user=mysql', '--explicit_defaults_for_timestamp'])
 
             print "Removing the default MySQL data directory..."
-            self.rm("/var/lib/mysql")
+            self.rm("/var/lib/mysql", force=True)
 
             print "Copying over MySQL configuration file...\n"
             fh = open("{}/build/config/my.cnf".format(self.base_dir), 'r')
@@ -284,13 +291,14 @@ class Installer(object):
 
 
             # SSF - 10/11/17
-            print "Fixing SELinux for new MySQL data directory..."
-            self.subproc(['sudo', 'semanage', 'fcontext', '-a', '-s', 'system_u',
-                          '-t', 'mysqld_db_t', '"{}(/.*)?"'.format(mysql_dir)])
-            self.subproc(['sudo', 'restorecon', '-Rv', mysql_dir])
+            #print "Fixing SELinux for new MySQL data directory..."
+            #self.subproc(['sudo', 'semanage', 'fcontext', '-a', '-s', 'system_u',
+            #              '-t', 'mysqld_db_t', '"{}(/.*)?"'.format(mysql_dir)])
+            #self.subproc(['sudo', 'restorecon', '-Rv', mysql_dir])
 
             print "Starting MySQL service..."
             self.subproc(['sudo', 'systemctl', 'start', 'mysqld.service'])
+            #self.subproc(['sudo', 'service', 'mysql', 'start'])
 
             # have to get the password this way because can't get it in python without root privileges
             p = Popen(['sudo grep "temporary password" /var/log/mysqld.log'],
