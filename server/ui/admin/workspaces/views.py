@@ -16,9 +16,8 @@ def main(request):
     :param request:
     :return:
     """
-    context = Context()
     template = get_template('admin_workspaces.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render({}, request))
 
 @login_required
 def get_all(request):

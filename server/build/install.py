@@ -166,7 +166,7 @@ class Installer(object):
                 'pcre-devel',
                 'zlib-devel',
                 'apr-devel',
-                'policycoreutils-python-utils',  # for semanage
+                #'policycoreutils-python-utils',  # for semanage
             ]
         else:
             dependancies = []

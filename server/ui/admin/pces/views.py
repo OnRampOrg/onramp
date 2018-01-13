@@ -21,9 +21,8 @@ def main(request):
     :param request:
     :return:
     """
-    context = Context()
     template = get_template('admin_pces.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render({}, request))
 
 
 @login_required
@@ -79,6 +78,7 @@ def add_pce(request):
 @login_required
 def get_pce_modules(request):
     """
+        URL: /admin/PCEs/Modules
 
     :param request:
     :return:
@@ -117,6 +117,7 @@ def get_pce_modules(request):
 @login_required
 def get_pce_workspaces(request):
     """
+        URL: /admin/PCEs/Workspaces
 
     :param request:
     :return:

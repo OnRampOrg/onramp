@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 
+#Fix for chrome not loading all static files
+from django.core.servers.basehttp import WSGIServer
+WSGIServer.request_queue_size = 50
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -23,9 +27,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'y#_d-xefmw+$-9t!(!)oe5d_e&b69a28c$4vhuwyrns%wj-$2d'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+#DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -123,6 +127,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
+STATIC_ROOT = BASE_DIR + '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR + '/ui/static/',
+]
 STATIC_URL = '/static/'
 
 ########### Uncomment the following for DEBUG only #############

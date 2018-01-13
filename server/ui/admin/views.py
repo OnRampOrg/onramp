@@ -25,9 +25,8 @@ def users_page(request):
     :param request:
     :return:
     """
-    context = Context({})
     template = get_template('admin_users.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render({}, request))
 
 
 
@@ -120,9 +119,8 @@ def workspaces_page(request):
     :param request:
     :return:
     """
-    context = Context({})
     template = get_template('admin_workspaces.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render({}, request))
 
 # TODO wrapper
 def pces_page(request):
@@ -133,9 +131,8 @@ def pces_page(request):
     :param request:
     :return:
     """
-    context = Context({})
     template = get_template('admin_pce.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render({}, request))
 
 # TODO wrapper
 def jobs_page(request):
@@ -146,9 +143,8 @@ def jobs_page(request):
     :param request:
     :return:
     """
-    context = Context({})
     template = get_template('admin_jobs.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render({}, request))
 
 # TODO wrapper
 def modules_page(request):
@@ -159,6 +155,5 @@ def modules_page(request):
     :param request:
     :return:
     """
-    context = Context({})
     template = get_template('admin_modules.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render({}, request))
