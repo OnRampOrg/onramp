@@ -71,6 +71,8 @@
                             <th>Email</th>
                             <th>Admin</th>
                             <th>Enabled</th>
+                            <th>Update</th>
+                            <th>Disable</th>
                             <th>Delete</th>
                         </tr>
                     </thead>
@@ -83,7 +85,8 @@
                             <td data-bind="text: email"></td>
                             <td data-bind="text: isAdmin"></td>
                             <td data-bind="text: isEnabled"></td>
-                            <td><button class="btn btn-danger" data-bind="click: $parent.deleteUser">Disable</button></td>
+                            <td><button class="btn btn-danger" data-bind="click: $parent.disableUser">Disable</button></td>
+                            <td><button class="btn btn-danger" data-bind="click: $parent.deleteUser">Delete</button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -122,7 +125,12 @@
             <div class="row">
                 <div class="edit-table-col"><p>Password</p></div>
                 <div class="edit-table-col"><p data-bind="text: password"></p></div>
-                <div class="edit-table-col"><input data-bind="value: password" /></div>
+                <div class="edit-table-col"><input type="password" data-bind="value: password" /></div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col"><p>Retype Password</p></div>
+                <div class="edit-table-col"><p data-bind="text: re-password"></p></div>
+                <div class="edit-table-col"><input type="password" data-bind="value: re-password" /></div>
             </div>
             <div class="row">
                 <div class="edit-table-col"><p>Admin</p></div>

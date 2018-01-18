@@ -1,6 +1,3 @@
-
-
-
 import json
 
 from django.contrib.auth.decorators import login_required
@@ -139,6 +136,18 @@ def disable_user(request):
     user_obj.save()
     response = {'status':1, 'status_message':'Success'}
     return HttpResponse(json.dumps(response))
+
+# @login_required
+def delete_user(request):
+    """ Removes the specified user account from the db
+
+        URL: /admin/Users/Delete
+
+        :param request:
+        :return:
+    """
+    user_id = request.POST.get('user_id')
+    User.objects.filter(id=user_id).delete()
 
 
 # @login_required
