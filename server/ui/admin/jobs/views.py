@@ -5,7 +5,7 @@ from django.template import Context
 from django.template.loader import get_template
 from ui.admin.models import workspace, job
 
-# @login_required
+@login_required
 def main(request):
     """ Renders the main Admin dashboard on login
 
@@ -18,7 +18,7 @@ def main(request):
     return HttpResponse(template.render({}, request))
 
 
-# @login_required
+@login_required
 def get_all_jobs(request):
     """ Gets all Jobs
 
@@ -34,7 +34,7 @@ def get_all_jobs(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@login_required
 def get_job(request):
     """ Get a specific Job
 
@@ -51,29 +51,8 @@ def get_job(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_required
-def create_job(request):
-    """ Creates a new Job
 
-        URL: /admin/Jobs/Create
-
-    :param request:
-    :return:
-    """
-    # TODO finish
-
-# @login_required
-def update_job(request):
-    """ Updates a job with new fields
-        
-        URL: /admin/Jobs/Update
-
-    :param request:
-    :return:
-    """
-    # TODO finish
-
-# @login_required
+@login_required
 def delete_job(request):
     """ Deletes a specific job
 
