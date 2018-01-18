@@ -13,8 +13,8 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os
 
 #Fix for chrome not loading all static files
-from django.core.servers.basehttp import WSGIServer
-WSGIServer.request_queue_size = 50
+#from django.core.servers.basehttp import WSGIServer
+#WSGIServer.request_queue_size = 20
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
