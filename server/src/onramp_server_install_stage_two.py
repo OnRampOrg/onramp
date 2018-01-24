@@ -10,8 +10,8 @@ import shutil
 import sqlite3
 from subprocess import call
 
-db_filename = 'tmp/onramp_sqlite.db'
-db_schema   = 'src/db/onramp_schema_sqlite.sql'
+db_filename = '../tmp/onramp_sqlite.db'
+db_schema  = 'db/onramp_schema_sqlite.sql'
 
 ###################################################
 if os.path.exists(db_filename):

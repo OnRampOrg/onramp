@@ -5,7 +5,7 @@ Exports:
 """
 import json
 import os
-import requests
+# import requests
 import time
 
 
@@ -773,108 +773,108 @@ class PCEAccess():
         #
         return {'exists' : exists, 'job_id' : job_id, 'state' : state_id, 'state_str' : self._db.get_job_state_str(state_id)}
 
-if __name__ == '__main__':
-
-    import logging
-    import sys
-    import time
-
-    if len(sys.argv) < 3:
-        sys.exit('usage: python onramppce.py IP_ADDRESS PORT')
-    class Dummy:
-        _ip_addr = sys.argv[1]
-        _port = int(sys.argv[2])
-        def __init__(self, logger):
-            self.logger = logger
-
-        def pce_get_info(self, pce_id):
-            return {'data': (None, None, self._ip_addr, self._port)}
-
-        def pce_add_module(self, *args):
-            self.logger.debug('pce_add_module: pce_id %d, mod_id %d, '
-                              'source_type %s, path %s' % args)
-            return None
-
-        def pce_update_module_state(self, *args):
-            self.logger.debug('pce_update_module_state: pce_id %d, mod_id %d, '
-                              'state %d' % args)
-
-        def pce_update_state(self, *args):
-            self.logger.debug('pce_update_state: pce_id %d, state %d' % args)
-
-        def module_add_if_new(self, *args):
-            self.logger.debug('module_add_if_new: mod_name %s' % args)
-            return {'exits':True, 'id':1}
-
-    log_name = 'onramp'
-    logger = logging.getLogger(log_name)
-    logger.setLevel(logging.DEBUG)
-    handler = logging.FileHandler('test.log')
-    handler.setFormatter(
-        logging.Formatter('[%(asctime)s] %(levelname)s %(message)s'))
-    logger.addHandler(handler)
-
-    pce = PCEAccess(logger, Dummy(logger), 1)
-    print 'Connection'
-    print pce.establish_connection()
-    print 'Available mods'
-    avail_mods = pce.get_modules_avail()
-    print avail_mods
-    print 'Mods before install'
-    print pce.get_modules()
-    print 'Installing all available mods...'
-    i = 1
-    for mod in avail_mods:
-        source = mod['source_location']
-        pce.add_module(i, 'test%d' % i, source['type'], source['path'])
-        i += 1
-    time.sleep(5)
-    print 'Mods after install'
-    installed_mods = pce.get_modules()
-    print installed_mods
-    print 'Deploying all installed mods...'
-    for mod in installed_mods:
-        pce.deploy_module(mod['mod_id'])
-    time.sleep(5)
-    print 'Mods after deploy'
-    deployed_mods = pce.get_modules()
-    print deployed_mods
-    print 'Deleting "Admin required" modules...'
-    for mod in deployed_mods:
-        if mod['state'] == 'Admin required':
-            pce.delete_module(mod['mod_id'])
-    time.sleep(5)
-    print 'Mods after delete'
-    ready_mods = pce.get_modules()
-    print ready_mods
-    print 'Individual module'
-    print pce.get_modules(1)
-    print 'Launching jobs...'
-    job_attrs = {
-        'onramp': {'np': 2, 'nodes': 1},
-        'ring': {'iters': 1, 'work': 1},
-        'hello': {'name': 'testname'}
-    }
-    i = 1
-    for mod in ready_mods:
-        pce.launch_job('testuser', mod['mod_id'], i, 'run%d' % i,
-                       cfg_params=job_attrs)
-        i += 1
-    print 'Launched jobs'
-    jobs = map(pce.get_jobs, range(1, i))
-    print jobs
-    print 'Pausing to let jobs finish...'
-    time.sleep(5)
-    print 'Postprocessing jobs'
-    jobs = map(pce.get_jobs, range(1, i))
-    print jobs
-    print 'Pausing to let jobs finish postprocessing...'
-    time.sleep(5)
-    print 'Done jobs'
-    jobs = map(pce.get_jobs, range(1, i))
-    print jobs
-    print 'Deleting jobs'
-    jobs = map(pce.delete_job, range(1, i))
-    jobs = map(pce.get_jobs, range(1, i))
-    print 'Remaining jobs (each job should be empty)'
-    print jobs
+# if __name__ == '__main__':
+#
+#     import logging
+#     import sys
+#     import time
+#
+#     if len(sys.argv) < 3:
+#         sys.exit('usage: python onramppce.py IP_ADDRESS PORT')
+#     class Dummy:
+#         _ip_addr = sys.argv[1]
+#         _port = int(sys.argv[2])
+#         def __init__(self, logger):
+#             self.logger = logger
+#
+#         def pce_get_info(self, pce_id):
+#             return {'data': (None, None, self._ip_addr, self._port)}
+#
+#         def pce_add_module(self, *args):
+#             self.logger.debug('pce_add_module: pce_id %d, mod_id %d, '
+#                               'source_type %s, path %s' % args)
+#             return None
+#
+#         def pce_update_module_state(self, *args):
+#             self.logger.debug('pce_update_module_state: pce_id %d, mod_id %d, '
+#                               'state %d' % args)
+#
+#         def pce_update_state(self, *args):
+#             self.logger.debug('pce_update_state: pce_id %d, state %d' % args)
+#
+#         def module_add_if_new(self, *args):
+#             self.logger.debug('module_add_if_new: mod_name %s' % args)
+#             return {'exits':True, 'id':1}
+#
+#     log_name = 'onramp'
+#     logger = logging.getLogger(log_name)
+#     logger.setLevel(logging.DEBUG)
+#     handler = logging.FileHandler('test.log')
+#     handler.setFormatter(
+#         logging.Formatter('[%(asctime)s] %(levelname)s %(message)s'))
+#     logger.addHandler(handler)
+#
+#     pce = PCEAccess(logger, Dummy(logger), 1)
+#     print 'Connection'
+#     print pce.establish_connection()
+#     print 'Available mods'
+#     avail_mods = pce.get_modules_avail()
+#     print avail_mods
+#     print 'Mods before install'
+#     print pce.get_modules()
+#     print 'Installing all available mods...'
+#     i = 1
+#     for mod in avail_mods:
+#         source = mod['source_location']
+#         pce.add_module(i, 'test%d' % i, source['type'], source['path'])
+#         i += 1
+#     time.sleep(5)
+#     print 'Mods after install'
+#     installed_mods = pce.get_modules()
+#     print installed_mods
+#     print 'Deploying all installed mods...'
+#     for mod in installed_mods:
+#         pce.deploy_module(mod['mod_id'])
+#     time.sleep(5)
+#     print 'Mods after deploy'
+#     deployed_mods = pce.get_modules()
+#     print deployed_mods
+#     print 'Deleting "Admin required" modules...'
+#     for mod in deployed_mods:
+#         if mod['state'] == 'Admin required':
+#             pce.delete_module(mod['mod_id'])
+#     time.sleep(5)
+#     print 'Mods after delete'
+#     ready_mods = pce.get_modules()
+#     print ready_mods
+#     print 'Individual module'
+#     print pce.get_modules(1)
+#     print 'Launching jobs...'
+#     job_attrs = {
+#         'onramp': {'np': 2, 'nodes': 1},
+#         'ring': {'iters': 1, 'work': 1},
+#         'hello': {'name': 'testname'}
+#     }
+#     i = 1
+#     for mod in ready_mods:
+#         pce.launch_job('testuser', mod['mod_id'], i, 'run%d' % i,
+#                        cfg_params=job_attrs)
+#         i += 1
+#     print 'Launched jobs'
+#     jobs = map(pce.get_jobs, range(1, i))
+#     print jobs
+#     print 'Pausing to let jobs finish...'
+#     time.sleep(5)
+#     print 'Postprocessing jobs'
+#     jobs = map(pce.get_jobs, range(1, i))
+#     print jobs
+#     print 'Pausing to let jobs finish postprocessing...'
+#     time.sleep(5)
+#     print 'Done jobs'
+#     jobs = map(pce.get_jobs, range(1, i))
+#     print jobs
+#     print 'Deleting jobs'
+#     jobs = map(pce.delete_job, range(1, i))
+#     jobs = map(pce.get_jobs, range(1, i))
+#     print 'Remaining jobs (each job should be empty)'
+#     print jobs

@@ -1,0 +1,71 @@
+User Stories -- 10/2
+
+As a User, I would like to login
+As a User, I would like to logout
+
+As a User, I would like to learn more about OnRamp from the project page
+As a User, I would like to be linked to the GitHub page
+As a User, I would like to contact Prof Foley for a guest account
+
+As a User, I would like to view the user dashboard
+As a User, I would like to view the about page
+As a User, I would like to view similar work by other people
+As a User, I would like to view my profile
+As a User, I would like to change my profile information (username, fullname, email)
+As a User, I would like to view the contact page
+As a User, I would like to contact a developer or project lead
+As a User, I would like to view the help page
+
+As a User, I would like to view a list of workspaces
+As a User, I would like to view a specific workspace
+As a User, I would like to view a list of most recent jobs
+As a User, I would like to refresh the list of jobs
+As a User, I would like to view a specific job
+As a User, I would like to view a list of PCEs
+As a User, I would like to select a PCE
+As a User, I would like to change the selected PCE
+As a User, I would like to select a module
+As a User, I would like to change the selected module
+As a User, I would like to view module details and descriptions
+As a User, I would like to launch a job
+As a User, I would like to view job details
+As a User, I would like to cancel a job
+
+As an Admin, I would like to view the Admin dashboard
+As an Admin, I would like to view a list of Users
+As an Admin, I would like to view a specific User
+As an Admin, I would like to view the manage Users page
+As an Admin, I would like to add a new User
+As an Admin, I would like to disable an existing User
+As an Admin, I would like to edit an existing User's information
+
+As an Admin, I would like to view a list of Workspaces
+As an Admin, I would like to refresh the list of Workspaces
+As an Admin, I would like to view the manage Workspaces page
+As an Admin, I would like to add a Workspace
+As an Admin, I would like to delete a Workspace
+As an Admin, I would like to Select a Workspace
+As an Admin, I would like to edit selected Workspace
+As an Admin, I would like to view a list of PCE/Module pairs
+As an Admin, I would like to add PCE/Module pair to Workspace
+As an Admin, I would like to add users to Workspace
+As an Admin, I would like to remove users from Workspace
+
+As an Admin, I would like to view a list of jobs
+As an Admin, I would like to refresh the list of jobs
+As an Admin, I would like to view the manage Jobs page
+As an Admin, I would like to view a specific job's results
+As an Admin, I would like to delete a job
+
+As an Admin, I would like to view a list of PCEs
+As an Admin, I would like to view info about a specific PCE
+As an Admin, I would like to create a new PCE
+As an Admin, I would like to delete a PCE
+As an Admin, I would like to edit an existing PCE
+
+As an Admin, I would like to view a list of modules
+As an Admin, I would like to refresh the list of modules
+As an Admin, I would like to delete a module
+As an Admin, I would like to create a new module
+As an Admin, I would like to edit a module
+As an Admin, I would like to deploy a module

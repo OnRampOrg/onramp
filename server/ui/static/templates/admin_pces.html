@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>OnRamp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    {% load static %}
+    <link href='{% static "css/third_party/bootstrap.min.css" %}' rel="stylesheet">
+    <link href='{% static "css/third_party/bootstrap-horizon.css" %}' rel="stylesheet">
+    <!-- Custom Global CSS -->
+    <link href='{% static "css/global_style.css" %}' rel="stylesheet">
+</head>
+<body role="document">
+
+    <!-- Fixed navbar -->
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="NavContainer">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <a class="navbar-brand" id="brand">OnRamp</a>
+                <ul class="nav navbar-nav navbar-left">
+                    <li class="active"><a href="../Dashboard">Home</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="myprofile.html">Profile</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="#help">Help</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <button type="button" class="btn btn-default" onclick=logout()>Logout</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <br>
+    <div class="page">
+        <div class="container">
+            <div class="jumbotron">
+                <h1>PCE Admin Dashboard</h1>
+            </div>
+        </div>
+
+        <!-- PCE info -->
+        <div class="container">
+            <div class="row">
+                <h2>PCE Info (<span data-bind="text: PCElist().length"></span>)</h2>
+                <p>This is a list of all PCEs associated with this OnRamp server instance.  Current functionality allows you to add PCEs.</p>
+            </div>
+
+            <div class="row">
+                <button class="btn btn-primary" data-bind="click: addPCE">Add New PCE</button>
+            </div>
+
+            <div class="row">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>State</th>
+                            <th>Description</th>
+                            <th>Location</th>
+                            <th>Contact</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: PCElist()">
+                        <tr data-bind="click: $parent.selectPCE">
+                            <td data-bind="text: id"></td>
+                            <td data-bind="text: name"></td>
+                            <td data-bind="text: status"></td>
+                            <td data-bind="text: description"></td>
+                            <td data-bind="text: location"></td>
+                            <td data-bind="text: contact_info"></td>
+                            <td><button class="btn btn-danger" data-bind="click: $parent.deletePCE">Delete</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <!-- Add a new -->
+        <div class="container" data-bind="with: newPCE()">
+            <div class="row">
+                <h3>PCE Info: <span data-bind="text:name"></span></h3>
+            </div>
+            <div class="row">
+                <div class="edit-table-col table-header">
+                    <p>Field</p>
+                </div>
+                <div class="edit-table-col table-header">
+                    <p>Current Value</p>
+                </div>
+                <div class="edit-table-col table-header">
+                    <p>New Value</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col">
+                    <p>PCE Name</p>
+                </div>
+                <div class="edit-table-col">
+                    <p data-bind="text: name"></p>
+                </div>
+                <div class="edit-table-col">
+                    <input data-bind="value: name" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col">
+                    <p>Description:</p>
+                </div>
+                <div class="edit-table-col">
+                    <p data-bind="text: description"></p>
+                </div>
+                <div class="edit-table-col">
+                    <input data-bind="value: description" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col">
+                    <p>Location:</p>
+                </div>
+                <div class="edit-table-col">
+                    <p data-bind="text: location"></p>
+                </div>
+                <div class="edit-table-col">
+                    <input data-bind="value: location" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col">
+                    <p>Contact Information:</p>
+                </div>
+                <div class="edit-table-col">
+                    <p data-bind="text: contact_info"></p>
+                </div>
+                <div class="edit-table-col">
+                    <input data-bind="value: contact_info" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col">
+                    <p>PCE Username:</p>
+                </div>
+                <div class="edit-table-col">
+                    <p data-bind="text: pce_username"></p>
+                </div>
+                <div class="edit-table-col">
+                    <input data-bind="value: pce_username" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col">
+                    <p>PCE Password</p>
+                </div>
+                <div class="edit-table-col">
+                    <p data-bind="text: pce_password"></p>
+                </div>
+                <div class="edit-table-col">
+                    <input data-bind="value: pce_password" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col">
+                    <p>Port:</p>
+                </div>
+                <div class="edit-table-col">
+                    <p data-bind="text: port"></p>
+                </div>
+                <div class="edit-table-col">
+                    <input data-bind="value: port" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col">
+                    <p>URL:</p>
+                </div>
+                <div class="edit-table-col">
+                    <p data-bind="text: url"></p>
+                </div>
+                <div class="edit-table-col">
+                    <input data-bind="value: url" />
+                </div>
+            </div>
+
+
+            <!-- Add PCE button -->
+            <div class="row">
+                <div class="col-lg-4 col-md-5 col-sm-6">
+                    <button class="btn btn-primary" data-bind="click: $parent.updateServer">Add PCE</button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- View an existing PCE -->
+        <div class="container" data-bind="with: selectedPCE()">
+            <div class="row">
+                <h3>PCE Info: <span data-bind="text:name"></span> (PCE ID: <span data-bind="text: id"></span>)</h3>
+            </div>
+            <div class="row">
+                <div class="edit-table-col table-header">
+                    <p>Field</p>
+                </div>
+                <div class="edit-table-col table-header">
+                    <p>Current Value</p>
+                </div>
+                <div class="edit-table-col table-header">
+                    <p>New Value</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col">
+                    <p>PCE Name:</p>
+                </div>
+                <div class="edit-table-col">
+                    <p data-bind="text: name"></p>
+                </div>
+                <div class="edit-table-col">
+                    <input data-bind="value: name" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col">
+                    <p>Status:</p>
+                </div>
+                <div class="edit-table-col">
+                    <p data-bind="text: status"></p>
+                </div>
+                <div class="edit-table-col">
+                    <p></p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col">
+                    <p>Description:</p>
+                </div>
+                <div class="edit-table-col">
+                    <p data-bind="text: description"></p>
+                </div>
+                <div class="edit-table-col">
+                    <input data-bind="value: description" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col">
+                    <p>Location:</p>
+                </div>
+                <div class="edit-table-col">
+                    <p data-bind="text: location"></p>
+                </div>
+                <div class="edit-table-col">
+                    <input data-bind="value: location" />
+                </div>
+            </div>
+
+
+
+
+            <!-- list of workspaces -->
+            <div class="row">
+                <div class="refresh-header">
+                    <h4>Workspaces (<span data-bind="text: Workspacelist().length"></span>)</h4>
+                </div>
+                <div class="refresh-button">
+                    <button class="btn btn-primary" data-bind="click: $parent.refreshWorkspaces">Refresh Workspaces</button>
+                </div>
+
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>View/Edit</th>
+                            <!-- <th>Remove</th> -->
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: Workspacelist">
+                        <tr>
+                            <td data-bind="text: wID"></td>
+                            <td data-bind="text: name"></td>
+                            <td data-bind="text: desc"></td>
+                            <td><button class="btn" data-bind="click: viewWorkspace">View Workspace</button></td>
+                            <!--<td><a data-bind="click: $parent.removeFromWorkspace">Remove</a></td> -->
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- list of Jobs -->
+            <div class="row">
+                <div class="refresh-header">
+                    <h4>Jobs (<span data-bind="text: Jobslist().length"></span>)</h4>
+                </div>
+                <div class="refresh-button">
+                    <button class="btn btn-primary" data-bind="click: $parent.refreshJobs">Refresh Jobs</button>
+                </div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Run Name</th>
+                            <th>User</th>
+                            <th>Workspace</th>
+                            <th>PCE</th>
+                            <th>Module</th>
+                            <th>Status</th>
+                            <th>Runtime</th>
+                            <th>View/Edit</th>
+                            <!-- <th>Delete</th> -->
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: Jobslist">
+                        <tr>
+                            <td data-bind="text: jID"></td>
+                            <td data-bind="text: name"></td>
+                            <td data-bind="text: user"></td>
+                            <td data-bind="text: ws"></td>
+                            <td data-bind="text: pce"></td>
+                            <td data-bind="text: mod"></td>
+                            <td data-bind="text: status"></td>
+                            <td data-bind="text: time"></td>
+                            <td><button class="btn" data-bind="click: viewJob">View Job</button></td>
+                            <!-- <td><a data-bind="click: $parent.deleteJob">Remove</a></td> -->
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+            <!-- list of modules -->
+            <!-- Need to add buttons to deploy modules -->
+            <div class="row">
+                <div class="refresh-header">
+                    <h4>Modules (<span data-bind="text: Moduleslist().length"></span>)</h4>
+                </div>
+                <div class="refresh-button">
+                    <button class="btn btn-primary" data-bind="click: $parent.showNewModuleForm">Add a Module</button>
+                </div>
+                <div class="refresh-button">
+                    <button class="btn btn-primary" data-bind="click: refreshModules">Refresh Modules</button>
+                </div>
+
+
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Is Visible?</th>
+                            <th>State</th>
+                            <!--<th>View</th>-->
+                            <th>Deploy</th>
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: Moduleslist">
+                        <tr>
+                            <td data-bind="text: id"></td>
+                            <td data-bind="text: name"></td>
+                            <td data-bind="text: desc"></td>
+                            <td data-bind="text: is_visible"></td>
+                            <td data-bind="text: state_str"></td>
+                            <!--<td><button class="btn" data-bind="click: viewModule">View</button></td>-->
+                            <td><button class="btn" data-bind="click: $parent.deployModule">Deploy</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Add a module -->
+            <div class="container" data-bind="with: newModule()">
+                <div class="row">
+                    <h3>Module to add: <span data-bind="text:name"></span></h3>
+                </div>
+                <div class="row">
+                    <div class="edit-table-col table-header">
+                        <p>Field</p>
+                    </div>
+                    <div class="edit-table-col table-header">
+                        <p>Current Value</p>
+                    </div>
+                    <div class="edit-table-col table-header">
+                        <p>New Value</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="edit-table-col">
+                        <p>Name</p>
+                    </div>
+                    <div class="edit-table-col">
+                        <p data-bind="text: name"></p>
+                    </div>
+                    <div class="edit-table-col">
+                        <input data-bind="value: name" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="edit-table-col">
+                        <p>Install Location</p>
+                    </div>
+                    <div class="edit-table-col">
+                        <p data-bind="text: install_location"></p>
+                    </div>
+                    <div class="edit-table-col">
+                        <input data-bind="value: install_location" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="edit-table-col">
+                        <p>Source Location Type</p>
+                    </div>
+                    <div class="edit-table-col">
+                        <p data-bind="text: src_location_type"></p>
+                    </div>
+                    <div class="edit-table-col">
+                        <input data-bind="value: src_location_type" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="edit-table-col">
+                        <p>Source Location Path</p>
+                    </div>
+                    <div class="edit-table-col">
+                        <p data-bind="text: src_location_path"></p>
+                    </div>
+                    <div class="edit-table-col">
+                        <input data-bind="value: src_location_path" />
+                    </div>
+                </div>
+
+                <!-- Add Module button -->
+                <div class="row">
+                    <div class="col-lg-4 col-md-5 col-sm-6">
+                        <button class="btn btn-primary" data-bind="click: $parent.addModule">Add Module</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- footer -->
+    <footer class="footer">
+        <div class="footer">
+            <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
+        </div>
+    </footer>
+
+    <!-- put all scripty scripts below this line -->
+    <!-- Order Matters here JQuery needs to be first then all_global.js -->
+    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src='{% static javascript/all_global.js" %}'></script>
+    <script src='{% static javascript/third_party/bootstrap.min.js" %}'></script>
+    <script src='{% static javascript/third_party/knockout-3.3.0.js" %}'></script>
+    <script src='{% static javascript/admin_pces.js" %}'></script>
+</body>
+</html>

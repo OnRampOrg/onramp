@@ -16,9 +16,9 @@ from subprocess import call
 
 package_name = 'webapp'
 
-source_dir = 'src'
-log_dir = 'log'
-tmp_dir = 'tmp'
+source_dir = '../src'
+log_dir = '../log'
+tmp_dir = '../tmp'
 
 env_dir = source_dir + '/env'
 tmp_users_dir = tmp_dir + '/users'
@@ -27,8 +27,8 @@ tmp_pce_dir   = tmp_dir + '/pce'
 tmpl_htaccess  = ".htaccess.tmpl"
 final_htaccess = ".htaccess"
 
-tmpl_conf  = "bin/onramp_server_config.cfg.tmpl"
-final_conf = "bin/onramp_server_config.cfg"
+tmpl_conf  = "onramp_server_config.cfg.tmpl"
+final_conf = "onramp_server_config.cfg"
 
 
 ###################################################
@@ -43,7 +43,7 @@ if os.path.exists(env_dir):
     response = raw_input('(R)emove and re-install or (A)bort? ')
     if response != 'R' and response != 'r':
         sys.exit('Aborted')
-    shutil.rmtree(env_dir)
+    #shutil.rmtree(env_dir)
     shutil.rmtree(log_dir, True)
     shutil.rmtree(tmp_users_dir, True)
     shutil.rmtree(tmp_pce_dir, True)
@@ -107,8 +107,8 @@ print "=" * 70
 #
 # Setup virtual environment
 #
-call(['virtualenv', '-p', 'python2.7', env_dir])
-call([env_dir + '/bin/pip', 'install', '-r', source_dir + '/onramp_server_requirements.txt'])
+#call(['virtualenv', '-p', 'python2.7', env_dir])
+#call([env_dir + '/bin/pip', 'install', '-r', source_dir + '/onramp_server_requirements.txt'])
 
 # Link Server to virtual environment
 # FIXME: This assumes python2.7. Need to find a way with virtualenv/pip to

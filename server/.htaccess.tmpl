@@ -1,4 +1,0 @@
-RewriteEngine on
-#RewriteRule ^(.*) $1 [last]
-RewriteRule ^api(.*) http://127.0.0.1:9092/$1 [proxy]
-ErrorDocument 503 "Sorry, the OnRamp Server does not seem to be running!"

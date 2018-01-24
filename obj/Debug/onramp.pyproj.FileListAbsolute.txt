@@ -1,0 +1,3 @@
+C:\Users\Drew\Source\Repos\onramp\obj\Debug\onramp.pyproj.CoreCompileInputs.cache
+C:\Users\Drew\Source\Repos\onramp\bin\Microsoft.PythonTools.WebRole.dll
+C:\Users\Drew\Source\Repos\onramp\bin\wfastcgi.py
