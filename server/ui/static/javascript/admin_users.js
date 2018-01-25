@@ -8,6 +8,7 @@
 	self.isAdmin = ko.observable(data['is_admin']);
 	self.isEnabled = ko.observable(data['is_enabled']);
 	self.password = ko.observable('');
+	self.repassword = ko.observable('');
 
 	self.auth_data = sessionStorage['auth_data'];
 
@@ -33,10 +34,11 @@
             data: {'user':self.id()},// 'csrfmiddlewaretoken':csrftoken},
             success: function(data) {
                 self.Jobslist.removeAll();
-                for (var x = 0; x < data.jobs.length; x++){
-                    var job = data.jobs[x];
-                    self.Jobslist.push(new Job(job, true, false));
-                }
+		if(data.jobs) {
+		    data.job.forEach(function(job){
+			self.JobsList.push(new Job(job, true, false));
+		    });
+		}
             }
         })
 
@@ -49,10 +51,11 @@
             data: {'user':self.id()},// 'csrfmiddlewaretoken':csrftoken},
             success: function (data) {
                 self.Workspacelist.removeAll();
-                for (var x = 0; x < data.workspaces.length; x++){
-                    var ws = data.workspaces[x];
-                    self.Workspacelist.push(new Workspace(ws, true));
-                }
+		if(data.workspaces) {
+		    data.workspaces.forEach(function(workspace) {
+			self.Workspacelist.push(new Workspace(workspace, true));
+		    });
+		}
             }
         })
 	};
@@ -91,17 +94,34 @@
 
 
 	self.removeFromWorkspace = function () {
-		// this is the workspace object
-		self.Workspacelist.remove(this);
-		alert("removing " + self.username() + " from workspace " + this.name);
+	    // this is the workspace object
+	    self.Workspacelist.remove(this);
+	    alert("removing " + self.username() + " from workspace " + this.name);
 	}
 
 	self.removeOnServer = function () {
-		// For now it just disables the user not deletes them
-		//var remove = confirm("Remove " + self.username() + " from the server?");
+	    // For now it just disables the user not deletes them
+	    var remove = confirm("Remove " + self.username() + " from the server?");
 
-		// For now just make request to update user and set is_enabled to false
+	    // For now just make request to update user and set is_enabled to false
+	    if(remove) {
 		$.ajax({
+      		    type: 'DELETE',
+      		    url: '/admin/Users/Delete/',
+      		    data: {'user_id':this.id()},
+      		    dataType: 'json',
+      		    success: function(response) {
+      			if (response['status'] == -1) {
+      		            // this means it failed
+      		            alert(response['status_message'])
+      			}
+      		    }
+		});
+	    }
+	}
+
+	self.disableUser = function() {
+	    $.ajax({
       		type: 'POST',
       		url: '/admin/Users/Disable/',
       		data: {'user_id':this.id()},
@@ -112,8 +132,24 @@
       		        alert(response['status_message'])
       		    }
       		}
-	  	} );
-		this.isEnabled(false);
+	    });
+	    this.isEnabled(false);
+	}
+
+	self.enableUser = function() {
+	    $.ajax({
+      		type: 'POST',
+      		url: '/admin/Users/Enable/',
+      		data: {'user_id':this.id()},
+      		dataType: 'json',
+      		success: function(response) {
+      		    if (response['status'] == -1) {
+      		        // this means it failed
+      		        alert(response['status_message'])
+      		    }
+      		}
+	    });
+	    this.isEnabled(false);
 	}
 }
 
@@ -138,13 +174,21 @@ function AdminUserViewModel() {
         this.editUser();
     }
 
-    self.disableUser = function () {
+    self.disableUser = function(user){
+	console.log("User: " + user);
+	console.log("This: " + this);
+	user.disableUser();
+    }
 
+    self.enableUser = function(user){
+	user.enableUser();
     }
 
     self.deleteUser = function () {
         // tell server to delete this user
         // self.Userslist.remove(this);
+
+	// 
         if (self.selectedUser() == this) {
             self.selectedUser(null);
         }
@@ -158,22 +202,27 @@ function AdminUserViewModel() {
         self.selectedUser(newUser);
     }
 
-    // This function fires when the page first loads
-    // It will populate the userlist to be displayed
-    $(document).ready( function () {
-        // reinitialize values
-        self.Userslist([]);
-        // Get all users from server
-        $.ajax({
-            url: '/admin/Users/GetAll/',
+    self.updateList = function() {
+	
+      	// reinitialize values
+       	self.Userslist([]);
+       	// Get all users from server
+       	$.ajax({
+	    url: '/admin/Users/GetAll/',
             type: 'GET',
             dataType:'json',
             success: function (data) {
-                data.users.forEach(function (user) {
+		data.users.forEach(function (user) {
                     self.Userslist.push(new UserProfile(user));
-                });
-            }
-        })
+		});
+	    }
+	});
+    }
+
+   // This function fires when the page first loads
+   // It will populate the userlist to be displayed
+    $(document).ready( function () {
+	self.updateList();
     });
 }
 
