@@ -76,6 +76,24 @@ def add_pce(request):
     return HttpResponse(json.dumps(response))
 
 @login_required
+def edit_pce(request):
+    """
+        URL: /admin/PCEs/Edit
+        
+    :param request: 
+    :return: 
+    """
+
+@login_required
+def delete_pce(request):
+    """
+        URL: /admin/PCEs/Delete
+
+    :param request:
+    :return:
+    """
+
+@login_required
 def get_pce_modules(request):
     """
         URL: /admin/PCEs/Modules
@@ -115,6 +133,24 @@ def get_pce_modules(request):
     return HttpResponse(json.dumps(response))
 
 @login_required
+def add_pce_module(request):
+    """
+        URL: /admin/PCEs/Module/Add
+
+    :param request:
+    :return:
+    """
+
+@login_required
+def edit_pce_module(request):
+    """
+        URL: /admin/PCEs/Module/Edit
+
+    :param request:
+    :return:
+    """
+
+@login_required
 def get_pce_workspaces(request):
     """
         URL: /admin/PCEs/Workspaces
@@ -148,6 +184,7 @@ def get_pce_workspaces(request):
 @login_required
 def get_pce_jobs(request):
     """
+        URL: /admin/PCEs/Jobs
 
     :param request:
     :return:
@@ -172,6 +209,7 @@ def get_pce_jobs(request):
 @login_required
 def get_module_state(request):
     """
+        URL: /admin/modules/state
 
     :param request:
     :return:
@@ -197,6 +235,7 @@ def get_module_state(request):
 @login_required
 def deploy_module(request):
     """
+        URL: /admin/PCEs/Deploy
 
     :param request:
     :return:

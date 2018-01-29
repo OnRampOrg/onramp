@@ -72,12 +72,12 @@
                             <th>Admin</th>
                             <th>Enabled</th>
                             <th>Update</th>
-                            <th>Disable</th>
+                            <th>Disable/Enable</th>
                             <th>Delete</th>
                         </tr>
                     </thead>
                     <tbody data-bind="foreach: Userslist()">
-                        <tr data-bind="click: $parent.selectUser">
+                        <tr>
                             <td data-bind="text: id"></td>
                             <td data-bind="text: username"></td>
                             <td data-bind="text: first_name"></td>
@@ -85,8 +85,16 @@
                             <td data-bind="text: email"></td>
                             <td data-bind="text: isAdmin"></td>
                             <td data-bind="text: isEnabled"></td>
-                            <td><button class="btn btn-danger" data-bind="click: $parent.disableUser">Disable</button></td>
-                            <td><button class="btn btn-danger" data-bind="click: $parent.deleteUser">Delete</button></td>
+			    <td><button class="btn btn-primary glyphicon glyphicon-pencil" data-bind="click: $parent.selectUser"></button></td>
+                            <td>
+				<!--ko if: isEnabled-->
+					<button class="btn btn-danger glyphicon glyphicon-remove" data-bind="click: $parent.disableUser"></button>
+				<!--/ko-->
+				<!--ko ifnot: isEnabled-->
+					<button class="btn btn-primary glyphicon glyphicon-ok" data-bind="click: $parent.enableUser"></button>
+				<!--/ko-->
+			    </td>
+                            <td><button class="btn btn-danger glyphicon glyphicon-trash" data-bind="click: $parent.deleteUser"></button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -127,11 +135,13 @@
                 <div class="edit-table-col"><p data-bind="text: password"></p></div>
                 <div class="edit-table-col"><input type="password" data-bind="value: password" /></div>
             </div>
+	    <!--
             <div class="row">
                 <div class="edit-table-col"><p>Retype Password</p></div>
-                <div class="edit-table-col"><p data-bind="text: re-password"></p></div>
-                <div class="edit-table-col"><input type="password" data-bind="value: re-password" /></div>
+                <div class="edit-table-col"><p data-bind="text: repassword"></p></div>
+                <div class="edit-table-col"><input type="password" data-bind="value: repassword" /></div>
             </div>
+	    -->
             <div class="row">
                 <div class="edit-table-col"><p>Admin</p></div>
                 <div class="edit-table-col"><p data-bind="text: isAdmin"></p></div>

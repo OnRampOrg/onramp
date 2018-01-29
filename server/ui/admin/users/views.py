@@ -138,16 +138,41 @@ def disable_user(request):
     return HttpResponse(json.dumps(response))
 
 # @login_required
+def enable_user(request):
+    """ Reenables the specified user account
+
+        URL: /admin/Users/Enable
+
+    :param request:
+    :return:
+    """
+    user_id = request.POST.get('user_id')
+    if user_id is None:
+        response = {'status': -1, 'status_message': 'No user with id {} exists'.format(user_id)}
+        return HttpResponse(json.dumps(response))
+    try:
+        user_obj = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        response = {'status': -1, 'status_message': 'No user with id {} exists'.format(user_id)}
+        return HttpResponse(json.dumps(response))
+    user_obj.is_active = True
+    user_obj.save()
+    response = {'status': 1, 'status_message': 'Success'}
+    return HttpResponse(json.dumps(response))
+
+# @login_required
 def delete_user(request):
     """ Removes the specified user account from the db
 
         URL: /admin/Users/Delete
 
-        :param request:
-        :return:
+    :param request:
+    :return:
     """
     user_id = request.POST.get('user_id')
     User.objects.filter(id=user_id).delete()
+    response = {'status': 1, 'status_message': 'Success'}
+    return HttpResponse(json.dumps(response))
 
 
 # @login_required
