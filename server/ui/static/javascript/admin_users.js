@@ -106,7 +106,7 @@
 	    // For now just make request to update user and set is_enabled to false
 	    if(remove) {
 		$.ajax({
-      		    type: 'DELETE',
+      		    type: 'POST',
       		    url: '/admin/Users/Delete/',
       		    data: {'user_id':this.id()},
       		    dataType: 'json',
@@ -149,7 +149,7 @@
       		    }
       		}
 	    });
-	    this.isEnabled(false);
+	    this.isEnabled(true);
 	}
 }
 
@@ -175,8 +175,6 @@ function AdminUserViewModel() {
     }
 
     self.disableUser = function(user){
-	console.log("User: " + user);
-	console.log("This: " + this);
 	user.disableUser();
     }
 
@@ -192,6 +190,7 @@ function AdminUserViewModel() {
         if (self.selectedUser() == this) {
             self.selectedUser(null);
         }
+	self.Userslist.remove(this);
         this.removeOnServer();
     }
 
