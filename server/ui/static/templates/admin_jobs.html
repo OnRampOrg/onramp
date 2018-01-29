@@ -100,6 +100,58 @@
             </div>
         </div>
     </div>
+    
+    <div class="container" data-bind="with: selectedJob">
+      <div class="row">
+	<h3>Job Info: <span data-bind="text: username"></span> (Job ID: <span data-bind="text: id"></span>)</h3>
+      </div>
+      <div class="row">
+	<div class="edit-table-col table-header"><p>Field</p></div>
+	<div class="edit-table-col table-header"><p>Current Value</p></div>
+	<div class="edit-table-col table-header"><p>New Value</p></div>
+      </div>
+      <div class="row">
+	<div class="edit-table-col"><p>Run Name</p></div>
+	<div class="edit-table-col"><p data-bind="text: name"></p></div>
+	<div class="edit-table-col"><input data-bind="value: name"/></div>
+      </div>
+      <div class="row">
+	<div class="edit-table-col"><p>User</p></div>
+	<div class="edit-table-col"><p data-bind="text: user"></p></div>
+	<div class="edit-table-col"><input data-bind="value: user"/></div>
+      </div>
+      <div class="row">
+	<div class="edit-table-col"><p>Workspace</p></div>
+	<div class="edit-table-col"><p data-bind="text: ws"></p></div>
+	<div class="edit-table-col"><input data-bind="value: ws"/></div>
+      </div>
+      <div class="row">
+	<div class="edit-table-col"><p>PCE</p></div>
+	<div class="edit-table-col"><p data-bind="text: pce"></p></div>
+	<div class="edit-table-col"><input data-bind="value: pce"/></div>
+      </div>
+      <div class="row">
+	<div class="edit-table-col"><p>Module</p></div>
+	<div class="edit-table-col"><p data-bind="text: mod"></p></div>
+	<div class="edit-table-col"><input data-bind="value: mod"/></div>
+      </div>
+      <div class="row">
+	<div class="edit-table-col"><p>Output File</p></div>
+	<div class="edit-table-col"><p data-bind="text: output"></p></div>
+	<div class="edit-table-col"><input data-bind="value: output"/></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-4 col-md-5 col-sm-6">
+	<button class="btn" data-bind="click: updateJob">Save Changes</button>
+      </div>
+    </div>
+    
+    <div class="row">
+      <button class="btn"> Temporary padding for footer</button>
+    </div>
+
     <!-- footer -->
     <footer class="footer">
         <div class="footer">
