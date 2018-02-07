@@ -11,6 +11,7 @@ from core.definitions import MODULE_STATES
 
 from core.pce_connect import PCEAccess
 
+success_response = {'status': 1, 'status_message': 'Success'}
 
 @login_required
 def main(request):
@@ -64,12 +65,12 @@ def add_pce(request):
     )
     if created:
         response = {
-            'status':0,
+            'status':1,
             'status_message':'Success'
         }
     else:
         response = {
-            'status':1,
+            'status':-1,
             'status_message':'A PCE with that name already exists, '
                              'please pick a unique name.'
         }
@@ -83,6 +84,27 @@ def edit_pce(request):
     :param request: 
     :return: 
     """
+    post = request.POST.dict()
+    pce_id = post.get('pce_id')
+    if pce_id is None:
+        response = {'status': -1, 'status_message': 'No pce_id specified'}
+        return HttpResponse(json.dumps(response))
+    try:
+        pce_obj = pce.objects.get(id = pce_id)
+    except pce.DoesNotExist:
+        response = {'status': -1, 'status_message': 'Invalid pce_id: {}'.format(pce_id)}
+        return HttpResponse(json.dumps(response))
+    pce_obj.pce_name = post.get('pce_name') #TODO unique check
+    pce_obj.ip_addr = post.get('ip_addr')
+    pce_obj.ip_port = post.get('ip_port')
+    pce_obj.state = post.get('port')
+    pce_obj.contact_info = post.get('contact_info')
+    pce_obj.location = post.get('location')
+    pce_obj.description = post.get('description')
+    pce_obj.pce_username = post.get('pce_username')
+    pce_obj.save()
+    response = {'status': 1, 'status_message': 'Success'}
+    return HttpResponse(json.dumps(response))
 
 @login_required
 def delete_pce(request):
@@ -92,6 +114,10 @@ def delete_pce(request):
     :param request:
     :return:
     """
+    id = request.POST.dict().get("id")
+    pce.objects.filter(id=id).delete()
+    response = {'status': -1, 'status_message': 'Success'}
+    return HttpResponse(json.dumps(response))
 
 @login_required
 def get_pce_modules(request):
@@ -140,6 +166,24 @@ def add_pce_module(request):
     :param request:
     :return:
     """
+    post = request.POST.dict()
+    mod_obj, created = module.objects.get_or_create(
+        mod_name = post['name'],
+        defaults={
+            "version":post.get('version', ''),
+            "src_location":post.get('src_location', ''),
+            "description":post.get('description', '')
+        }
+    )
+    if created:
+        response = success_response
+    else:
+        response = {
+            'status':1,
+            'status_message':'A Module with that name already exists, '
+                             'please pick a unique name.'
+        }
+    return HttpResponse(json.dumps(response))
 
 @login_required
 def edit_pce_module(request):
@@ -149,6 +193,34 @@ def edit_pce_module(request):
     :param request:
     :return:
     """
+    post = request.POST.dict()
+    mod_id = post.get('mod_id')
+    if mod_id is None:
+        response = {'status': -1, 'status_message': 'No mod_id specified'}
+        return HttpResponse(json.dumps(response))
+    try:
+        mod_obj = module.objects.get(id = mod_id)
+    except module.DoesNotExist:
+        response = {'status': -1, 'status_message': 'Invalid mod_id: {}'.format(mod_id)}
+        return HttpResponse(json.dumps(response))
+    mod_obj.module_name = post.get('name')
+    mod_obj.version = post.get('version', '')
+    mod_obj.src_location = post.get('src_location', '')
+    mod_obj.description = post.get('description', '')
+    mod_obj.save()
+    return HttpResponse(json.dumps(success_response))
+
+@login_required
+def delete_pce_module(request):
+    """
+        URL: /admin/PCEs/Module/Delete
+
+    :param request:
+    :return:
+    """
+    id = request.POST.dict().get('id')
+    module.objects.filter(id=id).delete()
+    return HttpResponse(json.dumps(success_response))
 
 @login_required
 def get_pce_workspaces(request):
@@ -261,5 +333,6 @@ def deploy_module(request):
         response = {'status': False, 'status_message': 'Failed to deploy module',
                     'error_info': e.message}
     return HttpResponse(json.dumps(response))
+
 
 

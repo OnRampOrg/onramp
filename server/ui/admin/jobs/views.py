@@ -72,7 +72,7 @@ def create_job(request):
     response = {'status': 1, 'status_message': 'Success'}
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@login_required
 def update_job(request):
     """ Updates a job with new fields
         
@@ -81,7 +81,7 @@ def update_job(request):
     :param request:
     :return:
     """
-    post = request.PUT.dict()
+    post = request.POST.dict()
     job_id = post.get('job_id')
     if job_id is None:
         response = {'status': -1, 'status_message': 'No job_id specified'}
@@ -99,7 +99,7 @@ def update_job(request):
     response = {'status': 1, 'status_message': 'Success'}
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@login_required
 def delete_job(request):
     """ Deletes a specific job
 
@@ -108,7 +108,7 @@ def delete_job(request):
         :param request:
         :return:
     """
-    id = request.DELETE.dict().get("id")
+    id = request.POST.dict().get("id")
     job.objects.filter(id=id).delete()
     response = {
         'status': 1,
