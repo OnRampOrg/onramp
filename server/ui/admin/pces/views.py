@@ -168,7 +168,7 @@ def add_pce_module(request):
     """
     post = request.POST.dict()
     mod_obj, created = module.objects.get_or_create(
-        mod_name = post['name'],
+        mod_name = post['module_name'],
         defaults={
             "version":post.get('version', ''),
             "src_location":post.get('src_location', ''),
@@ -194,14 +194,14 @@ def edit_pce_module(request):
     :return:
     """
     post = request.POST.dict()
-    mod_id = post.get('mod_id')
+    mod_id = post.get('module_id')
     if mod_id is None:
-        response = {'status': -1, 'status_message': 'No mod_id specified'}
+        response = {'status': -1, 'status_message': 'No module_id specified'}
         return HttpResponse(json.dumps(response))
     try:
         mod_obj = module.objects.get(id = mod_id)
     except module.DoesNotExist:
-        response = {'status': -1, 'status_message': 'Invalid mod_id: {}'.format(mod_id)}
+        response = {'status': -1, 'status_message': 'Invalid module_id: {}'.format(mod_id)}
         return HttpResponse(json.dumps(response))
     mod_obj.module_name = post.get('name')
     mod_obj.version = post.get('version', '')

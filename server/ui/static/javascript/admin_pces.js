@@ -96,9 +96,20 @@ function adminPCE (data) {
 	}
 
 	self.addModule = function () {
-		// LEFT OFF HERE!!!!
-		//   todo: need to fix ajax call, and figure out what the paths need to be
-		alert("Not yet implemented on server.")
+	    // This will add a new module to the PCE
+	    $.ajax({
+		type: 'POST',
+		url: '/admin/PCEs/Module/Add/',
+		dataType: 'json',
+		data: {
+		    'module_id': self.newModule().id(),
+		    'module_name': self.newModule().name(),
+		    'install_location': self.newModule().install_location(),
+		    'src_location_type': self.newModule().src_location_type(),
+		    'src_location_path': self.newModule().src_location_path()
+		}
+	    });
+		//alert("Not yet implemented on server.")
 		// this will add a new module to the PCE
 		// POST .../admin/pces/:ID/modules/:MODULEID
 //		console.log(self.newModule().name());

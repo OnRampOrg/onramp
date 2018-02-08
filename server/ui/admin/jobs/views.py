@@ -72,7 +72,7 @@ def create_job(request):
     response = {'status': 1, 'status_message': 'Success'}
     return HttpResponse(json.dumps(response))
 
-@login_required
+# @login_required
 def update_job(request):
     """ Updates a job with new fields
         
@@ -99,7 +99,7 @@ def update_job(request):
     response = {'status': 1, 'status_message': 'Success'}
     return HttpResponse(json.dumps(response))
 
-@login_required
+# @login_required
 def delete_job(request):
     """ Deletes a specific job
 
