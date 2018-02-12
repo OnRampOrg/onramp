@@ -118,7 +118,8 @@
       <div class="row">
 	<div class="edit-table-col"><p>User</p></div>
 	<div class="edit-table-col"><p data-bind="text: user"></p></div>
-	<div class="edit-table-col"><input data-bind="value: user"/></div>
+    <div class="edit-table-col"><dropdown params="url: '/admin/Users/GetAll/'"></dropdown></div>
+	<!--<div class="edit-table-col"><input data-bind="value: user"/></div>-->
       </div>
       <div class="row">
 	<div class="edit-table-col"><p>Workspace</p></div>

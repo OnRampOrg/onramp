@@ -3,6 +3,11 @@
  * comments
  */
 //too different
+ko.components.register('dropdown', {
+    viewModel: { require: 'components/dropdown' },
+    template: { require: 'text!../templates/components/dropdown.html' }
+});
+
 function JobProfile(data){
 	var self = this;
 	self.jID = data['job_id'];
