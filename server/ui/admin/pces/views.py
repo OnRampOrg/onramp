@@ -169,6 +169,9 @@ def add_pce_module(request):
     post = request.POST.dict()
     mod_obj, created = module.objects.get_or_create(
         mod_name = post['module_name'],
+        version = post.get('version', ''),
+        src_location = post.get('src_location', ''),
+        description = post.get('description', '')
     )
 
     if !created:
@@ -181,10 +184,7 @@ def add_pce_module(request):
 
     pm_pair, created = module_to_pce.objects.get_or_create(
         pce_id = int(post['pce_id']),
-        module_id = int(mod_obj.module_id),
-        version = post.get('version', ''),
-        src_location = post.get('src_location', ''),
-        description = post.get('description', '')
+        module_id = int(mod_obj.module_id)
     )
 
         
