@@ -169,19 +169,31 @@ def add_pce_module(request):
     post = request.POST.dict()
     mod_obj, created = module.objects.get_or_create(
         mod_name = post['module_name'],
-        defaults={
-            "version":post.get('version', ''),
-            "src_location":post.get('src_location', ''),
-            "description":post.get('description', '')
-        }
     )
+
+    if !created:
+        response = {
+            'status':1,
+            'status_message':'A Module with that name already exists, '
+                             'please pick a unique name.'
+        }
+        return HttpResponse(json.dumps(response))
+
+    pm_pair, created = module_to_pce.objects.get_or_create(
+        pce_id = int(post['pce_id']),
+        module_id = int(mod_obj.module_id),
+        version = post.get('version', ''),
+        src_location = post.get('src_location', ''),
+        description = post.get('description', '')
+    )
+
+        
     if created:
         response = success_response
     else:
         response = {
             'status':1,
-            'status_message':'A Module with that name already exists, '
-                             'please pick a unique name.'
+            'status_message':'This module is already associated with this PCE'
         }
     return HttpResponse(json.dumps(response))
 

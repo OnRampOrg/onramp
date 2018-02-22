@@ -229,11 +229,13 @@ def add_pce_mod_pair(request):
     # Save to db
     pm_pair, created = module_to_pce.objects.get_or_create(
         pce_id = int(pce_id),
-        module_id = int(module_id))
+        module_id = int(module_id)
+    )
 
     wpm_pair, created = workspace_to_pce_module.objects.get_or_create(
         workspace_id = int(workspace_id),
-        pm_pair_id = int(pm_pair.pm_pair_id))
+        pm_pair_id = int(pm_pair.pm_pair_id)
+    )
 
     if created:
         response = {'status':1, 'status_message':'Success'}
