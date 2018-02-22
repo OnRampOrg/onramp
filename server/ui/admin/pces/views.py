@@ -168,10 +168,10 @@ def add_pce_module(request):
     """
     post = request.POST.dict()
     mod_obj, created = module.objects.get_or_create(
-        mod_name = post['module_name'],
+        module_name = post['module_name'],
     )
 
-    if !created:
+    if not created:
         response = {
             'status':1,
             'status_message':'A Module with that name already exists, '
