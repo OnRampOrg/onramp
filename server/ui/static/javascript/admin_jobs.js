@@ -3,7 +3,13 @@
  * comments
  */
 //too different
-function myJob(data){
+
+ko.components.register('dropdown', {
+    viewModel: { require: 'components/dropdown' },
+    template: { require: 'text!../templates/components/dropdown.html' }
+});
+
+function JobProfile(data){
 	var self = this;
 	self.jID = data['job_id'];
 	self.user = data['user_id'];
@@ -27,26 +33,25 @@ function myJob(data){
 
 
     self.updateJob = function() {
+	console.log(this);
 	var data = {
-	    'user': this.user(),
-	    'workspace': this.ws(),
-	    'pce': this.pce(),
-	    'module': this.mod(),
-	    'job_name': this.name(),
-	    'state': this.status(),
-	    'output_file': this.output()
+	    'user': this.user,
+	    'workspace': this.ws,
+	    'pce': this.pce,
+	    'module': this.mod,
+	    'job_name': this.name,
+	    'state': this.status,
+	    'output_file': this.output
 	    // TODO run_parameters, files, runtime
 	}
-	if(this.id() == undefined) {
-	    var url = '/admin/Jobs/Create/';
-	    var type = 'POST';
+	if(this.id == undefined) {
+	    var url = '/admin/Jobs/Create';
 	} else {
-	    var url = '/admin/Jobs/Update/';
-	    var type = 'PUT';
+	    var url = '/admin/Jobs/Update';
 	}
 	$.ajax({
 	    url: url,
-	    type: type,
+	    type: 'POST',
 	    data: data,
 	    success: function(result) {
 		if(result['status'] == 1) {
@@ -85,7 +90,7 @@ function AdminJobsViewModel() {
 
     self.addJob = function () {
 	var newJob = new JobProfile({'name': 'New Job'});
-	self.JobList.push(newJob);
+	self.Jobslist.push(newJob);
 	self.selectedJob(newJob);
     }
 
@@ -106,7 +111,7 @@ function AdminJobsViewModel() {
 
 	// get data from server
 	$.ajax({
-	    url:'/admin/Jobs/All',
+	    url:'/admin/Jobs/GetAll',
 	    type:'GET',
 	    dataType:'json',
 	    success: function(response) {

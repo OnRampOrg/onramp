@@ -103,7 +103,7 @@
     
     <div class="container" data-bind="with: selectedJob">
       <div class="row">
-	<h3>Job Info: <span data-bind="text: username"></span> (Job ID: <span data-bind="text: id"></span>)</h3>
+	<h3>Job Info: <span data-bind="text: name"></span></h3>
       </div>
       <div class="row">
 	<div class="edit-table-col table-header"><p>Field</p></div>
@@ -118,7 +118,8 @@
       <div class="row">
 	<div class="edit-table-col"><p>User</p></div>
 	<div class="edit-table-col"><p data-bind="text: user"></p></div>
-	<div class="edit-table-col"><input data-bind="value: user"/></div>
+    <div class="edit-table-col"><dropdown params="url: '/admin/Users/GetAll/'"></dropdown></div>
+	<!--<div class="edit-table-col"><input data-bind="value: user"/></div>-->
       </div>
       <div class="row">
 	<div class="edit-table-col"><p>Workspace</p></div>
@@ -140,16 +141,12 @@
 	<div class="edit-table-col"><p data-bind="text: output"></p></div>
 	<div class="edit-table-col"><input data-bind="value: output"/></div>
       </div>
-    </div>
 
-    <div class="row">
-      <div class="col-lg-4 col-md-5 col-sm-6">
-	<button class="btn" data-bind="click: updateJob">Save Changes</button>
+      <div class="row">
+	<div class="col-lg-4 col-md-5 col-sm-6">
+	  <button class="btn" data-bind="click: updateJob">Save Changes</button>
+	</div>
       </div>
-    </div>
-    
-    <div class="row">
-      <button class="btn"> Temporary padding for footer</button>
     </div>
 
     <!-- footer -->
@@ -162,6 +159,7 @@
     <!-- put all scripty scripts below this line -->
     <!-- Order Matters here JQuery needs to be first then all_global.js -->
     <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.js"></script>
     <script src='{% static "javascript/all_global.js" %}'></script>
     <script src='{% static "javascript/third_party/bootstrap.min.js" %}'></script>
     <script src='{% static "javascript/third_party/knockout-3.3.0.js" %}'></script>
