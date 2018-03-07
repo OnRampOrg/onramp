@@ -34,11 +34,11 @@ function UserProfile(data) {
             data: {'user':self.id()},// 'csrfmiddlewaretoken':csrftoken},
             success: function(data) {
                 self.Jobslist.removeAll();
-		if(data.jobs) {
-		    data.job.forEach(function(job){
-			self.JobsList.push(new Job(job, true, false));
-		    });
-		}
+		        if(data.jobs) {
+		            data.job.forEach(function(job){
+			        self.JobsList.push(new Job(job, true, false));
+		            });
+		        }
             }
         })
 
@@ -221,9 +221,17 @@ function AdminUserViewModel() {
    // This function fires when the page first loads
    // It will populate the userlist to be displayed
     $(document).ready( function () {
-	self.updateList();
+	    self.updateList();
     });
 }
+
+// Custom validator for passwords being equal
+ko.validation.rules['mustEqual'] = {
+    validator: function (val, otherVal) {
+        return val === otherVal;
+    },
+    message: 'The field must equal {0}'
+};
 
 // Activates knockout.js
 ko.applyBindings(new AdminUserViewModel());
