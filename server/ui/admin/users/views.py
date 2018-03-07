@@ -21,7 +21,7 @@ def main(request):
 
 # @login_required
 def get_all_users(request):
-    """ Retrieves all OnRamp users
+    """ Retrieve all OnRamp users
 
         URL: /admin/Dashboard/GetUsers/
 
@@ -49,7 +49,7 @@ def get_all_users(request):
 
 # @login_required
 def update_user(request):
-    """ Updates the specified user with new settings
+    """ Update a specific user with new settings
 
         URL: /admin/Users/Update/
 
@@ -78,7 +78,7 @@ def update_user(request):
     user_obj.is_superuser = json.loads(post.get('is_admin', 'false'))
     user_obj.is_active = json.loads(post.get('is_enabled', 'false'))
     user_obj.save()
-    response = {'status':1, 'status_message':'Success'}
+    response = {'status': 1, 'status_message': 'Success'}
     return HttpResponse(json.dumps(response))
 
 
@@ -116,7 +116,8 @@ def create_user(request):
 
 # @login_required
 def disable_user(request):
-    """ Disables the specified user account so they cannot login
+    """ Disable a specific enabled user
+		They will no longer be able to login
 
         URL: /admin/Users/Disable
 
@@ -139,7 +140,8 @@ def disable_user(request):
 
 # @login_required
 def enable_user(request):
-    """ Reenables the specified user account
+    """ Enable a specific disabled user
+		They will be able to login again
 
         URL: /admin/Users/Enable
 
@@ -162,7 +164,7 @@ def enable_user(request):
 
 # @login_required
 def delete_user(request):
-    """ Removes the specified user account from the db
+    """ Remove a specific user
 
         URL: /admin/Users/Delete
 
@@ -177,7 +179,7 @@ def delete_user(request):
 
 # @login_required
 def get_user_jobs(request):
-    """ Gets all jobs ran by a specific user
+    """ Retrieve all jobs run by a specific user
 
         URL: /admin/Users/Jobs
 
@@ -198,7 +200,7 @@ def get_user_jobs(request):
 
 # @login_required
 def get_user_workspaces(request):
-    """ Gets all workspaces for a given user
+    """ Retrieve all workspaces for a specific user
 
         URL: /admin/Users/Workspaces
 

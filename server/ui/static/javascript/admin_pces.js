@@ -209,11 +209,11 @@ function adminPCE (data) {
 				'contact_info':this.contact_info(),
 				'description':this.description(),
 				'location':this.location(),
-				'name':this.name(),
+				'pce_name':this.name(),
 				'pce_password':this.pce_password(),
 				'pce_username':this.pce_username(),
-				'port':this.port(),
-				'url':this.url()
+				'ip_port':this.port(),
+				'ip_addr':this.url()
 			},
 			dataType: 'json',
 			success: function (data) {

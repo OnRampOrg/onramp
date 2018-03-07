@@ -110,7 +110,7 @@
                 <div class="edit-table-col table-header"><p>Current Value</p></div>
                 <div class="edit-table-col table-header"><p>New Value</p></div>
             </div>
-            <div class="row">
+            <div class="row required">
                 <div class="edit-table-col"><p>Username</p></div>
                 <div class="edit-table-col"><p data-bind="text: username"></p></div>
                 <div class="edit-table-col"><input data-bind="value: username" /></div>
@@ -130,18 +130,16 @@
                 <div class="edit-table-col"><p data-bind="text: email"></p></div>
                 <div class="edit-table-col"><input data-bind="value: email" /></div>
             </div>
-            <div class="row">
+            <div class="row required">
                 <div class="edit-table-col"><p>Password</p></div>
-                <div class="edit-table-col"><p data-bind="text: password"></p></div>
+                <div class="edit-table-col"><p data-bind="text: "*".repeat(password.length)"></p></div>
                 <div class="edit-table-col"><input type="password" data-bind="value: password" /></div>
             </div>
-	    <!--
-            <div class="row">
+            <div class="row required">
                 <div class="edit-table-col"><p>Retype Password</p></div>
-                <div class="edit-table-col"><p data-bind="text: repassword"></p></div>
+                <div class="edit-table-col"><p data-bind="text: "*".repeat(repassword.length)"></p></div>
                 <div class="edit-table-col"><input type="password" data-bind="value: repassword" /></div>
             </div>
-	    -->
             <div class="row">
                 <div class="edit-table-col"><p>Admin</p></div>
                 <div class="edit-table-col"><p data-bind="text: isAdmin"></p></div>

@@ -28,7 +28,7 @@ def main(request):
 
 @login_required
 def get_all_pces(request):
-    """ Gets All configured PCEs from the database
+    """ Retrieve all configured PCEs
 
         URL: /admin/PCEs/GetAll
 
@@ -44,7 +44,7 @@ def get_all_pces(request):
 
 @login_required
 def add_pce(request):
-    """ Adds a new pce to the database
+    """ Add a new PCE
     
         URL: /admin/PCEs/Add/
     
@@ -53,10 +53,10 @@ def add_pce(request):
     """
     post = request.POST.dict()
     pce_obj, created = pce.objects.get_or_create(
-        pce_name = post['name'],
+        pce_name = post['pce_name'],
         defaults={
-            "ip_addr":post['url'],
-            "ip_port":post['port'],
+            "ip_addr":post['ip_addr'],
+            "ip_port":post['ip_port'],
             "contact_info":post.get('contact_info', ''),
             "description":post.get('description', ''),
             "location":post.get('location', ''),
@@ -64,10 +64,7 @@ def add_pce(request):
         }
     )
     if created:
-        response = {
-            'status':1,
-            'status_message':'Success'
-        }
+        response = success_response
     else:
         response = {
             'status':-1,
@@ -78,7 +75,8 @@ def add_pce(request):
 
 @login_required
 def edit_pce(request):
-    """
+    """ Edit a specific PCE
+
         URL: /admin/PCEs/Edit
         
     :param request: 
@@ -108,7 +106,8 @@ def edit_pce(request):
 
 @login_required
 def delete_pce(request):
-    """
+    """ Delete a specific PCE
+
         URL: /admin/PCEs/Delete
 
     :param request:
@@ -121,7 +120,7 @@ def delete_pce(request):
 
 @login_required
 def get_pce_modules(request):
-    """
+    """ Retrieve all modules from a specific PCE
         URL: /admin/PCEs/Modules
 
     :param request:
@@ -130,7 +129,7 @@ def get_pce_modules(request):
     post = request.POST.dict()
     pce_id = post.get('pce_id')
     if not pce_id:
-        response = {'status':False, 'status_message':'No PCE ID specified'}
+        response = {'status': -1, 'status_message':'No PCE ID specified'}
         return HttpResponse(json.dumps(response))
     try:
         pm_pairs = module_to_pce.objects.filter(pce_id=int(pce_id))
@@ -149,10 +148,10 @@ def get_pce_modules(request):
                 'src_location_path':pair.src_location_path,
                 'is_visible':pair.is_visible
             }
-        response = {'status':True, 'status_message':'Success', 'modules':modules.values()}
+        response = {'status': 1, 'status_message':'Success', 'modules':modules.values()}
     except Exception as e:
         response = {
-            'status':False,
+            'status': -1,
             'status_message':'Error retrieving requested data',
             'error_info':e.message
         }
@@ -160,7 +159,7 @@ def get_pce_modules(request):
 
 @login_required
 def add_pce_module(request):
-    """
+    """ Add a module to a specific PCE
         URL: /admin/PCEs/Module/Add
 
     :param request:
@@ -176,7 +175,7 @@ def add_pce_module(request):
 
     if not created:
         response = {
-            'status':1,
+            'status':-1,
             'status_message':'A Module with that name already exists, '
                              'please pick a unique name.'
         }
@@ -186,20 +185,20 @@ def add_pce_module(request):
         pce_id = int(post['pce_id']),
         module_id = int(mod_obj.module_id)
     )
-
         
     if created:
         response = success_response
     else:
         response = {
-            'status':1,
+            'status':-1,
             'status_message':'This module is already associated with this PCE'
         }
     return HttpResponse(json.dumps(response))
 
 @login_required
 def edit_pce_module(request):
-    """
+    """ Edit a module
+
         URL: /admin/PCEs/Module/Edit
 
     :param request:
@@ -224,19 +223,22 @@ def edit_pce_module(request):
 
 @login_required
 def delete_pce_module(request):
-    """
+    """ Delete Module
+
         URL: /admin/PCEs/Module/Delete
 
     :param request:
     :return:
     """
     id = request.POST.dict().get('id')
-    module.objects.filter(id=id).delete()
+    module_to_pce.objects.filter(module_id=int(id)).delete()
+    module.objects.filter(id=int(id)).delete()
     return HttpResponse(json.dumps(success_response))
 
 @login_required
 def get_pce_workspaces(request):
-    """
+    """ Retrieve all workspaces for a specific PCE
+
         URL: /admin/PCEs/Workspaces
 
     :param request:
@@ -245,7 +247,7 @@ def get_pce_workspaces(request):
     post = request.POST.dict()
     pce_id = post.get('pce_id')
     if not pce_id:
-        response = {'status': False, 'status_message': 'No PCE ID specified'}
+        response = {'status': -1, 'status_message': 'No PCE ID specified'}
         return HttpResponse(json.dumps(response))
     try:
         workspaces = {}
@@ -256,10 +258,10 @@ def get_pce_workspaces(request):
                     'workspace_id':row.workspace.workspace_id,
                     'description':row.workspace.description,
                 }
-        response = {'status':True, 'status_message':'Success', 'workspaces':workspaces.values()}
+        response = {'status':1, 'status_message':'Success', 'workspaces':workspaces.values()}
     except Exception as e:
         response = {
-            'status':False,
+            'status':-1,
             'status_message':'Error retrieving requested data',
             'error_info':e.message
         }
@@ -276,15 +278,15 @@ def get_pce_jobs(request):
     post = request.POST.dict()
     pce_id = post.get('pce_id')
     if not pce_id:
-        response = {'status': False, 'status_message': 'No PCE ID specified'}
+        response = {'status': -1, 'status_message': 'No PCE ID specified'}
         return HttpResponse(json.dumps(response))
     try:
         fields = ['job_id', 'pce_id', 'workspace_id', 'module_id', 'job_name', 'state']
         jobs = list(job.objects.filter(pce_id=int(pce_id)).values(*fields))
-        response = {'status': True, 'status_message': 'Success', 'jobs':jobs}
+        response = {'status': 1, 'status_message': 'Success', 'jobs':jobs}
     except Exception as e:
         response = {
-            'status': False,
+            'status': -1,
             'status_message': 'Error retrieving requested data',
             'error_info': e.message
         }
@@ -292,8 +294,9 @@ def get_pce_jobs(request):
 
 @login_required
 def get_module_state(request):
-    """
-        URL: /admin/modules/state
+    """ Retrieve state of a specific module on specific a PCE
+
+        URL: /admin/PCEs/Module/State
 
     :param request:
     :return:
@@ -302,15 +305,15 @@ def get_module_state(request):
     module_id = post.get('module_id')
     pce_id = post.get('pce_id')
     if not module_id or not pce_id:
-        response = {'status': False, 'status_message': 'No Module ID and/or PCE ID specified'}
+        response = {'status': -1, 'status_message': 'No Module ID and/or PCE ID specified'}
         return HttpResponse(json.dumps(response))
     try:
         row = module_to_pce.objects.get(pce_id=int(pce_id), module_id=int(module_id))
-        response = {'status': True, 'status_message': 'Success',
+        response = {'status': 1, 'status_message': 'Success',
                     'state_str': MODULE_STATES.get(row.state, 'N/A'), 'state':row.state}
     except Exception as e:
         response = {
-            'status': False,
+            'status': -1,
             'status_message': 'Error retrieving requested data',
             'error_info': e.message
         }
@@ -318,8 +321,9 @@ def get_module_state(request):
 
 @login_required
 def deploy_module(request):
-    """
-        URL: /admin/PCEs/Deploy
+    """ 
+
+        URL: /admin/PCEs/Module/Deploy
 
     :param request:
     :return:
@@ -328,21 +332,21 @@ def deploy_module(request):
     module_id = post.get('module_id')
     pce_id = post.get('pce_id')
     if not module_id or not pce_id:
-        response = {'status': False, 'status_message': 'No Module ID and/or PCE ID specified'}
+        response = {'status': -1, 'status_message': 'No Module ID and/or PCE ID specified'}
         return HttpResponse(json.dumps(response))
     try:
         connector = PCEAccess(int(pce_id))
     except Exception as e:
-        response = {'status':False, 'status_message':'Failed to create PCEAccess object',
+        response = {'status': 1, 'status_message':'Failed to create PCEAccess object',
                     'error_info':e.message}
         return HttpResponse(json.dumps(response))
     try:
         if connector.deploy_module(int(module_id)):
-            response = {'status':True, 'status_message':'Successfully deployed module'}
+            response = {'status':1, 'status_message':'Successfully deployed module'}
         else:
-            response = {'status': False, 'status_message': 'Failed to deployed module'}
+            response = {'status': -1, 'status_message': 'Failed to deployed module'}
     except Exception as e:
-        response = {'status': False, 'status_message': 'Failed to deploy module',
+        response = {'status': -1, 'status_message': 'Failed to deploy module',
                     'error_info': e.message}
     return HttpResponse(json.dumps(response))
 

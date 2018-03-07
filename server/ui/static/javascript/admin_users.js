@@ -1,14 +1,14 @@
-    function UserProfile(data) {
+function UserProfile(data) {
 	var self = this;
-	self.id = ko.observable(data['user_id']);
-	self.username = ko.observable(data['username']);
+    self.id = ko.observable(data['user_id']);
+    self.username = ko.observable(data['username']).extend({require: true, message: "Username is required", minlength: 1});
 	self.first_name = ko.observable(data['first_name']);
 	self.last_name = ko.observable(data['last_name'])
 	self.email = ko.observable(data['email']);
 	self.isAdmin = ko.observable(data['is_admin']);
-	self.isEnabled = ko.observable(data['is_enabled']);
-	self.password = ko.observable('');
-	self.repassword = ko.observable('');
+    self.isEnabled = ko.observable(data['is_enabled']);
+    self.password = ko.observable('').extend({require: true, message: "Password is required", minlength: 6});
+    self.repassword = ko.observable('').extend({mustEqual: self.password(), message: "Passwords must match"});
 
 	self.auth_data = sessionStorage['auth_data'];
 
@@ -227,3 +227,4 @@ function AdminUserViewModel() {
 
 // Activates knockout.js
 ko.applyBindings(new AdminUserViewModel());
+ko.validation.registerExtenders();

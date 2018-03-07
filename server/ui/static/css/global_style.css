@@ -69,6 +69,11 @@
 	text-align: center;
 }
 
+.required::before {
+    content: "*";
+    color: red;
+}
+
 /* style for tables used to edit objects */
 .edit-table-col {
 	width: 20%;

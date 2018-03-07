@@ -20,7 +20,7 @@ def main(request):
 
 # @login_required
 def get_all_jobs(request):
-    """ Gets all Jobs
+    """ Retrieve all Jobs
 
         URL: /admin/Jobs/GetAll
 
@@ -36,7 +36,7 @@ def get_all_jobs(request):
 
 # @login_required
 def get_job(request):
-    """ Get a specific Job
+    """ Retrieve a specific Job
 
         URL: /admin/Jobs/GetOne
 
@@ -54,6 +54,8 @@ def get_job(request):
 # @login_required
 def create_job(request):
     """ Create a new job
+
+        THIS IS TEMPORARY FOR TESTING
 
         URL: /admin/Jobs/Create
 
@@ -94,7 +96,10 @@ def update_job(request):
     job_obj.job_name = post.get('job_name')
     job_obj.state = post.get('state')
     job_obj.output_file = post.get('output_file')
-    # TODO add the rest of the fields
+    job_obj.user = int(post.get('user'))
+    job_obj.workspace = int(post.get('workspace'))
+    job_obj.pce = int(post.get('pce'))
+    job_obj.module = int(post.get('module'))
     job_obj.save()
     response = {'status': 1, 'status_message': 'Success'}
     return HttpResponse(json.dumps(response))
