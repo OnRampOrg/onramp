@@ -202,20 +202,19 @@ function AdminUserViewModel() {
     }
 
     self.updateList = function() {
-	
       	// reinitialize values
        	self.Userslist([]);
        	// Get all users from server
        	$.ajax({
-	    url: '/admin/Users/GetAll/',
+	        url: '/admin/Users/GetAll/',
             type: 'GET',
             dataType:'json',
             success: function (data) {
-		data.users.forEach(function (user) {
+		        data.users.forEach(function (user) {
                     self.Userslist.push(new UserProfile(user));
-		});
-	    }
-	});
+		        });
+	        }
+	    });
     }
 
    // This function fires when the page first loads
