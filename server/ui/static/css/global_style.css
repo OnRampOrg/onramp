@@ -69,9 +69,10 @@
 	text-align: center;
 }
 
-.required::before {
+.required div:first-child p::after {
     content: "*";
     color: red;
+    display: inline;
 }
 
 /* style for tables used to edit objects */
