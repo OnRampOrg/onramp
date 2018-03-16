@@ -23,6 +23,7 @@ pce/src/testing/deploy
 pce/src/state
 pce/docs/build
 pce/bin/onramp_pce_config.cfg
+pce/bin/modules/*
 
 server/tmp
 server/tmp/users
@@ -34,3 +35,9 @@ server/bin/onramp_server_config.cfg
 server/.htaccess
 /.vs
 /server/mysql
+
+#compiled python
+*.pyc
+
+#onramp pid file
+*.pid

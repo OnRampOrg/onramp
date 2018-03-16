@@ -51,9 +51,14 @@ from configobj import ConfigObj
 from validate import Validator
 from os.path import abspath, expanduser
 
+# print("---"+os.path.abspath(os.getcwd()) + "/src"+"---") #
+sys.path.insert(0, os.path.abspath(os.getcwd()) + "/src") # add src to path to access PCE package
+
 from PCE import tools
+# from PCE.tools.jobs import init_job_delete, job_init_state, job_preprocess, \
+#                            job_run, get_jobs
 from PCE.tools.jobs import init_job_delete, job_init_state, job_preprocess, \
-                           job_run, get_jobs
+                           job_run, get_jobs, launch_job 
 from PCE.tools.modules import deploy_module, get_source_types, \
                               init_module_delete, install_module, ModState
 from PCEHelper import pce_root
@@ -84,7 +89,7 @@ def _getPID():
 
     # Double check PID from PIDFile:
     outfile = TemporaryFile(mode='w+')
-    call(['ps', 'x'], stdout=outfile)
+    call(['ps', 'x'], stdout=outfile) #list all processes from current user
     outfile.seek(0)
     for line in outfile:
         line = line.strip()
@@ -114,7 +119,9 @@ def _start():
         call(['src/env/bin/python', 'src/RESTservice.py'])
         return
     elif -1 == pid:
-        print "PIDFile '%s' has been corrupted." % _pidfile
+        print "Deleting old PIDFile '%s'" % _pidfile
+        os.remove(_pidfile)
+        call(['src/env/bin/python', 'src/RESTservice.py'])
         return
 
     print 'Server appears to be already running.'
@@ -142,7 +149,10 @@ def _restart():
         _start()
         return
     elif -1 == pid:
-        print "PIDFile '%s' has been corrupted." % _pidfile
+        print 'REST server does not currently appear to be running.'
+        print "Deleting old PIDFile '%s'" % _pidfile
+        os.remove(_pidfile)
+        _start()
         return
 
     call(['kill', '-1', str(pid)])
@@ -169,7 +179,9 @@ def _stop():
         print 'REST server does not currently appear to be running.'
         return
     elif -1 == pid:
-        print "PIDFile '%s' has been corrupted." % _pidfile
+        print 'REST server does not currently appear to be running.'
+        print "Deleting old PIDFile '%s'" % _pidfile
+        os.remove(_pidfile)
         return
 
     call(['kill', str(pid)])
@@ -469,8 +481,9 @@ def _mod_ready():
             print 'Module %d ready' % args.mod_id
             sys.exit(0)
 
-    sys.stderr.write("Module must be in 'Admin required' state, but currently",
-                     "is in '%s' state." % state)
+    ### sys.stderr.write("Module must be in 'Admin required' state, but currently",
+    ###                  "is in '%s' state." % state)
+    sys.stderr.write("Module must be in 'Admin required' state, but currently is in '%s' state.\n" % state) ###
     sys.exit(-1)
 
 def _mod_delete():
@@ -502,6 +515,20 @@ def _mod_delete():
         print msg
 
     sys.exit(result)
+
+def _launch_local():
+    """Launch on OnRamp module locally without using the scheduler
+
+    Usage: onramp_pce_service.py joblaunch job_id
+
+    """
+    descrip = 'Launch an OnRamp job without the scheduler.'
+    parser = argparse.ArgumentParser(prog='onramp_pce_service.py joblaunch',
+                                     description=descrip)
+    parser.add_argument('mod_id', help='Id of the module', type=int)
+    parser.add_argument('run_params',
+                        help='Cfg file containing params for this run')
+
 
 def _job_launch():
     """Launch an OnRamp job.

@@ -8,6 +8,11 @@ dependencies need by the REST server, imports default educational modules into
 the environment, and creates a default admin user.
 """
 
+### fails here if virtualenv is not installed (install with pip)
+### fails if sudo yum install python-devel is missing
+### install python-devel
+### install pycryptodome
+
 import os
 import shutil
 import sys
@@ -58,6 +63,10 @@ if __name__ == '__main__':
     if not os.path.exists(job_state_dir):
         os.makedirs(job_state_dir)
 
+    # # Set up virtual environment directory ###
+    # if not os.path.exists(env_dir): ###
+    #     os.makedirs(env_dir) ###
+
     
     # Setup the configuration file(s)
     show_edit_msg = False
@@ -81,6 +90,9 @@ if __name__ == '__main__':
     print "Status: Setup the virtual environment"
     print "        This may take a while..."
     print "=" * 70
+    print("---"+env_dir+"---") ###
+    print("---"+str(os.path.exists(env_dir))+"---") ###
+    ### fails here if virtualenv is not installed (install with pip)
     call(['virtualenv', '-p', 'python2.7', env_dir])
     call([env_dir + '/bin/pip', 'install', '-r', source_dir + '/requirements.txt'])
     

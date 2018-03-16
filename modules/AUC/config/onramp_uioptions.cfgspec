@@ -5,7 +5,7 @@
 #
 # This file is a configspec file describing the keys and approprate values for
 # those keys. The file returned from the server will be a configobj file that
-# confirms to that configspec file (so it can be Validated).
+# conforms to that configspec file (so it can be Validated).
 #
 # The "onramp" section must be named exactly that. You may add additional
 # sections and key/value pairs in those sections as needed by your module.
