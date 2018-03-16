@@ -1,0 +1,36 @@
+#
+# This file describes any User Interface (UI) options that the end user should
+# be presented with in the web interface. The results from the form will be 
+# preserved in a onramp_run_params.cfg file in the top-level directory.
+#
+# This file is a configspec file describing the keys and approprate values for
+# those keys. The file returned from the server will be a configobj file that
+# confirms to that configspec file (so it can be Validated).
+#
+# The "onramp" section must be named exactly that. You may add additional
+# sections and key/value pairs in those sections as needed by your module.
+#
+# For each key specified the value can be:
+#  - blank : Use the default value defined by the OnRamp System
+#            This is the "Don't care" case
+#  - specification : Specify type, range, defaults, ...
+#
+# Descriptions of each key should be placed in the doc/
+
+#
+# OnRamp required fields
+#
+[onramp]
+#
+# Number of processes
+#
+np =
+#
+# Number of nodes
+#
+nodes =
+
+[AUC]
+mode = string(max=2,default="s")
+rectangles = string(max=32,default="100000000")
+threads = string(max=32,default="1")

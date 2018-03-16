@@ -1,0 +1,4 @@
+# OnRamp Curriculum Module: Area Under a Curve
+
+This module introduces parallelism to students through the use of a Riemann Sum. Pi is approximated by computing the area under a unit circle. An introduction to parallelism and suggested exercises are included in the ```docs``` directory. Approximation of pi is performed by the AUC program, which is built and executed by the supporting OnRamp scripts in the ```bin``` directory. Source code for the AUC program (in C) is available in the ```src``` directory. There are four versions of the AUC program: serial, mpi, openmp, and hybrid. The OnRamp user interface should include options to specify the number of rectangles used in the Riemann sum, the number of mpi processes (if applicable), the number of OpenMP threads (if applicable), and the mode (version of AUC).
+
