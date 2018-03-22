@@ -165,9 +165,8 @@ function adminPCE (data) {
 
 	self.deployModule = function (mod) {
 		// this will finish adding new module to the PCE
-		// POST .../admin/pces/:ID/modules/:MODULEID
 		$.ajax({
-		    url: '/admin/PCEs/DeployModule/',
+		    url: '/admin/PCEs/Module/Deploy',
 		    type:'POST',
 		    dataType:'json',
 		    data: {'pce_id':self.id(), 'module_id':mod.id()},
@@ -175,29 +174,6 @@ function adminPCE (data) {
 		        alert(response.status_message);
 		    }
 		})
-//		$.ajax({
-//			type: 'POST',
-//			url: sessionStorage.server + '/admin/pce/' + self.id() + '/module/' + mod.id() +'?apikey=' + JSON.parse(self.auth_data).apikey,
-//			//	"auth": { ...}, // Removed for brevity
-//    		//	"contact_info": "Someone else",
-//    		//	"description": "Secret Compute Resource",
-//    		//	"location": "Hidden Hallway",
-//    		//	"name": "Flux",
-//    		//	"pce_password": "fake123",
-//    		//	"pce_username": "onramp",
-//    		//	"port": 9071,
-//    		//	"url": "127.0.0.1"
-//			data: JSON.stringify({'auth': JSON.parse(self.auth_data),
-//				'module_id':mod.id(),
-//				'module_name':mod.name(),
-//				'install_location':mod.install_location(),
-//				'src_location_type':mod.src_location_type(),
-//				'src_location_path':mod.src_location_path()
-//			}),
-//			complete: self.complete_func,
-//			dataType: 'application/json',
-//			contentType: 'application/json'
-//		} );
 	}
 
 	self.updateServer = function () {

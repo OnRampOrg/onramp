@@ -121,6 +121,7 @@ def delete_pce(request):
 @login_required
 def get_pce_modules(request):
     """ Retrieve all modules from a specific PCE
+
         URL: /admin/PCEs/Modules
 
     :param request:
