@@ -8,7 +8,7 @@ function UserProfile(data) {
 	self.isAdmin = ko.observable(data['is_admin']);
     self.isEnabled = ko.observable(data['is_enabled']);
     self.password = ko.observable('').extend({require: true, message: "Password is required", minlength: 6});
-    self.repassword = ko.observable('').extend({mustEqual: self.password(), message: "Passwords must match"});
+    self.repassword = ko.observable('').extend({equal: self.password, message: "Passwords must match"});
 
 	self.auth_data = sessionStorage['auth_data'];
 
@@ -223,14 +223,6 @@ function AdminUserViewModel() {
 	    self.updateList();
     });
 }
-
-// Custom validator for passwords being equal
-ko.validation.rules['mustEqual'] = {
-    validator: function (val, otherVal) {
-        return val === otherVal;
-    },
-    message: 'The field must equal {0}'
-};
 
 // Activates knockout.js
 ko.applyBindings(new AdminUserViewModel());
