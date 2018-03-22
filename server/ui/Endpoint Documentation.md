@@ -32,6 +32,7 @@ admin/Jobs
 		Delete a specific job
 			Data
 			id: Id of the specific job
+
 admin/PCEs
 	/GetAll/
 		Retrieve all configured PCEs
@@ -103,6 +104,7 @@ admin/PCEs
 		Retrieve all jobs for a specific PCE
 			Data
 			pce_id: Id for specific PCE
+
 admin/Users
 	/GetAll/
 		Retrieve all OnRamp users
@@ -149,11 +151,13 @@ admin/Users
 		Retrieve all workspaces for a specific user
 			Data
 			user_id: Id for specific user
+
 public/Dashboard
 	/GetWorkspaces/
 		Retrieve all workspaces for the logged in user
 	/GetJobs/
 		Retrieve all jobs for the logged in user
+
 public/Jobs
 	/GetJobInfo/
 		Retrieve information for a specific job
@@ -161,6 +165,7 @@ public/Jobs
 			job_id: Id of specific job
 	/UserJobs/
 		Retrieve all jobs for the logged in user
+
 public/Workspace
 	/GetWorkspace/
 		Retrieve information for a specific workspace
