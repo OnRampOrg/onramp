@@ -166,7 +166,7 @@ function adminPCE (data) {
 	self.deployModule = function (mod) {
 		// this will finish adding new module to the PCE
 		$.ajax({
-		    url: '/admin/PCEs/Module/Deploy',
+		    url: '/admin/PCEs/Module/Deploy/',
 		    type:'POST',
 		    dataType:'json',
 		    data: {'pce_id':self.id(), 'module_id':mod.id()},
