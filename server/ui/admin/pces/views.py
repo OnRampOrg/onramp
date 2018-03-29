@@ -351,5 +351,3 @@ def deploy_module(request):
                     'error_info': e.message}
     return HttpResponse(json.dumps(response))
 
-
-
