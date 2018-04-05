@@ -167,12 +167,21 @@ def add_pce_module(request):
     :return:
     """
     post = request.POST.dict()
+    pce_id = post['pce_id']
+    mod_id = post['module_id']
+    mod_name = post['module_name']
+    install_loc = post['install_location']
+    mod_type = post['src_location_type']
+    mod_path = post['src_location_path']
+
     mod_obj, created = module.objects.get_or_create(
-        module_name = post['module_name'],
+        module_name = mod_name,
         version = post.get('version', ''),
         src_location = post.get('src_location', ''),
         description = post.get('description', '')
     )
+
+    mod_id = mod_obj.module_id
 
     if not created:
         response = {
@@ -183,12 +192,35 @@ def add_pce_module(request):
         return HttpResponse(json.dumps(response))
 
     pm_pair, created = module_to_pce.objects.get_or_create(
-        pce_id = int(post['pce_id']),
-        module_id = int(mod_obj.module_id)
+        pce_id = int(pce_id),
+        module_id = int(mod_id)
     )
         
     if created:
-        response = success_response
+        try:
+            connector = PCEAccess(int(pce_id))
+        except Exception as e:
+            response = {
+                'status':-1,
+                'status_message':'Failed to create PCEAcces object',
+                'error_info': e.message
+            }
+            return HttpResponse(json.dumps(response))
+        try:
+            if connector.add_module(mod_id, mod_name, mod_type, mod_path):
+                response = success_response
+            else:
+                response = {
+                    'status':-1,
+                    'status_message':'Failed to install module'
+                }
+        except Exception as e:
+            response = {
+                'status':-1,
+                'status_message':'Failed to install module',
+                'error_info': e.message
+            }
+        return HttpResponse(json.dumps(response))
     else:
         response = {
             'status':-1,

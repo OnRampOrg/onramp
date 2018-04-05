@@ -57,7 +57,7 @@ class PCEAccess(object):
         self._cur_dir = os.getcwd()
 
         # Fails presumably to permission error
-        # self._logger = self._get_logger(pce_id)
+        self._logger = self._get_logger(pce_id)
 
         # Create paths for tmp, pce, module, and jobs directories
         self._tmp_dir = "/".join(self._cur_dir.split("/")[:-1])+"/tmp"
