@@ -20,6 +20,17 @@ conf_file = "onramp_runparams.cfg"
 config    = ConfigObj(conf_file)
 
 #
+# Load any modules for running
+#   - need to load mpi module on flux
+#
+try:
+    rtn = check_call("module load mpi")
+except CalledProcessError as e:
+    print "Error loading module.\nError: %s" % e
+    sys.exit(-1)
+
+
+#
 # Run my program
 #
 os.chdir('src')
