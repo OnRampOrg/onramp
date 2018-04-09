@@ -20,14 +20,13 @@ def main(request):
     :param request:
     :return:
     """
-    context = Context({'username': request.user})
     template = get_template('job_details.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render({'username': request.user}, request))
 
 
 @login_required
 def get_job(request):
-    """ Gets information on the selected job
+    """ Retrieve information for a specific job
 
         URL:    /public/Jobs/GetJobInfo/
         TYPE:   POST
@@ -57,7 +56,7 @@ def get_job(request):
 
 @login_required
 def get_user_jobs(request):
-    """ Gets all jobs for the logged in user
+    """ Retrieve all jobs for the logged in user
 
         URL:    /public/Jobs/UserJobs
         TYPE:   GET

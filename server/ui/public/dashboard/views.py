@@ -12,19 +12,18 @@ from ui.admin.models import user_to_workspace, job
 def main(request):
     """ Renders the main Admin dashboard on login
 
-        URL: /admin/Dashboard/
+        URL: /public/Dashboard/
 
     :param request:
     :return:
     """
-    context = Context({'username': request.user})
     template = get_template('user_dashboard.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render({'username': request.user}, request))
 
 
 @login_required
 def get_workspaces(request):
-    """ Gets all workspaces for the logged in user
+    """ Retrieve all workspaces for the logged in user
 
         URL: /public/Dashboard/GetWorkspaces
 
@@ -45,7 +44,7 @@ def get_workspaces(request):
 
 @login_required
 def get_jobs(request):
-    """ Gets all jobs for the logged in user
+    """ Retrieve all jobs for the logged in user
 
         URL: /public/Dashboard/GetJobs
 

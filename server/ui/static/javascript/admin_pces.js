@@ -96,9 +96,23 @@ function adminPCE (data) {
 	}
 
 	self.addModule = function () {
-		// LEFT OFF HERE!!!!
-		//   todo: need to fix ajax call, and figure out what the paths need to be
-		alert("Not yet implemented on server.")
+	    // This will add a new module to the PCE
+	    $.ajax({
+		type: 'POST',
+		url: '/admin/PCEs/Module/Add/',
+		dataType: 'json',
+        data: {
+            'pce_id': self.id(),
+		    'module_id': self.newModule().id(),
+		    'module_name': self.newModule().name(),
+		    'install_location': self.newModule().install_location(),
+		    'src_location_type': self.newModule().src_location_type(),
+		    'src_location_path': self.newModule().src_location_path()
+		}
+        });
+
+
+		//alert("Not yet implemented on server.")
 		// this will add a new module to the PCE
 		// POST .../admin/pces/:ID/modules/:MODULEID
 //		console.log(self.newModule().name());
@@ -151,9 +165,8 @@ function adminPCE (data) {
 
 	self.deployModule = function (mod) {
 		// this will finish adding new module to the PCE
-		// POST .../admin/pces/:ID/modules/:MODULEID
 		$.ajax({
-		    url: '/admin/PCEs/DeployModule/',
+		    url: '/admin/PCEs/Module/Deploy/',
 		    type:'POST',
 		    dataType:'json',
 		    data: {'pce_id':self.id(), 'module_id':mod.id()},
@@ -161,29 +174,6 @@ function adminPCE (data) {
 		        alert(response.status_message);
 		    }
 		})
-//		$.ajax({
-//			type: 'POST',
-//			url: sessionStorage.server + '/admin/pce/' + self.id() + '/module/' + mod.id() +'?apikey=' + JSON.parse(self.auth_data).apikey,
-//			//	"auth": { ...}, // Removed for brevity
-//    		//	"contact_info": "Someone else",
-//    		//	"description": "Secret Compute Resource",
-//    		//	"location": "Hidden Hallway",
-//    		//	"name": "Flux",
-//    		//	"pce_password": "fake123",
-//    		//	"pce_username": "onramp",
-//    		//	"port": 9071,
-//    		//	"url": "127.0.0.1"
-//			data: JSON.stringify({'auth': JSON.parse(self.auth_data),
-//				'module_id':mod.id(),
-//				'module_name':mod.name(),
-//				'install_location':mod.install_location(),
-//				'src_location_type':mod.src_location_type(),
-//				'src_location_path':mod.src_location_path()
-//			}),
-//			complete: self.complete_func,
-//			dataType: 'application/json',
-//			contentType: 'application/json'
-//		} );
 	}
 
 	self.updateServer = function () {
@@ -195,11 +185,11 @@ function adminPCE (data) {
 				'contact_info':this.contact_info(),
 				'description':this.description(),
 				'location':this.location(),
-				'name':this.name(),
+				'pce_name':this.name(),
 				'pce_password':this.pce_password(),
 				'pce_username':this.pce_username(),
-				'port':this.port(),
-				'url':this.url()
+				'ip_port':this.port(),
+				'ip_addr':this.url()
 			},
 			dataType: 'json',
 			success: function (data) {

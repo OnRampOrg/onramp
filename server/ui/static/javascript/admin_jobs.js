@@ -3,7 +3,13 @@
  * comments
  */
 //too different
-function myJob(data){
+
+ko.components.register('dropdown', {
+    viewModel: { require: 'components/dropdown' },
+    template: { require: 'text!../templates/components/dropdown.html' }
+});
+
+function JobProfile(data){
 	var self = this;
 	self.jID = data['job_id'];
 	self.user = data['user_id'];
@@ -25,48 +31,97 @@ function myJob(data){
 		alert("results page not available");
 	};
 
-	self.removeOnServer = function () {
-		alert("removing on server - not implemented yet");
-	};
+
+    self.updateJob = function() {
+	console.log(this);
+	var data = {
+	    'user': this.user,
+	    'workspace': this.ws,
+	    'pce': this.pce,
+	    'module': this.mod,
+	    'job_name': this.name,
+	    'state': this.status,
+	    'output_file': this.output
+	    // TODO run_parameters, files, runtime
+	}
+	if(this.id == undefined) {
+	    var url = '/admin/Jobs/Create';
+	} else {
+	    var url = '/admin/Jobs/Update';
+	}
+	$.ajax({
+	    url: url,
+	    type: 'POST',
+	    data: data,
+	    success: function(result) {
+		if(result['status'] == 1) {
+		    // Successful
+		} else {
+		    // Unsuccessful
+		    alert(result['status_message']);
+		}
+	    }
+	});
+    }
+
+    self.removeOnServer = function () {
+	alert("removing on server - not implemented yet");
+        $ajax({
+	    type: "DELETE",
+	    data: {"jobId": this.id()},
+	    url: "admin/Jobs/Delete",
+	    error: function (response) {
+		alert(response["status_message"]);
+	    }
+        });
+    };
 }
 
 
 function AdminJobsViewModel() {
-	var self = this;
-	self.username = sessionStorage['UserID'];
-	self.userID = sessionStorage['UserID'];
-	self.auth_data = sessionStorage['auth_data'];
+    var self = this;
+    self.username = sessionStorage['UserID'];
+    self.userID = sessionStorage['UserID'];
+    self.auth_data = sessionStorage['auth_data'];
 
+    self.selectedJob = ko.observable();
 
-	self.Jobslist = ko.observableArray();
+    self.Jobslist = ko.observableArray();
 
-	self.deleteJob = function () {
-		// tell server to delete this job
-		// TODO this isn't implemented
-		self.Jobslist.remove(this);
-//		this.removeOnServer();
-	}
+    self.addJob = function () {
+	var newJob = new JobProfile({'name': 'New Job'});
+	self.Jobslist.push(newJob);
+	self.selectedJob(newJob);
+    }
 
+    self.selectJob = function () {
+	self.selectedJob(this);
+    }
 
-	$(document).ready( function () {
-		// reinitialize values
-		self.Jobslist.removeAll();
+    self.deleteJob = function () {
+	// Tell the server to remove this job
+	self.Jobslist.remove(this);
+	this.removeOnServer();
+    }
 
-		// get data from server
-		$.ajax({
-		    url:'/admin/Jobs/All',
-		    type:'GET',
-		    dataType:'json',
-		    success: function(response) {
-		        for (var x = 0; x < response.jobs.length; x++){
+    $(document).ready( function () {
+	self.selectedJob(null)
+	// reinitialize values
+	self.Jobslist.removeAll();
+
+	// get data from server
+	$.ajax({
+	    url:'/admin/Jobs/GetAll',
+	    type:'GET',
+	    dataType:'json',
+	    success: function(response) {
+		for (var x = 0; x < response.jobs.length; x++){
                     var job_data = response.jobs[x];
                     self.Jobslist.push(new myJob(job_data));
                 }
-		    }
-		})
+	    }
 	});
-
-
+    });
 }
 
 // Activates knockout.js

@@ -21,14 +21,15 @@ def main(request):
     :param request:
     :return:
     """
-    context = Context({'username': request.user})
     template = get_template('workspace.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render({'username': request.user}, request))
 
 
 @login_required
 def get_workspace(request):
-    """
+    """ Retrieve information for a specific workspace
+
+        URL: public/Workspace/GetWorkspace/
 
     :param request:
     :return:
@@ -51,7 +52,9 @@ def get_workspace(request):
 
 @login_required
 def get_pces(request):
-    """
+    """ Retrieve all PCEs for a specific workspace
+
+        URL: public/Workspace/GetPCEs/
 
     :param request:
     :return:
@@ -59,7 +62,7 @@ def get_pces(request):
     post = request.POST.dict()
     ws_id = post.get('workspace_id')
     if not ws_id:
-        # make sure we got a valid workspace id
+        # make sure we've got a valid workspace id
         response = {
             'success': False,
             'status_message': 'No workspace ID specified'
@@ -85,7 +88,9 @@ def get_pces(request):
 
 @login_required
 def get_modules_for_pce(request):
-    """ Gets installed modules based on workspace/pce combination
+    """ Retrieve installed modules based on workspace/pce combination
+
+        URL: public/Workspace/GetModules/
 
     :param request:
     :return:
@@ -122,7 +127,9 @@ def get_modules_for_pce(request):
 
 @login_required
 def get_module_options(request):
-    """
+    """ Retrieve options for a specific module
+
+        URL: public/Workspace/GetModuleOptions/
 
     :param request:
     :return:
@@ -153,6 +160,8 @@ def get_module_options(request):
 @login_required
 def launch_job(request):
     """ Launches a job
+
+        URL: public/Workspace/LaunchJob/
 
     :param request:
     :return:

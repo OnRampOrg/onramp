@@ -6,8 +6,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 
-from django.template import Context
+from django.template import RequestContext
 from django.template.loader import get_template
+from django.shortcuts import render
 from ui.admin.models import job, workspace, pce, module
 
 
@@ -22,9 +23,8 @@ def main(request):
     :param request:
     :return:
     """
-    context = Context({'username':request.user})
     template = get_template('admin_dashboard.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render({'username': request.user}, request))
 
 @staff_member_required(login_url='/')
 def get_all_users(request):
@@ -63,7 +63,6 @@ def get_all_jobs(request):
     :param request:
     :return:
     """
-    # TODO In production this could be a lot of data may need to limit it somehow
     response = {
         'status':0,
         'status_message':'Success',

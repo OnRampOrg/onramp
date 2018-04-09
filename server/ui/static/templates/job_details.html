@@ -2,17 +2,21 @@
 
 <html>
 <head>
-  <title>OnRamp</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Bootstrap -->
-  <link href="/static/css/third_party/bootstrap.min.css" rel="stylesheet">
-  <link href="/static/css/global_style.css" rel="stylesheet">
-  <link href="/static/css/jobs.css" rel="stylesheet">
+    <title>OnRamp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    {% load static %}
+    <link href='{% static "css/third_party/bootstrap.min.css" %}' rel="stylesheet">
+    <link href='{% static "css/third_party/bootstrap-horizon.css" %}' rel="stylesheet">
+    <!-- Custom Global CSS -->
+    <link href='{% static "css/global_style.css" %}' rel="stylesheet">
+    <!-- Custom Job CSS -->
+    <link href='{% static "css/jobs.css" rel="stylesheet" %}'>
 </head>
 <body role="document">
-  <!-- Fixed navbar -->
+    <!-- Fixed navbar -->
 
- <nav class="navbar navbar-inverse navbar-fixed-top">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="NavContainer">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -24,137 +28,135 @@
             </div>
             <div id="navbar" class="navbar-collapse collapse">
                 <a class="navbar-brand" href="start.html">OnRamp</a>
-		
-		  <ul class="nav navbar-nav navbar-left">
-		        <li class="active"><a href="/public/Dashboard">Home</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="myprofile.html">Profile</a></li>
-                <li><a href="contact.html">Contact</a></li>
-                <li><a href="#help">Help</a></li>
-		  </ul>				
-		  
-		  <ul class="nav navbar-nav navbar-right">
-		    <li>
-		      <button type="button" class="btn btn-default hover" onclick = logout()>Logout</button>
-		    </li>
-                  </ul>
+
+                <ul class="nav navbar-nav navbar-left">
+                    <li class="active"><a href="/public/Dashboard">Home</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="myprofile.html">Profile</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="#help">Help</a></li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <button type="button" class="btn btn-default hover" onclick=logout()>Logout</button>
+                    </li>
+                </ul>
             </div>
         </div>
- </nav>
-  <br>
-<div class="page">
-  <div class="container">
-    <div class="jumbotron">
-      <h1>Welcome {{ username }}</h1>
-    </div>
-  </div>
-
-  <!-- message for those who get to the page without authenticating -->
-  <!--
-  <div class="container" data-bind="visible: !authenticated()">
-  You are not supposed to be here!
-  </div>
-  -->
-
-  <div class="container">
-    <div class="row title-row">
-        <h2 class="heading">My Jobs</h2>
-        <div class="refresh-btn">
-            <button class="btn" data-bind="click: refreshJobs">Refresh</button>
+    </nav>
+    <br>
+    <div class="page">
+        <div class="container">
+            <div class="jumbotron">
+                <h1>Welcome {{ username }}</h1>
+            </div>
         </div>
-    <!-- check out this website for a cool way to display a table of data: http://bootstrapmaster.com/live/genius/table.html -->
+
+        <!-- message for those who get to the page without authenticating -->
+        <!--
+        <div class="container" data-bind="visible: !authenticated()">
+        You are not supposed to be here!
+        </div>
+        -->
+
+        <div class="container">
+            <div class="row title-row">
+                <h2 class="heading">My Jobs</h2>
+                <div class="refresh-btn">
+                    <button class="btn" data-bind="click: refreshJobs">Refresh</button>
+                </div>
+                <!-- check out this website for a cool way to display a table of data: http://bootstrapmaster.com/live/genius/table.html -->
+            </div>
+            <div class="row">
+                <div class="table-flow">
+                    <table class="table">
+                        <thead>
+                        <th class="col-sm-1">Job Id</th>
+                        <th class="col-sm-1">Workspace</th>
+                        <th class="col-sm-1">PCE</th>
+                        <th class="col-sm-1">Module</th>
+                        <th class="col-sm-1">Run Name</th>
+                        <th class="col-sm-1">Status</th>
+                        <th class="col-sm-1">View Details</th>
+                        <th class="col-sm-1">Cancel/Delete</th>
+                        </thead>
+                        <tbody data-bind="foreach: Jobslist">
+                            <tr>
+                                <td data-bind="text: jID"></td>
+                                <td data-bind="text: ws"></td>
+                                <td data-bind="text: pce"></td>
+                                <td data-bind="text: mod"></td>
+                                <td data-bind="text: name"></td>
+                                <td data-bind="text: status"></td>
+                                <td><button class="btn-info" data-bind="click: $parent.selectJob">View Details</button></td>
+                                <td><button class="btn-danger">Cancel/Delete</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="container" data-bind="if: selectedJob()">
+            <div class="row" data-bind="with:selectedJob()">
+                <div class="table">
+                    <table class="table">
+                        <thead>
+                        <th class="col-sm-1">Job Id</th>
+                        <th class="col-sm-1">Workspace</th>
+                        <th class="col-sm-1">PCE</th>
+                        <th class="col-sm-1">Module</th>
+                        <th class="col-sm-1">Run Name</th>
+                        <th class="col-sm-1">Status</th>
+                        <th class="col-sm-1">Cancel/Delete</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td data-bind="text: jID"></td>
+                                <td data-bind="text: ws"></td>
+                                <td data-bind="text: pce"></td>
+                                <td data-bind="text: mod"></td>
+                                <td data-bind="text: name"></td>
+                                <td data-bind="text: $parent.jobStates[parseInt(status)]"></td>
+                                <td><button class="danger">Cancel/Delete</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row" data-bind="with:selectedJob()">
+                <h4>Data:</h4>
+
+                <!--
+                <div class="col-md-2">
+                        <ul data-bind="foreach: data_files">
+                            <li data-bind="text: $data"></li>
+                        </ul>
+                    </div>
+                      -->
+                <div class="col-md-8 col-md-offset-2" data-bind="with: $root.selectedFile()">
+                    <h5 data-bind="text: $root.selectedFile()"></h5>
+                    <textarea id="job_output" rows="10" cols="70" style="border: 1px solid black;"></textarea>
+
+                </div>
+
+            </div>
+        </div>
     </div>
-    <div class="row">
-      <div class = "table-flow">
-        <table class="table">
-          <thead>
-            <th class="col-sm-1">Job Id</th>
-            <th class="col-sm-1">Workspace</th>
-            <th class="col-sm-1">PCE</th>
-            <th class="col-sm-1">Module</th>
-            <th class="col-sm-1">Run Name</th>
-            <th class="col-sm-1">Status</th>
-            <th class="col-sm-1">View Details</th>
-            <th class="col-sm-1">Cancel/Delete</th>
-          </thead>
-          <tbody data-bind="foreach: Jobslist">
-            <tr>
-              <td data-bind="text: jID"></td>
-              <td data-bind="text: ws"></td>
-              <td data-bind="text: pce"></td>
-              <td data-bind="text: mod"></td>
-              <td data-bind="text: name"></td>
-              <td data-bind="text: status"></td>
-              <td><button class="btn-info" data-bind="click: $parent.selectJob">View Details</button></td>
-              <td><button class="btn-danger">Cancel/Delete</button></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+    <!-- footer -->
+    <footer class="footer">
+        <div class="container" class="footer">
+            <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
+        </div>
+    </footer>
 
-
-  <div class="container" data-bind="if: selectedJob()">
-      <div class="row" data-bind="with:selectedJob()">
-          <div class="table">
-            <table class="table">
-              <thead>
-                <th class="col-sm-1">Job Id</th>
-                <th class="col-sm-1">Workspace</th>
-                <th class="col-sm-1">PCE</th>
-                <th class="col-sm-1">Module</th>
-                <th class="col-sm-1">Run Name</th>
-                <th class="col-sm-1">Status</th>
-                <th class="col-sm-1">Cancel/Delete</th>
-              </thead>
-              <tbody>
-                <tr>
-                  <td data-bind="text: jID"></td>
-                  <td data-bind="text: ws"></td>
-                  <td data-bind="text: pce"></td>
-                  <td data-bind="text: mod"></td>
-                  <td data-bind="text: name"></td>
-                  <td data-bind="text: $parent.jobStates[parseInt(status)]"></td>
-                  <td><button class="danger">Cancel/Delete</button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-      </div>
-      <div class="row" data-bind="with:selectedJob()">
-          <h4>Data:</h4>
-          
-          <!--
-	  <div class="col-md-2">
-              <ul data-bind="foreach: data_files">
-                  <li data-bind="text: $data"></li>
-              </ul>
-          </div>
-            -->
-          <div class="col-md-8 col-md-offset-2" data-bind="with: $root.selectedFile()">
-              <h5 data-bind="text: $root.selectedFile()"></h5>
-              <textarea id="job_output" rows="10" cols="70" style="border: 1px solid black;"></textarea>
-
-          </div>
-
-      </div>
-  </div>
-</div>
-  <!-- footer -->
-  <footer class="footer">
-    <div class="container" class="footer">
-      <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
-    </div>
-  </footer>
-
-  <!-- put all scripty scripts below this line -->
-  <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-  <script src="/static/javascript/third_party/bootstrap.min.js"></script>
-  <!-- knockout script -->
-  <script src="/static/javascript/third_party/knockout-3.3.0.js"></script>
-  <!-- my scripts -->
-  <script src="/static/javascript/all_global.js"></script>
-  <script src="/static/javascript/job_details.js"></script>
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src='{% static "javascript/third_party/bootstrap.min.js" %}'></script>
+    <!-- my scripts -->
+    <script src='{% static "javascript/all_global.js" %}'></script>
+    <script src='{% static "javascript/third_party/knockout-3.3.0.js" %}'></script>
+    <script src='{% static "javascript/job_details.js" %}'></script>
 </body>
 </html>

@@ -2,16 +2,19 @@
 
 <html>
 <head>
-  <title>OnRamp</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Bootstrap -->
-  <link href="/static/css/third_party/bootstrap.min.css" rel="stylesheet">
-  <link href="/static/css/global_style.css" rel="stylesheet">
+    <title>OnRamp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    {% load static %}
+    <link href='{% static "css/third_party/bootstrap.min.css" %}' rel="stylesheet">
+    <link href='{% static "css/third_party/bootstrap-horizon.css" %}' rel="stylesheet">
+    <!-- Custom Global CSS -->
+    <link href='{% static "css/global_style.css" %}' rel="stylesheet">
 </head>
 <body role="document">
-<!-- Fixed navbar -->
+    <!-- Fixed navbar -->
 
-<nav class="navbar navbar-inverse navbar-fixed-top">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="NavContainer">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -23,143 +26,145 @@
             </div>
             <div id="navbar" class="navbar-collapse collapse">
                 <a class="navbar-brand" id="brand">OnRamp</a>
-				<ul class="nav navbar-nav navbar-left">
+                <ul class="nav navbar-nav navbar-left">
                     <li class="active"><a href="../Dashboard">Home</a></li>
                     <li><a href="about.html">About</a></li>
                     <li><a href="myprofile.html">Profile</a></li>
                     <li><a href="contact.html">Contact</a></li>
                     <li><a href="#help">Help</a></li>
-				</ul>
-				<ul class="nav navbar-nav navbar-right">
-					<li>
-						<button type="button" class="btn btn-default" onclick = logout()>Logout</button>
-					</li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <button type="button" class="btn btn-default" onclick=logout()>Logout</button>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
-<br>
-<div class="page">
-<div class="container">
-  <div class="jumbotron">
-    <h1>Modules Admin Dashboard</h1>
-  </div>
-</div>
+    <br>
+    <div class="page">
+        <div class="container">
+            <div class="jumbotron">
+                <h1>Modules Admin Dashboard</h1>
+            </div>
+        </div>
 
-<!-- User info -->
-<div class="container">
-    <div class="row">
-        <h3>Warning!  This page is not fully operational.  Remember the Death Star?</h3>
-    </div>
-</div>
+        <!-- User info -->
+        <div class="container">
+            <div class="row">
+                <h3>Warning!  This page is not fully operational.  Remember the Death Star?</h3>
+            </div>
+        </div>
 
-<div class="container">
-  <div class="row">
-    <h2>Module Info (<span data-bind="text: Modulelist().length"></span>)</h2>
-    <p>This is a list of all modules associated with this OnRamp server instance.  Current functionality allows you to add and delete modules.</p>
-  </div>
+        <div class="container">
+            <div class="row">
+                <h2>Module Info (<span data-bind="text: Modulelist().length"></span>)</h2>
+                <p>This is a list of all modules associated with this OnRamp server instance.  Current functionality allows you to add and delete modules.</p>
+            </div>
 
-  <div class="row">
-    <button class="btn btn-primary" data-bind="click: addUser">Add New Module</button>
-  </div>
+            <div class="row">
+                <button class="btn btn-primary" data-bind="click: addUser">Add New Module</button>
+            </div>
 
-  <div class="row">
-    <table class="table table-striped">
-      <thead >
-        <th>ID</th>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Admin?</th>
-        <th>Delete</th>
-      </thead>
-      <tbody data-bind="foreach: Modulelist()">
-        <tr data-bind="click: $parent.selectModule">
-          <td data-bind="text: id"></td>
-          <td data-bind="text: username"></td>
-          <td data-bind="text: fullName"></td>
-          <td data-bind="text: isAdmin"></td>
-          <td><button class="btn btn-danger" data-bind="click: $parent.deleteModule">Delete</button></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+            <div class="row">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Admin?</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: Modulelist()">
+                        <tr data-bind="click: $parent.selectModule">
+                            <td data-bind="text: id"></td>
+                            <td data-bind="text: username"></td>
+                            <td data-bind="text: fullName"></td>
+                            <td data-bind="text: isAdmin"></td>
+                            <td><button class="btn btn-danger" data-bind="click: $parent.deleteModule">Delete</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-<div class="container" data-bind="with: selectedModule">
-  <div class="row">
-    <h3>Module Info: <span data-bind="text:name"></span> (Module ID: <span data-bind="text: id"></span>)</h3>
-  </div>
-  <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p data-bind="text: name"></p>
-    </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
-      <input data-bind="value: name"/>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p data-bind="text: fullName"></p>
-    </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
-      <input data-bind="value: fullName"/>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p data-bind="text: email"></p>
-    </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
-      <input data-bind="value: email"/>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p data-bind="text: password"></p>
-    </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
-      <input data-bind="value: password"/>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p>Admin? (<span data-bind="text: isAdmin"></span>)</p>
-    </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
-      <input data-bind="checked: isAdmin" type="checkbox" />
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
-      <p>Enabled? (<span data-bind="text: isEnabled"></span>)</p>
-    </div>
-    <div class="col-lg-4 col-md-5 col-sm-6">
-      <input data-bind="checked: isEnabled" type="checkbox" />
-    </div>
-  </div>
+        <div class="container" data-bind="with: selectedModule">
+            <div class="row">
+                <h3>Module Info: <span data-bind="text:name"></span> (Module ID: <span data-bind="text: id"></span>)</h3>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+                    <p data-bind="text: name"></p>
+                </div>
+                <div class="col-lg-4 col-md-5 col-sm-6">
+                    <input data-bind="value: name" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+                    <p data-bind="text: fullName"></p>
+                </div>
+                <div class="col-lg-4 col-md-5 col-sm-6">
+                    <input data-bind="value: fullName" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+                    <p data-bind="text: email"></p>
+                </div>
+                <div class="col-lg-4 col-md-5 col-sm-6">
+                    <input data-bind="value: email" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+                    <p data-bind="text: password"></p>
+                </div>
+                <div class="col-lg-4 col-md-5 col-sm-6">
+                    <input data-bind="value: password" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+                    <p>Admin? (<span data-bind="text: isAdmin"></span>)</p>
+                </div>
+                <div class="col-lg-4 col-md-5 col-sm-6">
+                    <input data-bind="checked: isAdmin" type="checkbox" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-md-5 col-sm-6 col-md-offset-1">
+                    <p>Enabled? (<span data-bind="text: isEnabled"></span>)</p>
+                </div>
+                <div class="col-lg-4 col-md-5 col-sm-6">
+                    <input data-bind="checked: isEnabled" type="checkbox" />
+                </div>
+            </div>
 
 
-  <!-- Save Changes button -->
-  <div class="row">
-    <div class="col-lg-4 col-md-5 col-sm-6">
-      <button class="btn" data-bind="click: updateServer">Save Changes</button>
+            <!-- Save Changes button -->
+            <div class="row">
+                <div class="col-lg-4 col-md-5 col-sm-6">
+                    <button class="btn" data-bind="click: updateServer">Save Changes</button>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
-</div>
-<!-- footer -->
-<footer class="footer">
-  <div class="footer">
-    <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
-  </div>
-</footer>
+    <!-- footer -->
+    <footer class="footer">
+        <div class="footer">
+            <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
+        </div>
+    </footer>
 
-<!-- put all scripty scripts below this line -->
-<!-- Order Matters here JQuery needs to be first then all_global.js -->
-<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-<script src="/static/javascript/all_global.js"></script>
-<script src="/static/javascript/third_party/bootstrap.min.js"></script>
-<script src="/static/javascript/third_party/knockout-3.3.0.js"></script>
-<script src="/static/javascript/admin_modules.js"></script>
+    <!-- put all scripty scripts below this line -->
+    <!-- Order Matters here JQuery needs to be first then all_global.js -->
+    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src='{% static "javascript/all_global.js" %}'></script>
+    <script src='{% static "javascript/third_party/bootstrap.min.js" %}'></script>
+    <script src='{% static "javascript/third_party/knockout-3.3.0.js" %}'></script>
+    <script src='{% static "javascript/admin_modules.js" %}'></script>
 </body>
 </html>

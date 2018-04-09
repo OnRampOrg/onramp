@@ -42,11 +42,7 @@ function UserDashboardViewModel() {
 		    }
 		})
 
-	});
-
-
-
-
+    });
 
 }
 

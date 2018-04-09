@@ -2,16 +2,19 @@
 
 <html>
 <head>
-  <title>OnRamp</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Bootstrap -->
-    <link href="/static/css/third_party/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/global_style.css" rel="stylesheet">
+    <title>OnRamp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    {% load static %}
+    <link href='{% static "css/third_party/bootstrap.min.css" %}' rel="stylesheet">
+    <link href='{% static "css/third_party/bootstrap-horizon.css" %}' rel="stylesheet">
+    <!-- Custom Global CSS -->
+    <link href='{% static "css/global_style.css" %}' rel="stylesheet">
 </head>
 <body role="document">
-<!-- Fixed navbar -->
+    <!-- Fixed navbar -->
 
-<nav class="navbar navbar-inverse navbar-fixed-top">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="NavContainer">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -23,257 +26,278 @@
             </div>
             <div id="navbar" class="navbar-collapse collapse">
                 <a class="navbar-brand" id="brand">OnRamp</a>
-				<ul class="nav navbar-nav navbar-left">
+                <ul class="nav navbar-nav navbar-left">
                     <li class="active"><a href="../Dashboard">Home</a></li>
                     <li><a href="about.html">About</a></li>
                     <li><a href="myprofile.html">Profile</a></li>
                     <li><a href="contact.html">Contact</a></li>
                     <li><a href="#help">Help</a></li>
-				</ul>
-				<ul class="nav navbar-nav navbar-right">
-					<li>
-						<button type="button" class="btn btn-default" onclick = logout()>Logout</button>
-					</li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <button type="button" class="btn btn-default" onclick=logout()>Logout</button>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
-<br>
-<div class="page">
-<div class="container">
-  <div class="jumbotron">
-    <h1>Users Admin Dashboard</h1>
-  </div>
-</div>
+    <br>
+    <div class="page">
+        <div class="container">
+            <div class="jumbotron">
+                <h1>Users Admin Dashboard</h1>
+            </div>
+        </div>
 
-<!-- User info -->
-<div class="container">
-  <div class="row">
-    <h2>User Info (<span data-bind="text: Userslist().length"></span>)</h2>
-    <p>This is a list of all users associated with this OnRamp server instance.  Current functionality allows you to add and delete users.</p>
-  </div>
+        <!-- User info -->
+        <div class="container">
+            <div class="row">
+                <h2>User Info (<span data-bind="text: Userslist().length"></span>)</h2>
+                <p>This is a list of all users associated with this OnRamp server instance.  Current functionality allows you to add and delete users.</p>
+            </div>
 
-  <div class="row">
-    <button class="btn btn-primary" data-bind="click: addUser">Add New User</button>
-  </div>
+            <div class="row">
+                <button class="btn btn-primary" data-bind="click: addUser">Add New User</button>
+            </div>
 
-  <div class="row">
-    <table class="table table-striped">
-      <thead >
-        <th>ID</th>
-	    <th>Username</th>
-        <th>First Name</th>
-        <th>Last Name</th>
-        <th>Email</th>
-        <th>Admin</th>
-	    <th>Enabled</th>
-        <th>Delete</th>
-      </thead>
-      <tbody data-bind="foreach: Userslist()">
-        <tr data-bind="click: $parent.selectUser">
-          <td data-bind="text: id"></td>
-          <td data-bind="text: username"></td>
-          <td data-bind="text: first_name"></td>
-          <td data-bind="text: last_name"></td>
-          <td data-bind="text: email"></td>
-          <td data-bind="text: isAdmin"></td>
-	  <td data-bind="text: isEnabled"></td>
-          <td><button class="btn btn-danger" data-bind="click: $parent.deleteUser">Disable</button></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+            <div class="row">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Email</th>
+                            <th>Admin</th>
+                            <th>Enabled</th>
+                            <th>Update</th>
+                            <th>Disable/Enable</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: Userslist()">
+                        <tr>
+                            <td data-bind="text: id"></td>
+                            <td data-bind="text: username"></td>
+                            <td data-bind="text: first_name"></td>
+                            <td data-bind="text: last_name"></td>
+                            <td data-bind="text: email"></td>
+                            <td data-bind="text: isAdmin"></td>
+                            <td data-bind="text: isEnabled"></td>
+			    <td><button class="btn btn-primary glyphicon glyphicon-pencil" data-bind="click: $parent.selectUser"></button></td>
+                            <td>
+				<!--ko if: isEnabled-->
+					<button class="btn btn-danger glyphicon glyphicon-remove" data-bind="click: $parent.disableUser"></button>
+				<!--/ko-->
+				<!--ko ifnot: isEnabled-->
+					<button class="btn btn-primary glyphicon glyphicon-ok" data-bind="click: $parent.enableUser"></button>
+				<!--/ko-->
+			    </td>
+                            <td><button class="btn btn-danger glyphicon glyphicon-trash" data-bind="click: $parent.deleteUser"></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-<div class="container" data-bind="with: selectedUser">
-    <div class="row">
-        <h3>User Info: <span data-bind="text:username"></span> (User ID: <span data-bind="text: id"></span>)</h3>
-    </div>
-    <div class="row">
-        <div class="edit-table-col table-header"><p>Field</p></div>
-        <div class="edit-table-col table-header"><p>Current Value</p></div>
-        <div class="edit-table-col table-header"><p>New Value</p></div>
-    </div>
-    <div class="row">
-        <div class="edit-table-col"><p>Username</p></div>
-        <div class="edit-table-col"><p data-bind="text: username"></p></div>
-        <div class="edit-table-col"><input data-bind="value: username"/></div>
-    </div>
-    <div class="row">
-        <div class="edit-table-col"><p>First Name</p></div>
-        <div class="edit-table-col"><p data-bind="text: first_name"></p></div>
-        <div class="edit-table-col"><input data-bind="value: first_name"/></div>
-    </div>
-    <div class="row">
-        <div class="edit-table-col"><p>Last Name</p></div>
-        <div class="edit-table-col"><p data-bind="text: last_name"></p></div>
-        <div class="edit-table-col"><input data-bind="value: last_name"/></div>
-    </div>
-    <div class="row">
-  	    <div class="edit-table-col"><p>Email</p></div>
-        <div class="edit-table-col"><p data-bind="text: email"></p></div>
-        <div class="edit-table-col"><input data-bind="value: email"/></div>
-    </div>
-    <div class="row">
-        <div class="edit-table-col"><p>Password</p></div>
-        <div class="edit-table-col"><p data-bind="text: password"></p></div>
-        <div class="edit-table-col"><input data-bind="value: password"/></div>
-    </div>
-    <div class="row">
-        <div class="edit-table-col"><p>Admin</p></div>
-        <div class="edit-table-col"><p data-bind="text: isAdmin"></p></div>
-        <div class="edit-table-col"><input data-bind="checked: isAdmin" type="checkbox"/></div>
-    </div>
-    <div class="row">
-        <div class="edit-table-col"><p>Enabled</p></div>
-        <div class="edit-table-col"><p data-bind="text: isEnabled"></p></div>
-        <div class="edit-table-col"><input data-bind="checked: isEnabled" type="checkbox" /></div>
-    </div>
+        <div class="container" data-bind="with: selectedUser">
+            <div class="row">
+                <h3>User Info: <span data-bind="text:username"></span> (User ID: <span data-bind="text: id"></span>)</h3>
+            </div>
+            <div class="row">
+                <div class="edit-table-col table-header"><p>Field</p></div>
+                <div class="edit-table-col table-header"><p>Current Value</p></div>
+                <div class="edit-table-col table-header"><p>New Value</p></div>
+            </div>
+            <div class="row required">
+                <div class="edit-table-col"><p>Username</p></div>
+                <div class="edit-table-col"><p data-bind="text: username"></p></div>
+                <div class="edit-table-col"><input data-bind="value: username" /></div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col"><p>First Name</p></div>
+                <div class="edit-table-col"><p data-bind="text: first_name"></p></div>
+                <div class="edit-table-col"><input data-bind="value: first_name" /></div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col"><p>Last Name</p></div>
+                <div class="edit-table-col"><p data-bind="text: last_name"></p></div>
+                <div class="edit-table-col"><input data-bind="value: last_name" /></div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col"><p>Email</p></div>
+                <div class="edit-table-col"><p data-bind="text: email"></p></div>
+                <div class="edit-table-col"><input data-bind="value: email" /></div>
+            </div>
+            <div class="row required">
+                <div class="edit-table-col"><p>Password</p></div>
+                <div class="edit-table-col"><p data-bind="text: "*".repeat(password.length)"></p></div>
+                <div class="edit-table-col"><input type="password" data-bind="value: password" /></div>
+            </div>
+            <div class="row required">
+                <div class="edit-table-col"><p>Retype Password</p></div>
+                <div class="edit-table-col"><p data-bind="text: "*".repeat(repassword.length)"></p></div>
+                <div class="edit-table-col"><input type="password" data-bind="value: repassword" /></div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col"><p>Admin</p></div>
+                <div class="edit-table-col"><p data-bind="text: isAdmin"></p></div>
+                <div class="edit-table-col"><input data-bind="checked: isAdmin" type="checkbox" /></div>
+            </div>
+            <div class="row">
+                <div class="edit-table-col"><p>Enabled</p></div>
+                <div class="edit-table-col"><p data-bind="text: isEnabled"></p></div>
+                <div class="edit-table-col"><input data-bind="checked: isEnabled" type="checkbox" /></div>
+            </div>
 
-    <!-- Save Changes button -->
-    <div class="row">
-        <div class="col-lg-4 col-md-5 col-sm-6">
-        <button class="btn" data-bind="click: updateUser">Save Changes</button>
+            <!-- Save Changes button -->
+            <div class="row">
+                <div class="col-lg-4 col-md-5 col-sm-6">
+                    <button class="btn" data-bind="click: updateUser">Save Changes</button>
+                </div>
+            </div>
+
+            <!-- list of workspaces -->
+            <div class="row">
+                <h4>Workspaces (<span data-bind="text: Workspacelist().length"></span>)</h4>
+
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>View/Edit</th>
+                            <!-- <th>Remove</th> -->
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: Workspacelist">
+                        <tr>
+                            <td data-bind="text: wID"></td>
+                            <td data-bind="text: name"></td>
+                            <td data-bind="text: desc"></td>
+                            <td><button class="btn" data-bind="click: viewWorkspace">View Workspace</button></td>
+                            <!--<td><a data-bind="click: $parent.removeFromWorkspace">Remove</a></td> -->
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- list of Jobs -->
+            <div class="row">
+                <h4>Jobs (<span data-bind="text: Jobslist().length"></span>)</h4>
+
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Run Name</th>
+                            <th>User</th>
+                            <th>Workspace</th>
+                            <th>PCE</th>
+                            <th>Module</th>
+                            <th>Status</th>
+                            <th>Runtime</th>
+                            <th>View/Edit</th>
+                            <!-- <th>Delete</th> -->
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: Jobslist">
+                        <tr>
+                            <td data-bind="text: jID"></td>
+                            <td data-bind="text: name"></td>
+                            <td data-bind="text: user"></td>
+                            <td data-bind="text: ws"></td>
+                            <td data-bind="text: pce"></td>
+                            <td data-bind="text: mod"></td>
+                            <td data-bind="text: status"></td>
+                            <td data-bind="text: time"></td>
+                            <td><button class="btn" data-bind="click: viewJob">View Job</button></td>
+                            <!-- <td><a data-bind="click: $parent.deleteJob">Remove</a></td> -->
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+            <!-- list of modules -->
+            <!-- don't really want to show modules and PCEs
+            <div class="row">
+              <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
+                <h4>Modules (<span data-bind="text: Moduleslist().length"></span>)</h4>
+
+                <table class="table table-striped">
+                  <thead>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>View/Edit</th>
+                  </thead>
+                  <tbody data-bind="foreach: Moduleslist">
+                    <tr>
+                      <td data-bind="text: mID"></td>
+                      <td data-bind="text: name"></td>
+                      <td data-bind="text: desc"></td>
+                      <td><a data-bind="click: viewModule">View</a></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            -->
+            <!-- list of PCEs -->
+            <!-- don't really want to show modules and PCEs
+              <div class="row">
+                <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
+                  <h4>PCEs (<span data-bind="text: PCEslist().length"></span>)</h4>
+
+                  <table class="table table-striped">
+                    <thead>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Status</th>
+                      <th>Description</th>
+                      <th>Nodes</th>
+                      <th>Cores per node</th>
+                      <th>Mem per node</th>
+                      <th>View/Edit</th>
+                    </thead>
+                    <tbody data-bind="foreach: PCEslist">
+                      <tr>
+                        <td data-bind="text: ID"></td>
+                        <td data-bind="text: name"></td>
+                        <td data-bind="text: status"></td>
+                        <td data-bind="text: description"></td>
+                        <td data-bind="text: nodes"></td>
+                        <td data-bind="text: corespernode"></td>
+                        <td data-bind="text: mempernode"></td>
+                        <td><a data-bind="click: viewPCE">View</a></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            -->
+
+
         </div>
     </div>
 
-  <!-- list of workspaces -->
-  <div class="row">
-    <h4>Workspaces (<span data-bind="text: Workspacelist().length"></span>)</h4>
+    <!-- footer -->
+    <footer class="footer">
+        <div class="footer">
+            <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
+        </div>
+    </footer>
 
-      <table class="table table-striped">
-        <thead>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Description</th>
-          <th>View/Edit</th>
-          <!-- <th>Remove</th> -->
-        </thead>
-        <tbody data-bind="foreach: Workspacelist">
-          <tr>
-            <td data-bind="text: wID"></td>
-            <td data-bind="text: name"></td>
-            <td data-bind="text: desc"></td>
-            <td><button class="btn" data-bind="click: viewWorkspace">View Workspace</button></td>
-            <!--<td><a data-bind="click: $parent.removeFromWorkspace">Remove</a></td> -->
-          </tr>
-        </tbody>
-      </table>
-  </div>
-
-  <!-- list of Jobs -->
-  <div class="row">
-      <h4>Jobs (<span data-bind="text: Jobslist().length"></span>)</h4>
-
-      <table class="table table-striped">
-        <thead>
-          <th>ID</th>
-          <th>Run Name</th>
-          <th>User</th>
-          <th>Workspace</th>
-          <th>PCE</th>
-          <th>Module</th>
-          <th>Status</th>
-          <th>Runtime</th>
-          <th>View/Edit</th>
-          <!-- <th>Delete</th> -->
-        </thead>
-        <tbody data-bind="foreach: Jobslist">
-          <tr>
-            <td data-bind="text: jID"></td>
-            <td data-bind="text: name"></td>
-            <td data-bind="text: user"></td>
-            <td data-bind="text: ws"></td>
-            <td data-bind="text: pce"></td>
-            <td data-bind="text: mod"></td>
-            <td data-bind="text: status"></td>
-            <td data-bind="text: time"></td>
-            <td><button class="btn" data-bind="click: viewJob">View Job</button></td>
-            <!-- <td><a data-bind="click: $parent.deleteJob">Remove</a></td> -->
-          </tr>
-        </tbody>
-      </table>
-  </div>
-
-
-  <!-- list of modules -->
-    <!-- don't really want to show modules and PCEs
-  <div class="row">
-    <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
-      <h4>Modules (<span data-bind="text: Moduleslist().length"></span>)</h4>
-
-      <table class="table table-striped">
-        <thead>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Description</th>
-          <th>View/Edit</th>
-        </thead>
-        <tbody data-bind="foreach: Moduleslist">
-          <tr>
-            <td data-bind="text: mID"></td>
-            <td data-bind="text: name"></td>
-            <td data-bind="text: desc"></td>
-            <td><a data-bind="click: viewModule">View</a></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  -->
-
-
-  <!-- list of PCEs -->
-  <!-- don't really want to show modules and PCEs
-  <div class="row">
-    <div class="col-lg-8 col-md-9 col-sm-10 col-md-offset-1">
-      <h4>PCEs (<span data-bind="text: PCEslist().length"></span>)</h4>
-
-      <table class="table table-striped">
-        <thead>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Status</th>
-          <th>Description</th>
-          <th>Nodes</th>
-          <th>Cores per node</th>
-          <th>Mem per node</th>
-          <th>View/Edit</th>
-        </thead>
-        <tbody data-bind="foreach: PCEslist">
-          <tr>
-            <td data-bind="text: ID"></td>
-            <td data-bind="text: name"></td>
-            <td data-bind="text: status"></td>
-            <td data-bind="text: description"></td>
-            <td data-bind="text: nodes"></td>
-            <td data-bind="text: corespernode"></td>
-            <td data-bind="text: mempernode"></td>
-            <td><a data-bind="click: viewPCE">View</a></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
--->
-
-  
-</div>
-</div>
-
-<!-- footer -->
-<footer class="footer">
-  <div class="footer">
-    <p>OnRamp to Parallel and Distributed Computing -- 2016</p>
-  </div>
-</footer>
-
-<!-- put all scripty scripts below this line -->
-<!-- Order Matters here JQuery needs to be first then all_global.js -->
-<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-<script src="/static/javascript/all_global.js"></script>
-<script src="/static/javascript/third_party/bootstrap.min.js"></script>
-<script src="/static/javascript/third_party/knockout-3.3.0.js"></script>
-<script src="/static/javascript/admin_users.js"></script>
+    <!-- put all scripty scripts below this line -->
+    <!-- Order Matters here JQuery needs to be first then all_global.js -->
+    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src='{% static "javascript/all_global.js" %}'></script>
+    <script src='{% static "javascript/third_party/bootstrap.min.js" %}'></script>
+    <script src='{% static "javascript/third_party/knockout-3.3.0.js" %}'></script>
+    <script src='{% static "javascript/third_party/knockout.validation.min.js" %}'></script>
+    <script src='{% static "javascript/admin_users.js" %}'></script>
 </body>
 </html>
