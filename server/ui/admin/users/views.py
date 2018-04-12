@@ -1,13 +1,13 @@
 import json
 
-from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
 from ui.admin.models import job, user_to_workspace
 
-@login_required
+@staff_member_required(login_url='/')
 def main(request):
     """ Renders the main Admin dashboard on login
 
@@ -19,7 +19,7 @@ def main(request):
     template = get_template('admin_users.html')
     return HttpResponse(template.render({}, request))
 
-# @login_required
+@staff_member_required(login_url='/')
 def get_all_users(request):
     """ Retrieve all OnRamp users
 
@@ -47,7 +47,7 @@ def get_all_users(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@staff_member_required(login_url='/')
 def update_user(request):
     """ Update a specific user with new settings
 
@@ -82,7 +82,7 @@ def update_user(request):
     return HttpResponse(json.dumps(response))
 
 
-# @login_required
+@staff_member_required(login_url='/')
 def create_user(request):
     """ Creates a new user with specified settings
 
@@ -114,7 +114,7 @@ def create_user(request):
     return HttpResponse(json.dumps(response))
 
 
-# @login_required
+@staff_member_required(login_url='/')
 def disable_user(request):
     """ Disable a specific enabled user
 		They will no longer be able to login
@@ -138,7 +138,7 @@ def disable_user(request):
     response = {'status':1, 'status_message':'Success'}
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@staff_member_required(login_url='/')
 def enable_user(request):
     """ Enable a specific disabled user
 		They will be able to login again
@@ -162,7 +162,7 @@ def enable_user(request):
     response = {'status': 1, 'status_message': 'Success'}
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@staff_member_required(login_url='/')
 def delete_user(request):
     """ Remove a specific user
 
@@ -177,7 +177,7 @@ def delete_user(request):
     return HttpResponse(json.dumps(response))
 
 
-# @login_required
+@staff_member_required(login_url='/')
 def get_user_jobs(request):
     """ Retrieve all jobs run by a specific user
 
@@ -198,7 +198,7 @@ def get_user_jobs(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@staff_member_required(login_url='/')
 def get_user_workspaces(request):
     """ Retrieve all workspaces for a specific user
 

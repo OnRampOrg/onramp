@@ -1,11 +1,12 @@
 import json
 
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
 from ui.admin.models import workspace, job
 
-# @login_required
+@staff_member_required(login_url='/')
 def main(request):
     """ Renders the main Admin dashboard on login
 
@@ -18,7 +19,7 @@ def main(request):
     return HttpResponse(template.render({}, request))
 
 
-# @login_required
+@staff_member_required(login_url='/')
 def get_all_jobs(request):
     """ Retrieve all Jobs
 
@@ -34,7 +35,7 @@ def get_all_jobs(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@staff_member_required(login_url='/')
 def get_job(request):
     """ Retrieve a specific Job
 
@@ -51,7 +52,7 @@ def get_job(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@staff_member_required(login_url='/')
 def create_job(request):
     """ Create a new job
 
@@ -74,7 +75,7 @@ def create_job(request):
     response = {'status': 1, 'status_message': 'Success'}
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@staff_member_required(login_url='/')
 def update_job(request):
     """ Updates a job with new fields
         
@@ -104,7 +105,7 @@ def update_job(request):
     response = {'status': 1, 'status_message': 'Success'}
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@staff_member_required(login_url='/')
 def delete_job(request):
     """ Deletes a specific job
 

@@ -1,13 +1,13 @@
 import json
 
-from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
 from ui.admin.models import workspace, job, workspace_to_pce_module, module_to_pce, user_to_workspace
 
-@login_required
+@staff_member_required(login_url='/')
 def main(request):
     """ Renders the main Admin dashboard on login
 
@@ -19,7 +19,7 @@ def main(request):
     template = get_template('admin_workspaces.html')
     return HttpResponse(template.render({}, request))
 
-@login_required
+@staff_member_required(login_url='/')
 def get_all(request):
     """ Gets all workspaces
 
@@ -36,7 +36,7 @@ def get_all(request):
     }
     return HttpResponse(json.dumps(response))
 
-@login_required
+@staff_member_required(login_url='/')
 def create_new_workspace(request):
     """ Adds a new workspace
 
@@ -56,7 +56,7 @@ def create_new_workspace(request):
         }
     return HttpResponse(json.dumps(response))
 
-@login_required
+@staff_member_required(login_url='/')
 def get_jobs(request):
     """ Gets all jobs for s specified workspace
 
@@ -76,7 +76,7 @@ def get_jobs(request):
     }
     return HttpResponse(json.dumps(response))
 
-@login_required
+@staff_member_required(login_url='/')
 def get_pces(request):
     """ Gets all jobs for s specified workspace
 
@@ -110,7 +110,7 @@ def get_pces(request):
 
 
 
-@login_required
+@staff_member_required(login_url='/')
 def get_potential_users(request):
     """
 
@@ -137,7 +137,7 @@ def get_potential_users(request):
     return HttpResponse(json.dumps(response))
 
 
-@login_required
+@staff_member_required(login_url='/')
 def get_workspace_users(request):
     """ Gets all users that have access to a specified workspace
 
@@ -158,7 +158,7 @@ def get_workspace_users(request):
     }
     return HttpResponse(json.dumps(response))
 
-@login_required
+@staff_member_required(login_url='/')
 def add_user_to_workspace(request):
     """ Give user permission to a specified workspace
 
@@ -183,7 +183,7 @@ def add_user_to_workspace(request):
         response = {'status':-1, 'status_message':"User already has permissions for this workspace."}
     return HttpResponse(json.dumps(response))
 
-@login_required
+@staff_member_required(login_url='/')
 def remove_user_from_workspace(request):
     """
 
@@ -202,7 +202,7 @@ def remove_user_from_workspace(request):
     return HttpResponse(json.dumps(response))
 
 
-@login_required
+@staff_member_required(login_url='/')
 def add_pce_mod_pair(request):
     """ Adds a PCE/Module pair to a workspace
 

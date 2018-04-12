@@ -1,7 +1,7 @@
 import json
 import logging
 
-from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
@@ -13,7 +13,7 @@ from core.pce_connect import PCEAccess
 
 success_response = {'status': 1, 'status_message': 'Success'}
 
-@login_required
+@staff_member_required(login_url='/')
 def main(request):
     """ Renders the main Admin dashboard on login
 
@@ -26,7 +26,7 @@ def main(request):
     return HttpResponse(template.render({}, request))
 
 
-@login_required
+@staff_member_required(login_url='/')
 def get_all_pces(request):
     """ Retrieve all configured PCEs
 
@@ -42,7 +42,7 @@ def get_all_pces(request):
     }
     return HttpResponse(json.dumps(response))
 
-@login_required
+@staff_member_required(login_url='/')
 def add_pce(request):
     """ Add a new PCE
     
@@ -73,7 +73,7 @@ def add_pce(request):
         }
     return HttpResponse(json.dumps(response))
 
-@login_required
+@staff_member_required(login_url='/')
 def edit_pce(request):
     """ Edit a specific PCE
 
@@ -104,7 +104,7 @@ def edit_pce(request):
     response = {'status': 1, 'status_message': 'Success'}
     return HttpResponse(json.dumps(response))
 
-@login_required
+@staff_member_required(login_url='/')
 def delete_pce(request):
     """ Delete a specific PCE
 
@@ -118,7 +118,7 @@ def delete_pce(request):
     response = {'status': -1, 'status_message': 'Success'}
     return HttpResponse(json.dumps(response))
 
-@login_required
+@staff_member_required(login_url='/')
 def get_pce_modules(request):
     """ Retrieve all modules from a specific PCE
 
@@ -158,7 +158,7 @@ def get_pce_modules(request):
         }
     return HttpResponse(json.dumps(response))
 
-@login_required
+@staff_member_required(login_url='/')
 def add_pce_module(request):
     """ Add a module to a specific PCE
         URL: /admin/PCEs/Module/Add
@@ -228,7 +228,7 @@ def add_pce_module(request):
         }
     return HttpResponse(json.dumps(response))
 
-@login_required
+@staff_member_required(login_url='/')
 def edit_pce_module(request):
     """ Edit a module
 
@@ -254,7 +254,7 @@ def edit_pce_module(request):
     mod_obj.save()
     return HttpResponse(json.dumps(success_response))
 
-@login_required
+@staff_member_required(login_url='/')
 def delete_pce_module(request):
     """ Delete Module
 
@@ -268,7 +268,7 @@ def delete_pce_module(request):
     module.objects.filter(id=int(id)).delete()
     return HttpResponse(json.dumps(success_response))
 
-@login_required
+@staff_member_required(login_url='/')
 def get_pce_workspaces(request):
     """ Retrieve all workspaces for a specific PCE
 
@@ -300,7 +300,7 @@ def get_pce_workspaces(request):
         }
     return HttpResponse(json.dumps(response))
 
-@login_required
+@staff_member_required(login_url='/')
 def get_pce_jobs(request):
     """
         URL: /admin/PCEs/Jobs
@@ -325,7 +325,7 @@ def get_pce_jobs(request):
         }
     return HttpResponse(json.dumps(response))
 
-@login_required
+@staff_member_required(login_url='/')
 def get_module_state(request):
     """ Retrieve state of a specific module on specific a PCE
 
@@ -352,7 +352,7 @@ def get_module_state(request):
         }
     return HttpResponse(json.dumps(response))
 
-@login_required
+@staff_member_required(login_url='/')
 def deploy_module(request):
     """ 
 
