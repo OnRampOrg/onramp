@@ -22,6 +22,8 @@ class _BatchScheduler(object):
         """Return boolean indicating whether the class provides an interface to
         the batch scheduler type given.
 
+        #FIXME the cls argument is not defined in behavior or used in any implementations - check to see if its safe to remove this
+
         Args:
             type (str): Batch scheduler type.
 

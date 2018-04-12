@@ -434,7 +434,7 @@ class ClusterInfo2():
         self.logger.debug('Initialized %s' % self.__class__.__name__)
 
     def GET(self, *args):
-        return 'ClusterInfo2'
+        return 'ClusterInfo2'###FIXME not sure why this is here or what is actually supposed to be returned
         self.logger.debug('args: %s' % str(args))
 
         if not args:
