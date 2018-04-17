@@ -166,7 +166,7 @@ class Installer(object):
                 'pcre-devel',
                 'zlib-devel',
                 'apr-devel',
-                #'policycoreutils-python-utils',  # for semanage
+                #'policycoreutils-python',  # for semanage
             ]
         else:
             dependancies = []
@@ -281,7 +281,7 @@ class Installer(object):
             fh = open("{}/build/config/my.cnf".format(self.base_dir), 'r')
             mysql_conf = fh.read().strip()
             fh.close()
-            # write out the new lines to a temp file to copy over with sudo
+            # write out the new lines to policycoreutils-python-utilsa temp file to copy over with sudo
             with open("/tmp/mysql_conf", "w") as fh:
                 fh.writelines(mysql_conf.replace("ONRAMP", self.base_dir))
             # write over the /etc/environment file with the new lines from the tmp file

@@ -276,7 +276,7 @@ MySQL is required by both Django and other pieces of OnRamp for communication an
     
     ```
     user@server:/# mysql -u root --password=new_password
-    myqsl> DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')";
+    myqsl> DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
     myqsl> DELETE FROM mysql.user WHERE User='';
     myqsl> DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%';
     ```
@@ -286,7 +286,7 @@ MySQL is required by both Django and other pieces of OnRamp for communication an
     - **Note:** The following commands create the user that is used by Django to talk to the database via the models. Without this user Django **CANNOT** talk to MySQL. The first command just creates the user with the password `OnRamp_16` and the second command makes sure the Django MySQL user has privileges to everything in the MySQL database.
     
     ```
-    myqsl> CREATE USER 'onramp'@'localhost' IDENTIFIED BY 'OnRamp_16;
+    myqsl> CREATE USER 'onramp'@'localhost' IDENTIFIED BY 'OnRamp_16';
     myqsl> GRANT ALL PRIVILEGES ON * . * TO 'onramp'@'localhost';
     ```
     
