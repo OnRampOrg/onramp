@@ -365,6 +365,7 @@
                             <th>State</th>
                             <!--<th>View</th>-->
                             <th>Deploy</th>
+			    <th>Remove</th>
                         </tr>
                     </thead>
                     <tbody data-bind="foreach: Moduleslist">
@@ -376,6 +377,7 @@
                             <td data-bind="text: state_str"></td>
                             <!--<td><button class="btn" data-bind="click: viewModule">View</button></td>-->
                             <td><button class="btn" data-bind="click: $parent.deployModule">Deploy</button></td>
+			    <td><button class="btn" data-bind="click: $parent.removeModule">Remove</button></td>
                         </tr>
                     </tbody>
                 </table>

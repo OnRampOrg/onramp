@@ -27,6 +27,8 @@ function workspaceModule(data){
 	
 
 	self.getRealFormFields = function (pce_id) {
+	    console.log('Module id: ' + self.id);
+	    console.log('PCE id:' + pce_id);
 		self.formFields.removeAll();
 		$.ajax({
 		    url:'/public/Workspace/GetModuleOptions/',
@@ -34,6 +36,8 @@ function workspaceModule(data){
 		    dataType:'json',
 		    data: {'pce_id':pce_id, 'module_id':self.id},
 		    success: function(response) {
+			console.log(response);
+			console.log(self.name);
                 self.formFields.push({field:"job_name", data:""});
 				response.uioptions.onramp.forEach(function (item, index, array){
 					self.formFields.push({field:"onramp " + item, data:""});

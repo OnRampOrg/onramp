@@ -263,9 +263,9 @@ def delete_pce_module(request):
     :param request:
     :return:
     """
-    id = request.POST.dict().get('id')
+    id = request.POST.dict().get('module_id')
     module_to_pce.objects.filter(module_id=int(id)).delete()
-    module.objects.filter(id=int(id)).delete()
+    module.objects.filter(module_id=int(id)).delete()
     return HttpResponse(json.dumps(success_response))
 
 @staff_member_required(login_url='/')

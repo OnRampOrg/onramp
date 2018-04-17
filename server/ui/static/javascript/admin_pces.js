@@ -143,6 +143,15 @@ function adminPCE (data) {
 //		} );
 	}
 
+    self.removeModule = function (mod) {
+	$.ajax({
+	    type: 'POST',
+	    url: '/admin/PCEs/Module/Delete/',
+	    dataType: 'json',
+	    data: { 'module_id': mod.id() }
+	});
+    }
+
 	self.checkModuleStatus = function (mod) {
 		// need to check
 		// this will check the status of a module (GET .../admin/pces/:ID/modules/:MODULEID)
