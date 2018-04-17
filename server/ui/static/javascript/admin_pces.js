@@ -110,37 +110,6 @@ function adminPCE (data) {
 		    'src_location_path': self.newModule().src_location_path()
 		}
         });
-
-
-		//alert("Not yet implemented on server.")
-		// this will add a new module to the PCE
-		// POST .../admin/pces/:ID/modules/:MODULEID
-//		console.log(self.newModule().name());
-//		console.log(self.newModule().id());
-//		self.newModule().id(self.Moduleslist().length + 1);
-//		$.ajax({
-//			type: 'POST',
-//			url: sessionStorage.server + '/admin/pce/' + self.id() + '/module/' + self.newModule().id() +'?apikey=' + JSON.parse(self.auth_data).apikey,
-//			//	"auth": { ...}, // Removed for brevity
-//    		//	"contact_info": "Someone else",
-//    		//	"description": "Secret Compute Resource",
-//    		//	"location": "Hidden Hallway",
-//    		//	"name": "Flux",
-//    		//	"pce_password": "fake123",
-//    		//	"pce_username": "onramp",
-//    		//	"port": 9071,
-//    		//	"url": "127.0.0.1"
-//			data: JSON.stringify({'auth': JSON.parse(self.auth_data),
-//				'module_id':self.newModule().id(),
-//				'module_name':self.newModule().name(),
-//				'install_location':self.newModule().install_location(),
-//				'src_location_type':self.newModule().src_location_type(),
-//				'src_location_path':self.newModule().src_location_path()
-//			}),
-//			complete: self.complete_func,
-//			dataType: 'application/json',
-//			contentType: 'application/json'
-//		} );
 	}
 
     self.removeModule = function (mod) {
