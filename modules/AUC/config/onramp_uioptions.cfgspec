@@ -31,10 +31,10 @@ np =
 nodes =
 
 [AUC]
-mode = <mode>
-    s : serial (default)
-    o : openmp
-    m : mpi
-    h : hybrid
+mode = string(max=2,default="s")
+#    s : serial (default)
+#    o : openmp
+#    m : mpi
+#    h : hybrid
 rectangles = string(max=32,default="100000000")
 threads = string(max=32,default="1")
