@@ -15,15 +15,17 @@ from subprocess import call, check_call, CalledProcessError
 #
 os.chdir('src')
 
+
+#This has been commented out because module load cannot be called like this
 #
 # Load any modules for compiling
 #   - need to load mpi module on flux
 #
-try:
-    rtn = check_call("module load mpi")
-except CalledProcessError as e:
-    print "Error loading module.\nError: %s" % e
-    sys.exit(-1)
+# try:
+#     rtn = check_call("module load mpi")
+# except CalledProcessError as e:
+#     print "Error loading module.\nError: %s" % e
+#     sys.exit(-1)
 
 #
 # Make the program
