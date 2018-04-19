@@ -8,7 +8,7 @@
 #
 import os
 import sys
-from subprocess import call
+from subprocess import call, CalledProcessError, check_call
 from configobj import ConfigObj
 
 #
@@ -18,11 +18,22 @@ from configobj import ConfigObj
 conf_file = "onramp_runparams.cfg"
 # Already validated the file in our onramp_preprocess.py script - no need to do it again
 config    = ConfigObj(conf_file)
+time = 'usr/bin/time'
 
 #
 # Run my program
 #
 os.chdir('src')
+
+#
+# Load any modules for compiling
+#   - need to load mpi module on flux
+#
+try:
+    rtn = check_call("module load mpi")
+except CalledProcessError as e:
+    print "Error loading module.\nError: %s" % e
+    sys.exit(-1)
 
 # Retrive mode
 mode = config['AUC']['mode']
@@ -32,22 +43,17 @@ def default_case():
 	print 'Mode option ' + mode + ' invalid.\n'
 	sys.exit(-1)
 
-# May change commented lines for time -p ("portable" time output)
 def serial():
-	call(['time', 'mpirun', '-np', '1', 'AUC-serial', '-n', config['AUC']['rectangles']])	
-	#call(['time', '-p', 'mpirun', '-np', '1', 'AUC-serial', '-n', config['AUC']['rectangles']])
+	call([time, './AUC-serial', '-n', config['AUC']['rectangles']])
 
 def openmp():
-	call(['time', 'mpirun', '-np', '1', 'AUC-openmp', '-n', config['AUC']['rectangles'], '-t', config['AUC']['threads']])	
-	#call(['time', '-p', 'mpirun', '-np', '1', 'AUC-openmp', '-n', config['AUC']['rectangles'], '-t', config['AUC']['threads']])
+	call([time, './AUC-openmp', '-n', config['AUC']['rectangles'], '-t', config['AUC']['threads']])
 
 def mpi():
-	call(['time', 'mpirun', '-np', config['onramp']['np'], 'AUC-mpi', '-n', config['AUC']['rectangles']])
-	#call(['time', '-p', 'mpirun', '-np', config['onramp']['np'], 'AUC-mpi', '-n', config['AUC']['rectangles']])
+	call([time, '-p', 'mpirun', '-np', config['onramp']['np'], 'AUC-mpi', '-n', config['AUC']['rectangles']])
 
 def hybrid():
-	call(['time', 'mpirun', '-np', config['onramp']['np'], 'AUC-hybrid', '-n', config['AUC']['rectangles'], '-t', config['AUC']['threads']])
-	#call(['time', '-p', 'mpirun', '-np', config['onramp']['np'], 'AUC-hybrid', '-n', config['AUC']['rectangles'], '-t', config['AUC']['threads']])
+	call([time, '-p', 'mpirun', '-np', config['onramp']['np'], 'AUC-hybrid', '-n', config['AUC']['rectangles'], '-t', config['AUC']['threads']])
 
 # Set options
 executables = { 's' : serial, 'o' : openmp, 'm' : mpi, 'h' : hybrid }

@@ -298,7 +298,7 @@ def job_run(job_id, job_state_file=None):
         run_name = job_state['run_name']
     os.chdir(run_dir)
 
-    #_logger.debug("in job_run: attempting to be in %s, really in %s", run_dir, os.get_cwd())
+    #_logger.debug("in job_run: attempting to be in %s, really in %s", run_dir, os.getcwd())
     # Load run params:
     run_np = None
     run_nodes = None
@@ -308,8 +308,9 @@ def job_run(job_id, job_state_file=None):
             run_np = run_cfg['onramp']['np']
         if 'nodes' in run_cfg['onramp']:
             run_nodes = run_cfg['onramp']['nodes']
-
-    _logger.debug("in job_run: loaded params np: %d and nodes: %d", run_np, run_nodes)
+    # FIXME np and nodes don't seem to be set properly; they are being drawn from the bin/modules folder's config file instead
+    # of the user's own loaded module folder. This prevents the user from changing these values in the user's own config file
+    _logger.debug("in job_run: loaded params np: %d and nodes: %d", int(run_np), int(run_nodes))
 
     ###might be able to condense these if statements into one - python ignores undefined arguments
     # Write batch script.

@@ -34,3 +34,15 @@ nodes =
 mode = string(max=2,default="1s")
 threads = string(max=32,default="1")
 pi_trials = string(max=32,default="1000000000")
+
+
+# supported modes:
+# 1 : Coin Flip
+# 2 : Draw Four Suits
+# 3 : Pi Calculation
+# 4 : Roulette Simulator
+#
+# Each mode supports both parallel (p) and sequential (s) execution
+# Examples:
+# Sequential:  1s
+# Parallel:    1p
