@@ -7,8 +7,17 @@
 #
 import os
 import sys
-from subprocess import call
+from subprocess import call, CalledProcessError, check_call
 
+#
+# Load any modules for compiling
+#   - need to load mpi module on flux
+#
+try:
+    rtn = check_call("module load mpi")
+except CalledProcessError as e:
+    print "Error loading module.\nError: %s" % e
+    sys.exit(-1)
 
 #
 # Change to the 'src' directory

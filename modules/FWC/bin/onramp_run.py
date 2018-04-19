@@ -8,7 +8,7 @@
 #
 import os
 import sys
-from subprocess import call
+from subprocess import call, CalledProcessError, check_call
 from configobj import ConfigObj
 
 #
@@ -20,10 +20,20 @@ conf_file = "onramp_runparams.cfg"
 config    = ConfigObj(conf_file)
 
 #
+# Load any modules for compiling
+#   - need to load mpi module on flux
+#
+try:
+    rtn = check_call("module load mpi")
+except CalledProcessError as e:
+    print "Error loading module.\nError: %s" % e
+    sys.exit(-1)
+
+#
 # Run my program
 #
 os.chdir('src')
-call(['time', 'mpirun', '-np', '1', 'FWC-serial', '-h', config['FWC']['grid_height'], '-w', config['FWC']['grid_width']])
+call(['/usr/bin/time', '-p', 'mpirun', '-np', '1', 'FWC-serial', '-h', config['FWC']['grid_height'], '-w', config['FWC']['grid_width']])
 
 
 # Exit 0 if all is ok
