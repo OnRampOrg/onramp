@@ -19,15 +19,6 @@ conf_file = "onramp_runparams.cfg"
 # Already validated the file in our onramp_preprocess.py script - no need to do it again
 config    = ConfigObj(conf_file)
 
-#
-# Load any modules for compiling
-#   - need to load mpi module on flux
-#
-try:
-    rtn = check_call("module load mpi")
-except CalledProcessError as e:
-    print "Error loading module.\nError: %s" % e
-    sys.exit(-1)
 
 # If timing the program, use /usr/bin/time -p
 

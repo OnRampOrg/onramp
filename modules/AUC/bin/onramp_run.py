@@ -18,7 +18,7 @@ from configobj import ConfigObj
 conf_file = "onramp_runparams.cfg"
 # Already validated the file in our onramp_preprocess.py script - no need to do it again
 config    = ConfigObj(conf_file)
-time = 'usr/bin/time'
+time = '/usr/bin/time'
 
 #
 # Run my program
