@@ -25,16 +25,6 @@ time = 'usr/bin/time'
 #
 os.chdir('src')
 
-#
-# Load any modules for compiling
-#   - need to load mpi module on flux
-#
-try:
-    rtn = check_call("module load mpi")
-except CalledProcessError as e:
-    print "Error loading module.\nError: %s" % e
-    sys.exit(-1)
-
 # Retrive mode
 mode = config['AUC']['mode']
 
