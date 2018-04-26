@@ -66,8 +66,6 @@ class PCEAccess(object):
         self._pce_job_dir = os.path.join(self._pce_dir, "jobs")
 
         # Create those directories if they do not already exist
-
-        # Currently throws OSError(13, 'Permission Denied')
         if not os.path.exists(self._pce_dir):
             os.makedirs(self._pce_dir)
         if not os.path.exists(self._pce_module_dir):
@@ -76,9 +74,6 @@ class PCEAccess(object):
             os.makedirs(self._pce_job_dir)
 
         pce_info = self._get_pce_info()
-        #if pce_info is None: 
-            #raise ValueError("PCE id: {} does not exist".format(self._pce_id))
-        #else:
         self._url = self._get_url(pce_info.ip_addr, pce_info.ip_port)
         self._port = pce_info.ip_port
         self._name = pce_info.pce_name

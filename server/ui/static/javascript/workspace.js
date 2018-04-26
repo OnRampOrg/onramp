@@ -13,6 +13,7 @@ function workspaceModule(data){
 	self.id = data['module_id'];
 	self.name = data['module_name'];
 	self.desc = data['description'];
+	self.path = data['src_location'];
 	self.formFields = ko.observableArray();
 	self.PCEs = ko.observableArray();
 	self.formInfo = ko.observableArray();
@@ -36,15 +37,15 @@ function workspaceModule(data){
 		    dataType:'json',
 		    data: {'pce_id':pce_id, 'module_id':self.id},
 		    success: function(response) {
-			console.log(response);
-			console.log(self.name);
+				var module_index = /[^/]*$/.exec(self.path)[0];
+
                 self.formFields.push({field:"job_name", data:""});
 				response.uioptions.onramp.forEach(function (item, index, array){
 					self.formFields.push({field:"onramp " + item, data:""});
 					self.formInfo.push({formid: item});
 				});
 
-				if(self.name == "mpi-ring"){
+				if(module_index == "mpi-ring"){
 					response.uioptions["ring"].forEach(function (item, index, array){
 						module_name = "ring";
 						self.formFields.push({field:"ring " + item, data:""});
@@ -52,7 +53,7 @@ function workspaceModule(data){
 						console.log("christa"+ item);
 					});
 				}
-				else if(self.name == "template"){
+				else if(module_index == "template"){
 					response.uioptions["hello"].forEach(function (item, index, array){
 						module_name = "hello";
 						self.formFields.push({field:"hello " + item, data:""});
@@ -61,7 +62,7 @@ function workspaceModule(data){
 					});
 				}
 				else {
-					response.uioptions[self.name].forEach(function (item, index, array){
+					response.uioptions[module_index].forEach(function (item, index, array){
 						module_name = self.name;
 						self.formFields.push({field:self.name + " " + item, data:""});
 						self.formInfo.push({formid: item});
