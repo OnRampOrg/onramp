@@ -114,7 +114,7 @@ if __name__ == '__main__':
         msg += '(R)emove current users and create new admin user or '
         msg += '(K)eep current users? '
         response = raw_input(msg)
-        if response != 'R' and resposne != 'r':
+        if response != 'R' and response != 'r':
             make_new_users = False
         else:
             shutil.rmtree(users_dir)
