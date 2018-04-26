@@ -34,10 +34,10 @@ def default_case():
 	sys.exit(-1)
 
 def serial():
-	call([time, './AUC-serial', '-n', config['AUC']['rectangles']])
+	call([time, '-p', './AUC-serial', '-n', config['AUC']['rectangles']])
 
 def openmp():
-	call([time, './AUC-openmp', '-n', config['AUC']['rectangles'], '-t', config['AUC']['threads']])
+	call([time, '-p', './AUC-openmp', '-n', config['AUC']['rectangles'], '-t', config['AUC']['threads']])
 
 def mpi():
 	call([time, '-p', 'mpirun', '-np', config['onramp']['np'], 'AUC-mpi', '-n', config['AUC']['rectangles']])

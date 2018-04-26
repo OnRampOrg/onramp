@@ -308,8 +308,6 @@ def job_run(job_id, job_state_file=None):
             run_np = run_cfg['onramp']['np']
         if 'nodes' in run_cfg['onramp']:
             run_nodes = run_cfg['onramp']['nodes']
-    # FIXME np and nodes don't seem to be set properly; they are being drawn from the bin/modules folder's config file instead
-    # of the user's own loaded module folder. This prevents the user from changing these values in the user's own config file
     _logger.debug("in job_run: loaded params np: %d and nodes: %d", int(run_np), int(run_nodes))
 
     ###might be able to condense these if statements into one - python ignores undefined arguments
