@@ -177,7 +177,7 @@ def add_pce_module(request):
     mod_obj, created = module.objects.get_or_create(
         module_name = mod_name,
         version = post.get('version', ''),
-        src_location = post.get('src_location', ''),
+        src_location = post.get('src_location_path', ''),
         description = post.get('description', '')
     )
 
@@ -187,7 +187,7 @@ def add_pce_module(request):
         response = {
             'status':-1,
             'status_message':'A Module with that name already exists, '
-                             'please pick a unique name.'
+                            'please pick a unique name.'
         }
         return HttpResponse(json.dumps(response))
 

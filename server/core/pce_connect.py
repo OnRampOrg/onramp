@@ -273,7 +273,7 @@ class PCEAccess(object):
         status_code = self.ping()
 
         self._logger.debug("%scheck_connection() %d from %s"
-                           % (self._name, status_code, self._url))
+                            % (self._name, status_code, self._url))
 
         pce_row = pce.objects.get(pce_id=self._pce_id)
         if status_code == 200:
@@ -328,8 +328,8 @@ class PCEAccess(object):
             all_mods = self.get_modules()
             avail_mods = None
             for m in all_mods:
-                m_id = module.objects.get(module_name=m['mod_name']).module_id
-                if m_id == module_id:
+                #m_id = module.objects.get(module_name=m['mod_name']).module_id
+                if m['mod_id'] == module_id:
                     avail_mods = m
                     #self._logger.debug("%s TESTING (1): %s" % (prefix, str(avail_mods)))
                     # JJH confirm this is the proper behavior

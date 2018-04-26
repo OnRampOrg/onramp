@@ -117,7 +117,8 @@ def get_modules_for_pce(request):
             modules[module.module_id] = {
                 'module_id':module.module_id,
                 'module_name':module.module_name,
-                'description':module.description
+                'description':module.description,
+                'src_location':module.src_location
             }
         response = {'success':True, 'status_message':'Success', 'modules':modules.values()}
     except Exception as e:

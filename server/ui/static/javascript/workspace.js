@@ -17,7 +17,6 @@ function workspaceModule(data){
 	self.formFields = ko.observableArray();
 	self.PCEs = ko.observableArray();
 	self.formInfo = ko.observableArray();
-	console.log("CHRISTA DESC: " + self.desc);
 
 	self.addDefaultFormFields = function () {
 		this.formFields.push({"field": "name", "value": "test"});
@@ -25,11 +24,8 @@ function workspaceModule(data){
 		this.formFields.push({"field": "processes", "value": 4});
 	}
 
-	
-
 	self.getRealFormFields = function (pce_id) {
-	    console.log('Module id: ' + self.id);
-	    console.log('PCE id:' + pce_id);
+		var module_index = /[^/]*$/.exec(self.path)[0];
 		self.formFields.removeAll();
 		$.ajax({
 		    url:'/public/Workspace/GetModuleOptions/',
@@ -85,20 +81,20 @@ var setFormId = function(formInfo){
 	var labels = document.getElementsByTagName("label");
 		for(var i = 1; i < labels.length; i++){
 			formID = formInfo[i-1].formid;
-		   labels[i].setAttribute("id", formID);
-		   var myDescription = getDescription(formID);
+			labels[i].setAttribute("id", formID);
+			var myDescription = getDescription(formID);
 	
-		   
-		   //<span id="helpBlock" class="help-block">A block of help text that breaks onto a new line and may extend beyond one line.</span>
+			
+			//<span id="helpBlock" class="help-block">A block of help text that breaks onto a new line and may extend beyond one line.</span>
 			if( myDescription !== "none"){
 				if(sessionStorage.Username === "q" || sessionStorage.Username === "Q"){
-				   var div = document.createElement("div");
-				   div.setAttribute("class", "formTip notActive");
-				   var myDescription = getDescription(formID);
-				   var description = document.createTextNode(myDescription);
-				   div.appendChild(description);
-				   $(div).insertAfter(labels[i]);
-				   
+					var div = document.createElement("div");
+					div.setAttribute("class", "formTip notActive");
+					var myDescription = getDescription(formID);
+					var description = document.createTextNode(myDescription);
+					div.appendChild(description);
+					$(div).insertAfter(labels[i]);
+					
 				}
 				else{ //busy design
 					var myDescription = getDescription(formID);
@@ -109,17 +105,17 @@ var setFormId = function(formInfo){
 			if(sessionStorage.Username === "q" || sessionStorage.Username === "Q"){
 				//check for form label click
 				$(document).ready(function () {
-				   $('.formLabel').click(function(e) {
-					   var id = $(e.target).attr("id");
-					   var self = e.target;
-					   console.log("myid: "+id);
+					$('.formLabel').click(function(e) {
+						var id = $(e.target).attr("id");
+						var self = e.target;
+						console.log("myid: "+id);
 					$(".formTip").removeClass("isActive"); 
 					$(".formTip").addClass("notActive");
 					$(self).next().removeClass('notActive');
 						
 					$(self).next().addClass('isActive');
 					
-				   });
+					});
 				});
 				//check for white space click
 				$(document).mouseup(function (e){
