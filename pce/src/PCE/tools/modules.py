@@ -359,6 +359,8 @@ def get_modules(mod_id=None):
                     if os.path.isfile(metadatafile):
                         metadata = ConfigObj(metadatafile)
                         mod['metadata'] = metadata.dict()
+                    else:
+                        mod['metadata'] = None
                 return _clean_mod(mod)
         _logger.debug('Mod (%s) does not exist at: %s' % (str(mod_id), time.time()))
         return {
@@ -378,6 +380,20 @@ def get_modules(mod_id=None):
         next_mod = {}
         with ModState(id) as mod_state:
             next_mod = copy.deepcopy(mod_state)
+            # Add ui and metadata options to result if the module is in a Ready state
+            if mod_state['state'] == 'Module ready':
+                uifile = os.path.join(mod_state['installed_path'],
+                                        'config/onramp_uioptions.cfgspec')
+                if os.path.isfile(uifile):
+                    ui = ConfigObj(uifile)
+                    next_mod['uioptions'] = ui.dict()
+                else:
+                    next_mod['uioptions'] = None
+                metadatafile = os.path.join(mod_state['installed_path'],
+                                        'config/onramp_metadata.cfgspec')
+                if os.path.isfile(metadatafile):
+                    metadata = ConfigObj(metadatafile)
+                    next_mod['metadata'] = metadata.dict()
         results.append(_clean_mod(next_mod))
     return results
 

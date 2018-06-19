@@ -312,6 +312,8 @@ class PCEAccess(object):
         self._refresh_modules_in_db(prefix, module_id)
 
     def _refresh_modules_in_db(self, prefix, module_id=None, avail=False):
+        print ("Module ID: %s" % module_id)
+        print ("Avail: %s" % avail)
         if module_id is None:
             if avail is True:
                 self._logger.debug("%s Get all available modules" % prefix)
@@ -323,20 +325,20 @@ class PCEAccess(object):
             self._logger.debug("%s Get module info for %s" % (prefix, str(module_id)))
             # JJH the below does not work as expected, so intead grab the whole
             #     list and extract just the one we care about
-            #avail_mods = self.get_modules( int(module_id) )
-            module_id = int(module_id)
-            all_mods = self.get_modules()
-            avail_mods = None
-            for m in all_mods:
+            avail_mods = self.get_modules( int(module_id) )
+            #module_id = int(module_id)
+            #all_mods = self.get_modules()
+            #avail_mods = None
+            #for m in all_mods:
                 #m_id = module.objects.get(module_name=m['mod_name']).module_id
-                if m['mod_id'] == module_id:
-                    avail_mods = m
+                #if m['mod_id'] == module_id:
+                    #avail_mods = m
                     #self._logger.debug("%s TESTING (1): %s" % (prefix, str(avail_mods)))
                     # JJH confirm this is the proper behavior
-                    avail_mods = self.get_modules( int(module_id) )
+                    #avail_mods = self.get_modules( int(module_id) )
                     #self._logger.debug("%s TESTING (2): %s" % (prefix, str(avail_mods)))
-                    self._logger.debug("%s Get module info for %s: Found (I)" % (prefix, str(module_id)))
-                    break
+                    #self._logger.debug("%s Get module info for %s: Found (I)" % (prefix, str(module_id)))
+                    #break
 
             if avail_mods is None:
                 self._logger.debug("%s Get module info for %s: Searching Available" % (prefix, str(module_id)))
@@ -529,7 +531,7 @@ class PCEAccess(object):
         # Add it to the PCE/Module pair table (if not already there)
         self._logger.debug("---------------------------------------------------")
         self._logger.debug("%s Add Module to PCE: %d module %d"
-                           % (prefix, self._pce_id, module_id))
+                            % (prefix, self._pce_id, module_id))
 
         if 'uioptions' in module_data and module_data["uioptions"] is not None:
             self._save_uioptions(module_id, module_data["uioptions"])
@@ -545,7 +547,7 @@ class PCEAccess(object):
             })
 
         self._logger.debug("%s Add Module to PCE: %d module %d : State = %s"
-                           % (prefix, self._pce_id, module_id, str(module_data['state'])))
+                            % (prefix, self._pce_id, module_id, str(module_data['state'])))
         state = -99
         if module_data['state'] == "Does not exist":
             state = 0
@@ -585,8 +587,8 @@ class PCEAccess(object):
         # Install the module (if it is not already installed)
         #
         if module_info["state"] <= 1:
-            rtn = self.add_module(module_info["module_id"], module_info["module_name"],
-                                  module_info["src_location_type"], module_info["src_location_path"])
+            rtn = self.add_module(  module_info["module_id"], module_info["module_name"],
+                                    module_info["src_location_type"], module_info["src_location_path"])
             if rtn is False:
                 return {'error_msg': "Failed to install the module"}
             self._logger.debug("%s Module %d installed" % (prefix, module_id))
@@ -636,7 +638,7 @@ class PCEAccess(object):
         self._save_job_output(job_info["job_id"], job_info["output"])
 
         self._logger.debug("%s Response: ID = %d/%d, State = %s"
-                           % (prefix, job_info["job_id"], job_id, job_info["state"]))
+                            % (prefix, job_info["job_id"], job_id, job_info["state"]))
         state = -99
         if job_info['state'] == "Setting up launch":
             state = 1
@@ -770,7 +772,7 @@ class PCEAccess(object):
 
         if r.status_code != 200:
             self._logger.error('%s Error: %d from GET %s: %s'
-                               % (self._name, r.status_code, url, r.text))
+                                % (self._name, r.status_code, url, r.text))
             return None
         else:
             if raw:
@@ -802,7 +804,7 @@ class PCEAccess(object):
 
         if r.status_code != 200:
             self._logger.error('%s Error: %d from POST %s: %s'
-                               % (self._name, r.status_code, url, r.text))
+                                % (self._name, r.status_code, url, r.text))
             return False
 
         response = r.json()
@@ -829,7 +831,7 @@ class PCEAccess(object):
 
         if r.status_code != 200:
             self._logger.error('%s Error: %d from DELETE %s: %s'
-                               % (self._name, r.status_code, url, r.text))
+                                % (self._name, r.status_code, url, r.text))
             return False
         else:
             response = r.json()
