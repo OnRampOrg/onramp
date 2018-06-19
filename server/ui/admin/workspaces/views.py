@@ -40,6 +40,8 @@ def get_all(request):
 def create_new_workspace(request):
     """ Adds a new workspace
 
+        URL: /admin/Workspaces/Create
+
     :param request:
     :return:
     """
@@ -54,6 +56,20 @@ def create_new_workspace(request):
             'status_message':'Success',
             'workspace':{'workspace_name':name, 'workspace_id':ws.workspace_id, 'description':ws.description}
         }
+    return HttpResponse(json.dumps(response))
+
+@staff_member_required(login_url='/')
+def remove_workspace(request):
+    """ Removes selected workspace
+
+        URL: /admin/Workspaces/Remove
+
+    :param request:
+    :return:
+    """
+    ws_id = request.POST.get('ws_id')
+    workspace.objects.filter(id=ws_id).delete()
+    response = {'status': 1, 'status_message': 'Success'}
     return HttpResponse(json.dumps(response))
 
 @staff_member_required(login_url='/')
@@ -108,8 +124,6 @@ def get_pces(request):
     }
     return HttpResponse(json.dumps(response))
 
-
-
 @staff_member_required(login_url='/')
 def get_potential_users(request):
     """
@@ -135,7 +149,6 @@ def get_potential_users(request):
             'username':row['username']
         })
     return HttpResponse(json.dumps(response))
-
 
 @staff_member_required(login_url='/')
 def get_workspace_users(request):
@@ -200,7 +213,6 @@ def remove_user_from_workspace(request):
     user_to_workspace.objects.filter(workspace_id=int(post['workspace_id']), user_id=int(post['user_id'])).delete()
     response = {'status':1, 'status_message':"Success"}
     return HttpResponse(json.dumps(response))
-
 
 @staff_member_required(login_url='/')
 def add_pce_mod_pair(request):

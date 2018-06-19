@@ -120,7 +120,7 @@ function adminWorkspace(data){
 					self.PotentialUserslist.push(new UserProfile(user_data));
 				}
 		    }
- 		})
+		})
     }
 
 	self.addPCEModPair = function () {
@@ -133,7 +133,7 @@ function adminWorkspace(data){
 	        success: function(response) {
 
 	        }
-	  	} );
+		} );
 	};
 
 	self.addUser = function (e) {
@@ -535,29 +535,29 @@ function UserProfile(data) {
 	};
 
 	self.complete_func = function (data){
-      // packet structure:
-      //   data.status = the status code (200 is good)
-      //   data.responseText = the JSON data from the server
-      //     data.responseText.status = server's status code (0 = successful login)
-      //     data.responseText.status_message = server's status message
-      //     data.responseText.auth = JSON object with authentication info (NEED TO SEND WITH ALL FUTURE CALLS)
-      //     data.responseText.auth.username = username
-      //     data.responseText.auth.apikey = special code to know that this user is authenticated
-      //     data.responseText.auth.user_id = user id from the server
-      //     data.responseText.auth.session_id = session id used by the server
-      console.log(JSON.stringify(data));
-      console.log(data.responseText);
-      console.log(data["responseText"]);
-      console.log(data.status + 5);
-      if(data.status == 200){
-        alert("Success!");
-      }
-      else if(data.status == 401){
-        alert("Incorrect login info.  Please try again, or contact the admin to create or reset your account.");
-      }
-      else {
-        alert("Something went wrong with the sending or receiving of the ajax call.  Status code: " + data.status);
-      }
+    // packet structure:
+    //   data.status = the status code (200 is good)
+    //   data.responseText = the JSON data from the server
+    //     data.responseText.status = server's status code (0 = successful login)
+    //     data.responseText.status_message = server's status message
+    //     data.responseText.auth = JSON object with authentication info (NEED TO SEND WITH ALL FUTURE CALLS)
+    //     data.responseText.auth.username = username
+    //     data.responseText.auth.apikey = special code to know that this user is authenticated
+    //     data.responseText.auth.user_id = user id from the server
+    //     data.responseText.auth.session_id = session id used by the server
+    	console.log(JSON.stringify(data));
+		console.log(data.responseText);
+		console.log(data["responseText"]);
+		console.log(data.status + 5);
+		if(data.status == 200){
+			alert("Success!");
+		}
+		else if(data.status == 401){
+			alert("Incorrect login info.  Please try again, or contact the admin to create or reset your account.");
+		}
+		else {
+			alert("Something went wrong with the sending or receiving of the ajax call.  Status code: " + data.status);
+		}
 
     };
 
@@ -581,7 +581,7 @@ function UserProfile(data) {
 	}
 
 	self.removeOnServer = function () {
-		alert("not implemented");
+		//alert("not implemented");
 	}
 
 }
@@ -617,7 +617,18 @@ function AdminWorkspaceViewModel() {
             implemented on the server
         */
 		self.deleteWorkspace = function () {
-			alert("Not implemented on server.")
+			// Deselect this workspace
+			if(self.selectedWorkspace() == this){
+				self.selectedWorkspace(null)
+			}
+
+			// Confirmation
+			var remove = confirm("Remove " + self.username() + " from the server?");
+
+			if(remove){
+				self.Workspacelist.remove(this)
+				this.removeOnServer()
+			}
 		};
 
         /*
@@ -640,7 +651,6 @@ function AdminWorkspaceViewModel() {
 			                alert("An unknown error occurred on the server.");
 			            }
 			        }
-
 			    }
 			});
 		};

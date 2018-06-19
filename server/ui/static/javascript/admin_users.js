@@ -94,66 +94,58 @@ function UserProfile(data) {
 
 
 	self.removeFromWorkspace = function () {
-	    // this is the workspace object
+	    // 'this' is the workspace object
 	    self.Workspacelist.remove(this);
 	    alert("removing " + self.username() + " from workspace " + this.name);
 	}
 
 	self.removeOnServer = function () {
-	    // For now it just disables the user not deletes them
-	    var remove = confirm("Remove " + self.username() + " from the server?");
-
-	    // For now just make request to update user and set is_enabled to false
-	    if(remove) {
-		$.ajax({
-      		    type: 'POST',
-      		    url: '/admin/Users/Delete/',
-      		    data: {'user_id':this.id()},
-      		    dataType: 'json',
-      		    success: function(response) {
-      			if (response['status'] == -1) {
-      		            // this means it failed
-      		            alert(response['status_message'])
-      			}
-      		    }
-		});
-	    }
+        $.ajax({
+            type: 'POST',
+            url: '/admin/Users/Delete/',
+            data: {'user_id':this.id()},
+            dataType: 'json',
+            success: function(response) {
+                if (response['status'] == -1) {
+                    // this means it failed
+                    alert(response['status_message'])
+                }
+            }
+        });
 	}
 
 	self.disableUser = function() {
-	    $.ajax({
-      		type: 'POST',
-      		url: '/admin/Users/Disable/',
-      		data: {'user_id':this.id()},
-      		dataType: 'json',
-      		success: function(response) {
-      		    if (response['status'] == -1) {
-      		        // this means it failed
-      		        alert(response['status_message'])
-      		    }
-      		}
-	    });
+        $.ajax({
+            type: 'POST',
+            url: '/admin/Users/Disable/',
+            data: {'user_id':this.id()},
+            dataType: 'json',
+            success: function(response) {
+                if (response['status'] == -1) {
+                    // this means it failed
+                    alert(response['status_message'])
+                }
+            }
+        });
 	    this.isEnabled(false);
 	}
 
 	self.enableUser = function() {
-	    $.ajax({
-      		type: 'POST',
-      		url: '/admin/Users/Enable/',
-      		data: {'user_id':this.id()},
-      		dataType: 'json',
-      		success: function(response) {
-      		    if (response['status'] == -1) {
-      		        // this means it failed
-      		        alert(response['status_message'])
-      		    }
-      		}
-	    });
+        $.ajax({
+            type: 'POST',
+            url: '/admin/Users/Enable/',
+            data: {'user_id':this.id()},
+            dataType: 'json',
+            success: function(response) {
+                if (response['status'] == -1) {
+                    // this means it failed
+                    alert(response['status_message'])
+                }
+            }
+        });
 	    this.isEnabled(true);
 	}
 }
-
-
 
 function AdminUserViewModel() {
     var self = this;
@@ -183,15 +175,16 @@ function AdminUserViewModel() {
     }
 
     self.deleteUser = function () {
-        // tell server to delete this user
-        // self.Userslist.remove(this);
-
-	// 
+        // Deselect User
         if (self.selectedUser() == this) {
             self.selectedUser(null);
         }
-	self.Userslist.remove(this);
-        this.removeOnServer();
+        // Confirmation
+        var remove = confirm("Remove " + self.username() + " from the server?");
+        if(remove){
+            self.Userslist.remove(this);
+            this.removeOnServer();
+        }
     }
 
     self.addUser = function () {
@@ -202,23 +195,23 @@ function AdminUserViewModel() {
     }
 
     self.updateList = function() {
-      	// reinitialize values
-       	self.Userslist([]);
-       	// Get all users from server
-       	$.ajax({
-	        url: '/admin/Users/GetAll/',
+        // reinitialize values
+        self.Userslist([]);
+        // Get all users from server
+        $.ajax({
+            url: '/admin/Users/GetAll/',
             type: 'GET',
             dataType:'json',
             success: function (data) {
-		        data.users.forEach(function (user) {
+                data.users.forEach(function (user) {
                     self.Userslist.push(new UserProfile(user));
-		        });
-	        }
-	    });
+                });
+            }
+        });
     }
 
-   // This function fires when the page first loads
-   // It will populate the userlist to be displayed
+// This function fires when the page first loads
+// It will populate the userlist to be displayed
     $(document).ready( function () {
 	    self.updateList();
     });

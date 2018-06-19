@@ -11,6 +11,7 @@ urlpatterns = [
     url(r'^WorkspaceUsers$', views.get_workspace_users),
     url(r'^PotentialUsers$', views.get_potential_users),
     url(r'^Create$', views.create_new_workspace),
+    url(r'^Remove$', views.remove_workspace),
     url(r'^AddPCEModPair$', views.add_pce_mod_pair),
     url(r'^$', views.main),
 ]

@@ -81,7 +81,6 @@ def update_user(request):
     response = {'status': 1, 'status_message': 'Success'}
     return HttpResponse(json.dumps(response))
 
-
 @staff_member_required(login_url='/')
 def create_user(request):
     """ Creates a new user with specified settings
@@ -112,7 +111,6 @@ def create_user(request):
     user_obj.save()
     response = {'status':1, 'status_message':'Success'}
     return HttpResponse(json.dumps(response))
-
 
 @staff_member_required(login_url='/')
 def disable_user(request):
