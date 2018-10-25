@@ -110,7 +110,7 @@ The source for Apache 2.4.23 has already been conveniently downloaded and is ava
     - **Note:** The following command may look quite intimidating however everything below is setup to optimize apache and make sure no unecessary modules are loaded into apache that aren't needed to maximize performance. All of the additional arguments below can be looked up via the link in the summary to the Apache 2.4 documentation or by typing `./configure --help | less ` in the terminal and scrolling through the output.
     
     ```
-    user@server:/# ./configure --prefix=/Aristotle/apache2 --enable-nonportable-atomics=yes --enable-core=static --enable-unixd=static --enable-ssl=static --enable-socache_shmcb=static --enable-authz_core=static --enable-allowmethods=static --enable-headers=static --enable-expires=static --enable-alias=static --enable-rewrite=static --enable-filter=static --enable-deflate=static --enable-cache=static --enable-log_config=static --enable-mime=static --enable-env=static --enable-proxy=static --enable-proxy-wstunnel=static --disable-authn_core --disable-authn_file --disable-authz_host --disable-authz_groupfile --disable-authz_user --disable-access_compat --disable-mime_magic --disable-auth_basic --disable-setenvif --disable-version --disable-autoindex --disable-dir --disable-proxy-balancer --disable-proxy-connect --disable-proxy-ftp --disable-proxy-http --disable-proxy-fcgi --disable-proxy-scgi --disable-proxy-ajp --disable-proxy-express --disable-lbmethod_byrequests --disable-lbmethod_bytraffic --disable-lbmethod_bybusyness --disable-lbmethod_heartbeat
+    user@server:/# ./configure --prefix=ONRAMP/server/webserver --enable-nonportable-atomics=yes --enable-core=static --enable-unixd=static --enable-ssl=static --enable-socache_shmcb=static --enable-authz_core=static --enable-allowmethods=static --enable-headers=static --enable-expires=static --enable-alias=static --enable-rewrite=static --enable-filter=static --enable-deflate=static --enable-cache=static --enable-log_config=static --enable-mime=static --enable-env=static --enable-proxy=static --enable-proxy-wstunnel=static --disable-authn_core --disable-authn_file --disable-authz_host --disable-authz_groupfile --disable-authz_user --disable-access_compat --disable-mime_magic --disable-auth_basic --disable-setenvif --disable-version --disable-autoindex --disable-dir --disable-proxy-balancer --disable-proxy-connect --disable-proxy-ftp --disable-proxy-http --disable-proxy-fcgi --disable-proxy-scgi --disable-proxy-ajp --disable-proxy-express --disable-lbmethod_byrequests --disable-lbmethod_bytraffic --disable-lbmethod_bybusyness --disable-lbmethod_heartbeat
     ```
     
 - Build Apache from source via the following command
@@ -266,7 +266,7 @@ MySQL is required by both Django and other pieces of OnRamp for communication an
     - **Note:** the --connect-expired-password is important here because without it you could not connect to mysql with the temporary password from the log.
     
     ```
-    user@server:/# mysql -u root --password=temp_password --conext-expired-password
+    user@server:/# mysql -u root --password=temp_password --connect-expired-password
     mysql> ALTER USER 'root'@'localhost' IDENTIFIED BY 'new_password';
     ```
     
@@ -276,9 +276,9 @@ MySQL is required by both Django and other pieces of OnRamp for communication an
     
     ```
     user@server:/# mysql -u root --password=new_password
-    myqsl> DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')";
-    myqsl> DELETE FROM mysql.user WHERE User='';
-    myqsl> DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%';
+    mysql> DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+    mysql> DELETE FROM mysql.user WHERE User='';
+    mysql> DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%';
     ```
     
 - Create the user for django to use when connecting to the database and grant privileges
@@ -286,7 +286,7 @@ MySQL is required by both Django and other pieces of OnRamp for communication an
     - **Note:** The following commands create the user that is used by Django to talk to the database via the models. Without this user Django **CANNOT** talk to MySQL. The first command just creates the user with the password `OnRamp_16` and the second command makes sure the Django MySQL user has privileges to everything in the MySQL database.
     
     ```
-    myqsl> CREATE USER 'onramp'@'localhost' IDENTIFIED BY 'OnRamp_16;
+    myqsl> CREATE USER 'onramp'@'localhost' IDENTIFIED BY 'OnRamp_16';
     myqsl> GRANT ALL PRIVILEGES ON * . * TO 'onramp'@'localhost';
     ```
     
@@ -344,6 +344,13 @@ An initial admin user is needed so that somebody can login to OnRamp. The follow
     Python 2.7.5 (default, Sep 15 2016, 22:37:39) 
     [GCC 4.8.5 20150623 (Red Hat 4.8.5-4)] on linux2
     Type "help", "copyright", "credits" or "license" for more information.
+
+    >>> from django.conf import settings
+    >>> settings.configure()
+
+    >>> import django
+    >>> django.setup()
+
     >>> from django.contrib.auth.models import User
     >>> User.objects.create_superuser("admin", "", "admin123")
     ```
