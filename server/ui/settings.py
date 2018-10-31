@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
+# throw some error here 
 import os
 
 #Fix for chrome not loading all static files
@@ -17,7 +18,8 @@ import os
 #WSGIServer.request_queue_size = 20
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = '/home/nick/Desktop/onramp/server/'
 
 
 # Quick-start development settings - unsuitable for production
@@ -43,6 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'ui.admin',
     'ui.public'
+    # 'ui.static'
+    # 'django.contrib.contenttypes.models.ContentType'
 ]
 
 MIDDLEWARE = [
@@ -52,7 +56,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+    # 'django.contrib.contenttypes',
 ]
 
 ROOT_URLCONF = 'ui.urls'
@@ -127,7 +132,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
-STATIC_ROOT = BASE_DIR + '/static/'
+STATIC_ROOT = BASE_DIR + 'ui/static/'
 STATICFILES_DIRS = [
     BASE_DIR + '/ui/static/',
 ]
