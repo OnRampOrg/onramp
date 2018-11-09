@@ -34,3 +34,13 @@ server/bin/onramp_server_config.cfg
 server/.htaccess
 /.vs
 /server/mysql
+
+server/build/config/*
+server/ui/settings.py
+server/ui/wsgi.py
+
+server/build/dependencies/httpd-2.4.23/*
+server/build/dependencies/mod_wsgi-4.5.7/*
+
+server/virtual-env
+server/webserver

@@ -12,13 +12,13 @@ import sys
 import site
 
 # Add the site-packages of the chosen virtualenv to work with
-site.addsitedir('/home/drewguillien/onramp/server/virtual-env')
+site.addsitedir('/home/admin/Desktop/onramp/server/virtual-env')
 
 # Add the app's directory to the PYTHONPATH
 # used to be relative, now hard coding...  SSF - 10/27/17
-sys.path.append("/home/drewguillien/onramp/server")
-sys.path.append('/home/drewguillien/onramp/server/ui')
-sys.path.append("/home/drewguillien/onramp/server/virtual-env/lib/python2.7/site-packages")
+sys.path.append("/home/admin/Desktop/onramp/server")
+sys.path.append('/home/admin/Desktop/onramp/server/ui')
+sys.path.append("/home/admin/Desktop/onramp/server/virtual-env/lib/python2.7/site-packages")
 
 # to set environment settings for Django apps
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ui.settings")
