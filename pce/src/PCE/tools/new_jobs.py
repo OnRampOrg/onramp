@@ -12,6 +12,8 @@ Exports:
 
 from redis import StrictRedis
 from subprocess import *
+from configobj import ConfigObj
+from validate import Validator
 import logging
 import shutil
 import json
@@ -148,7 +150,6 @@ class JobHandler(object):
 
     def create(self, job_id, mod_id, username, run_name, run_params, run_dir=None):
         """
-
         :param job_id:
         :param mod_id:
         :param username:
@@ -243,7 +244,6 @@ class JobHandler(object):
 
     def pre_process(self, job_id):
         """
-
         :param job_id:
         :return:
         """
@@ -289,7 +289,6 @@ class JobHandler(object):
 
     def run(self, job_id):
         """
-
         :param job_id:
         :return:
         """
@@ -358,7 +357,6 @@ class JobHandler(object):
 
     def post_process(self, job_id):
         """
-
         :param job_id:
         :return:
         """
@@ -421,7 +419,6 @@ class JobHandler(object):
 
     def delete(self, job_id):
         """
-
         :param job_id:
         :return:
         """
@@ -490,14 +487,12 @@ class JobHandler(object):
 
     def get_state(self):
         """
-
         :return:
         """
         pass
 
     def get_states(self):
         """
-
         :return:
         """
         pass

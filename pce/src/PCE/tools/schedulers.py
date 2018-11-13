@@ -6,6 +6,7 @@ Exports:
 """
 import logging
 import os
+import xml.dom.minidom
 from subprocess import CalledProcessError, check_output, STDOUT
 
 from PCEHelper import pce_root
@@ -21,6 +22,8 @@ class _BatchScheduler(object):
     def is_scheduler_for(cls, type):
         """Return boolean indicating whether the class provides an interface to
         the batch scheduler type given.
+
+        #FIXME the cls argument is not defined in behavior or used in any implementations - check to see if its safe to remove this
 
         Args:
             type (str): Batch scheduler type.
@@ -247,6 +250,170 @@ class SLURMScheduler(_BatchScheduler):
             return (-1, msg)
         return (0, result)
 
+class SGEScheduler(_BatchScheduler):
+    @classmethod
+    def is_scheduler_for(cls, type):
+        """Return boolean indicating whether the class provides an interface to
+        the batch scheduler type given.
+
+        Args:
+            type (str): Batch scheduler type.
+
+        Returns:
+            True if class provides interface to given batch scheduler, False if
+            not.
+        """
+        return type == 'SGE'
+
+    def get_batch_script(self, run_name, numtasks=4, num_nodes=1, email=None):
+        """Return the batch script that runs a job as per args formatted for the
+        Sun Grid Engine batch scheduler.
+
+        Args:
+            run_name (str): Human-readable label for job run.
+            numtasks (int): Number of tasks to schedule.
+            num_nodes (int): Number of nodes to allocate for job.
+            email (str): Email to send results to upon completion. If None, no
+                email sent.
+
+        Returns:
+            Batch script implementing given attrs.
+        """
+        contents = '#!/bin/bash\n'
+        contents += '\n'
+        contents += '###################################\n'
+        contents += '#$ -cwd\n'
+        contents += '#$ -j y\n'
+        contents += '#$ -N "' + run_name + '"\n'
+        contents += '#$ -o output.txt\n'
+        # contents += '#SBATCH -n ' + str(numtasks) + '\n'
+        # contents += '#SBATCH -N ' + str(num_nodes) + '\n'
+        contents += '#$ -pe orte ' + str(num_nodes * 4) + '\n'
+        if email:
+            self.logger.debug('%s configured for email reporting to %s'
+                              % (run_name, email))
+            contents += '#$ -M ' + email + '\n'
+        contents += '###################################\n'
+        contents += '\n'
+        contents += self.local_python + ' bin/onramp_run.py\n'
+        return contents
+        
+    def schedule(self, proj_loc):
+        """Schedule a job using the SGE batch scheduler.
+
+        Args:
+            proj_loc (str): Folder containing the batch script 'script.sh' for
+                the job to schedule.
+
+        Returns:
+            Result dict with the following fields:
+                status_code: Status code
+                status_msg: String giving detailed status info.
+        """
+        ret_dir = os.getcwd()
+        os.chdir(proj_loc)
+        try:
+            batch_output = check_output(['qsub', '-terse', 'script.sh'], stderr=STDOUT)
+        except CalledProcessError as e: 
+            msg = 'Job scheduling call failed'
+            os.chdir(ret_dir)
+            return {
+                'status_code': e.returncode,
+                'msg': '%s: %s' % (msg, e.output),
+                'status_msg': '%s: %s' % (msg, e.output)
+            }
+        os.chdir(ret_dir)
+        batch_output = batch_output.decode().strip()
+
+        if 'Submitted batch job' != ' '.join(batch_output):
+            msg = 'Unexpeted output from qsub'
+            self.logger.error(msg)
+            return {
+                'status_code': -7,
+                'status_msg': msg
+            }
+
+        try:
+            job_num = int(batch_output)
+        except ValueError:
+            msg = 'Unexpeted output from qsub'
+            self.logger.error(msg)
+            return {
+                'status_code': -7,
+                'status_msg': msg
+            }
+
+        return {
+            'status_code': 0,
+            'status_msg': 'Job %d scheduled' % job_num,
+            'job_num': job_num
+        }
+
+    def check_status(self, scheduler_job_num):
+        """Return job status from scheduler.
+
+        Args:
+            scheduler_job_num (int): Job number of the job to check state on as
+                given by the scheduler, not as given by OnRamp.
+
+        Returns:
+            2-Tuple with 0th item being error code and 1st item being a string
+            giving detailed status info.
+        """
+        try:
+            job_info = check_output(['qstat', '-xml'], stderr=STDOUT)
+        except CalledProcessError:
+            msg = 'Job info call failed'
+            self.logger.error(msg)
+            return (-1, msg)
+
+        dom = xml.dom.minidom.parseString(qstatXML)
+        nodes = dom.getElementsByTagName("JB_job_number")
+
+        currentJobNode = None
+
+        for node in nodes:
+            if node.firstChild.data == id:
+                currentJobNode = node
+                break
+
+        if(not currentJobNode):  #Job is not in status list. Completed jobs do not show up in SGE's status (I believe)
+            return (0, 'Done')
+
+        job_state = currentJobNode.parentNode.getAttribute("state")
+
+        if job_state == 'running':
+            return (0, 'Running')
+        elif job_state == 'pending':
+            return (0, 'Queued')
+        elif job_state == 'error':
+            msg = 'Job failed'
+            self.logger.error(msg)
+            return (-1, msg)
+        else:
+            msg = 'Unexpected job state from scheduler'
+            self.logger.error(msg)
+            return (-2, msg)
+
+    def cancel_job(self, scheduler_job_num):
+        """Cancel the given job.
+    
+        Args:
+            scheduler_job_num (int): Job number, as given by the scheduler, of the
+                job to cancel.
+
+        Returns:
+            2-Tuple with 0th item being error code and 1st item being a string
+            giving detailed status info.
+        """
+        try:
+            result = check_output(['qdel', str(scheduler_job_num)], stderr=STDOUT)
+        except CalledProcessError as e:
+            msg = 'Job cancel call failed'
+            self.logger.error(msg)
+            return (-1, msg)
+        return (0, result)
+
 class PBSScheduler(_BatchScheduler):
     @classmethod
     def is_scheduler_for(cls, type):
@@ -396,6 +563,115 @@ class PBSScheduler(_BatchScheduler):
             self.logger.error(msg)
             return (-1, msg)
         return (0, result)
+
+class localScheduler(_BatchScheduler):
+    @classmethod
+    def is_scheduler_for(cls, type):
+        """Return boolean indicating whether the class provides an interface to
+        the batch scheduler type given.
+
+        Args:
+            type (str): Batch scheduler type.
+
+        Returns:
+            True if class provides interface to given batch scheduler, False if
+            not.
+        """
+        return type == 'LOCAL'
+
+    def get_batch_script(self, run_name, numtasks=4, num_nodes=1, email=None):
+        """Return the batch script that runs a job locally
+        Args:
+            run_name (str): Ignored.
+            numtasks (int): Ignored.
+            num_nodes (int): Ignored.
+            email (str): Ignored.
+        Returns:
+            Batch script implementing given attrs.
+        """
+        # script that launches the job in the background and echos the pid
+        contents = '#!/bin/bash\n'
+        contents += '\n'
+        contents += self.local_python + ' bin/onramp_run.py &> output.txt &\n'
+        contents += 'echo $!\n'
+
+        return contents
+        
+    def schedule(self, proj_loc):
+        """Schedule a job locally by executing script.
+        """
+        ret_dir = os.getcwd()
+        os.chdir(proj_loc)
+        try:
+            batch_output = check_output(['chmod', '754', './script.sh'], stderr=STDOUT)
+            batch_output = check_output(['./script.sh'], stderr=STDOUT)
+            job_num = int(batch_output)
+        except CalledProcessError as e:
+            msg = 'Job scheduling call failed'
+            self.logger.error(msg)
+            return {
+                'status_code': -1,
+                'msg': '%s: %s' % (msg, e.message),
+                'status_msg': '%s: %s' % (msg, e.message)
+            }
+        except ValueError as e:
+            msg = 'Error reading job submission pid'
+            self.logger.error(msg)
+            return {
+                'status_code': -1,
+                'msg': '%s: %s' % (msg, e.message),
+                'status_msg': '%s: %s' % (msg, e.message)
+            }
+        finally:
+            os.chdir(ret_dir)
+
+
+        return {
+            'status_code': 0,
+            'status_msg': 'Job %d scheduled' % job_num,
+            'job_num': job_num
+        }
+
+    def check_status(self, scheduler_job_num):
+        """Checks the status of the current job.
+
+        Args:
+            scheduler_job_num (int)
+
+        Returns:
+            Unknown
+        """
+        try:
+            job_info = check_output(['ps', '-p', str(scheduler_job_num)], stderr=STDOUT)
+        except CalledProcessError:
+            msg = 'Job info call failed'
+            self.logger.error(msg)
+            return (-1, msg)
+
+        #If output from ps -p
+        if(job_info.find(str(scheduler_job_num)) > -1):
+            return (0, 'Running')
+        else:
+            return (0, 'Done')
+        
+    def cancel_job(self, scheduler_job_num):
+        """Cancel the given job.
+    
+        Args:
+            scheduler_job_num (int): Job number, as given by the scheduler, of the
+                job to cancel.
+
+        Returns:
+            2-Tuple with 0th item being error code and 1st item being a string
+            giving detailed status info.
+        """
+        try:
+            check_output(['kill', str(scheduler_job_num)], stderr=STDOUT)
+        except CalledProcessError as e:
+            msg = 'Job cancel call failed'
+            self.logger.error(msg)
+            return (-1, msg)
+        return (0, "Job terminated")
 
 def Scheduler(type):
     """Instantiate the appropriate scheduler class for given type.
