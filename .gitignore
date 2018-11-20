@@ -25,6 +25,9 @@ pce/docs/build
 pce/bin/onramp_pce_config.cfg
 pce/bin/modules/*
 
+server/build
+server/webserver
+server/virtual-env
 server/tmp
 server/tmp/users
 server/tmp/pce
@@ -34,6 +37,7 @@ server/src/.*.pid
 server/bin/onramp_server_config.cfg
 server/.htaccess
 /.vs
+/.vscode
 /server/mysql
 
 #compiled python

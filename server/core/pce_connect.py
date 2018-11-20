@@ -87,6 +87,7 @@ class PCEAccess(object):
     def _get_logger(self, pce_id):
         FORMAT = '%(asctime)-15s %(levelname)-3s %(module)s: %(message)s'
         logfile = "/".join(self._cur_dir.split("/")[:-1])+"/log/pce_connect.log"
+        
         logging.basicConfig(filename=logfile, level=logging.DEBUG, format=FORMAT)
         return logging.getLogger("[PCEAccess: {}]".format(pce_id))
 
@@ -106,6 +107,8 @@ class PCEAccess(object):
         Returns:
             List of JSON-formatted module objects. Returns 'None' on error.
         """
+        self._logger.debug("get_modules_avail(self) endpoint hit")
+
         response = self._pce_get("modules", state="Available")
         if not response or "modules" not in response.keys():
             return None
@@ -121,6 +124,8 @@ class PCEAccess(object):
             JSON-formatted module object for given id, or if no id given, list
             of JSON-formatted module objects. Returns 'None' on error.
         """
+        self._logger.debug("get_modules(self, module_id=None) endpoint hit")
+
         url = "modules"
         if module_id:
             url += "/%d" % module_id
