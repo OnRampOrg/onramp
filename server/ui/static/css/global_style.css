@@ -69,16 +69,6 @@
 	text-align: center;
 }
 
-.required div:first-child p::after{
-    content: "*";
-    color: red;
-    display: inline;
-}
-
-.validationMessage{
-    color: red;
-}
-
 /* style for tables used to edit objects */
 .edit-table-col {
 	width: 20%;

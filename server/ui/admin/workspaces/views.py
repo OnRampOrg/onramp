@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
-from ui.admin.models import workspace, job, workspace_to_pce_module, module_to_pce, user_to_workspace
+from ui.admin.models import workspace, job, workspace_to_pce_module, user_to_workspace
 
 @login_required
 def main(request):
@@ -27,7 +27,6 @@ def get_all(request):
 
     :param request:
     :return:
-
     """
     response = {
         'status':1,
@@ -212,8 +211,6 @@ def add_pce_mod_pair(request):
     :return:
     """
     workspace_id = request.POST.get('workspace_id')
-
-    # Input Validation
     if workspace_id is None:
         response = {'status':-1, 'stauts_message':'No workspace_id specified'}
         return HttpResponse(json.dumps(response))
@@ -225,23 +222,7 @@ def add_pce_mod_pair(request):
     if workspace_id is None:
         response = {'status': -1, 'stauts_message': 'No pce_id specified'}
         return HttpResponse(json.dumps(response))
-
-    # Save to db
-    pm_pair, created = module_to_pce.objects.get_or_create(
-        pce_id = int(pce_id),
-        module_id = int(module_id)
-    )
-
-    wpm_pair, created = workspace_to_pce_module.objects.get_or_create(
-        workspace_id = int(workspace_id),
-        pm_pair_id = int(pm_pair.pm_pair_id)
-    )
-
-    if created:
-        response = {'status':1, 'status_message':'Success'}
-    else:
-        response = {'status':-1, 'status_message':"This PCE-Module pair is already associated with this workspace."}
-    return HttpResponse(json.dumps(response))
+    # TODO Save to the database
 
     response = {
         'status':1,

@@ -52,22 +52,16 @@ class PCEAccess(object):
         """
         self._pce_id = pce_id
 
-        # Change working directory
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
         self._cur_dir = os.getcwd()
 
-        # Fails presumably to permission error
         self._logger = self._get_logger(pce_id)
 
-        # Create paths for tmp, pce, module, and jobs directories
         self._tmp_dir = "/".join(self._cur_dir.split("/")[:-1])+"/tmp"
         self._pce_dir = os.path.join(self._tmp_dir, "pce", str(self._pce_id))
         self._pce_module_dir = os.path.join(self._pce_dir, "modules")
         self._pce_job_dir = os.path.join(self._pce_dir, "jobs")
 
-        # Create those directories if they do not already exist
-
-        # Currently throws OSError(13, 'Permission Denied')
         if not os.path.exists(self._pce_dir):
             os.makedirs(self._pce_dir)
         if not os.path.exists(self._pce_module_dir):
@@ -76,9 +70,6 @@ class PCEAccess(object):
             os.makedirs(self._pce_job_dir)
 
         pce_info = self._get_pce_info()
-        #if pce_info is None: 
-            #raise ValueError("PCE id: {} does not exist".format(self._pce_id))
-        #else:
         self._url = self._get_url(pce_info.ip_addr, pce_info.ip_port)
         self._port = pce_info.ip_port
         self._name = pce_info.pce_name
@@ -95,7 +86,9 @@ class PCEAccess(object):
 
     def _get_logger(self, pce_id):
         FORMAT = '%(asctime)-15s %(levelname)-3s %(module)s: %(message)s'
-        logfile = "/".join(self._cur_dir.split("/")[:-1])+"/log/pce_connect.log"
+        # logfile = "/".join(self._cur_dir.split("/")[:-1])+"/log/pce_connect.log"
+        logfile = "/home/nick/Desktop/onramp/server/webserver/logs/pce_connect.log"
+
         logging.basicConfig(filename=logfile, level=logging.DEBUG, format=FORMAT)
         return logging.getLogger("[PCEAccess: {}]".format(pce_id))
 
@@ -103,12 +96,9 @@ class PCEAccess(object):
         """ Gets information from the Database about the PCE
 
         :return:
-            The PCE object from the database
         """
-        try:
-            row = pce.objects.get(pce_id=self._pce_id)
-        except ObjectDoesNotExist:
-            row = None
+        # TODO handle exceptions
+        row = pce.objects.get(pce_id=self._pce_id)
         return row
 
     def get_modules_avail(self):
@@ -118,6 +108,8 @@ class PCEAccess(object):
         Returns:
             List of JSON-formatted module objects. Returns 'None' on error.
         """
+        self._logger.debug("get_modules_avail(self) endpoint hit")
+
         response = self._pce_get("modules", state="Available")
         if not response or "modules" not in response.keys():
             return None
@@ -133,6 +125,8 @@ class PCEAccess(object):
             JSON-formatted module object for given id, or if no id given, list
             of JSON-formatted module objects. Returns 'None' on error.
         """
+        self._logger.debug("get_modules(self, module_id=None) endpoint hit")
+
         url = "modules"
         if module_id:
             url += "/%d" % module_id

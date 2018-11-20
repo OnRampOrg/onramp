@@ -63,6 +63,7 @@ def get_all_jobs(request):
     :param request:
     :return:
     """
+    # TODO In production this could be a lot of data may need to limit it somehow
     response = {
         'status':0,
         'status_message':'Success',

@@ -21,7 +21,7 @@ def main(request):
 
 # @login_required
 def get_all_users(request):
-    """ Retrieve all OnRamp users
+    """ Retrieves all OnRamp users
 
         URL: /admin/Dashboard/GetUsers/
 
@@ -49,7 +49,7 @@ def get_all_users(request):
 
 # @login_required
 def update_user(request):
-    """ Update a specific user with new settings
+    """ Updates the specified user with new settings
 
         URL: /admin/Users/Update/
 
@@ -78,7 +78,7 @@ def update_user(request):
     user_obj.is_superuser = json.loads(post.get('is_admin', 'false'))
     user_obj.is_active = json.loads(post.get('is_enabled', 'false'))
     user_obj.save()
-    response = {'status': 1, 'status_message': 'Success'}
+    response = {'status':1, 'status_message':'Success'}
     return HttpResponse(json.dumps(response))
 
 
@@ -116,8 +116,7 @@ def create_user(request):
 
 # @login_required
 def disable_user(request):
-    """ Disable a specific enabled user
-		They will no longer be able to login
+    """ Disables the specified user account so they cannot login
 
         URL: /admin/Users/Disable
 
@@ -139,47 +138,21 @@ def disable_user(request):
     return HttpResponse(json.dumps(response))
 
 # @login_required
-def enable_user(request):
-    """ Enable a specific disabled user
-		They will be able to login again
-
-        URL: /admin/Users/Enable
-
-    :param request:
-    :return:
-    """
-    user_id = request.POST.get('user_id')
-    if user_id is None:
-        response = {'status': -1, 'status_message': 'No user with id {} exists'.format(user_id)}
-        return HttpResponse(json.dumps(response))
-    try:
-        user_obj = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        response = {'status': -1, 'status_message': 'No user with id {} exists'.format(user_id)}
-        return HttpResponse(json.dumps(response))
-    user_obj.is_active = True
-    user_obj.save()
-    response = {'status': 1, 'status_message': 'Success'}
-    return HttpResponse(json.dumps(response))
-
-# @login_required
 def delete_user(request):
-    """ Remove a specific user
+    """ Removes the specified user account from the db
 
         URL: /admin/Users/Delete
 
-    :param request:
-    :return:
+        :param request:
+        :return:
     """
     user_id = request.POST.get('user_id')
     User.objects.filter(id=user_id).delete()
-    response = {'status': 1, 'status_message': 'Success'}
-    return HttpResponse(json.dumps(response))
 
 
 # @login_required
 def get_user_jobs(request):
-    """ Retrieve all jobs run by a specific user
+    """ Gets all jobs ran by a specific user
 
         URL: /admin/Users/Jobs
 
@@ -200,7 +173,7 @@ def get_user_jobs(request):
 
 # @login_required
 def get_user_workspaces(request):
-    """ Retrieve all workspaces for a specific user
+    """ Gets all workspaces for a given user
 
         URL: /admin/Users/Workspaces
 

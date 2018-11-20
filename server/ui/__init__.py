@@ -1,3 +1,5 @@
+import sys
+print sys.path
 from django.core.exceptions import AppRegistryNotReady
 
 # IMPORTANT: the following code needs to be here so we can import

@@ -12,7 +12,7 @@ from ui.admin.models import user_to_workspace, job
 def main(request):
     """ Renders the main Admin dashboard on login
 
-        URL: /public/Dashboard/
+        URL: /admin/Dashboard/
 
     :param request:
     :return:
@@ -23,7 +23,7 @@ def main(request):
 
 @login_required
 def get_workspaces(request):
-    """ Retrieve all workspaces for the logged in user
+    """ Gets all workspaces for the logged in user
 
         URL: /public/Dashboard/GetWorkspaces
 
@@ -44,7 +44,7 @@ def get_workspaces(request):
 
 @login_required
 def get_jobs(request):
-    """ Retrieve all jobs for the logged in user
+    """ Gets all jobs for the logged in user
 
         URL: /public/Dashboard/GetJobs
 

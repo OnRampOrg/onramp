@@ -9,7 +9,7 @@
 # Vim tmp/swap files
 *~
 *.swp
-    *.swo
+*.swo
 
 # Generated files
 *.pyc
@@ -25,6 +25,9 @@ pce/docs/build
 pce/bin/onramp_pce_config.cfg
 pce/bin/modules/*
 
+server/build
+server/webserver
+server/virtual-env
 server/tmp
 server/tmp/users
 server/tmp/pce
@@ -34,17 +37,8 @@ server/src/.*.pid
 server/bin/onramp_server_config.cfg
 server/.htaccess
 /.vs
+/.vscode
 /server/mysql
-
-server/build/config/*
-server/ui/settings.py
-server/ui/wsgi.py
-
-server/build/dependencies/httpd-2.4.23/*
-server/build/dependencies/mod_wsgi-4.5.7/*
-
-server/virtual-env
-server/webserver
 
 #compiled python
 *.pyc

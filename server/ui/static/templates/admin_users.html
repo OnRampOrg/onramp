@@ -72,12 +72,12 @@
                             <th>Admin</th>
                             <th>Enabled</th>
                             <th>Update</th>
-                            <th>Disable/Enable</th>
+                            <th>Disable</th>
                             <th>Delete</th>
                         </tr>
                     </thead>
                     <tbody data-bind="foreach: Userslist()">
-                        <tr>
+                        <tr data-bind="click: $parent.selectUser">
                             <td data-bind="text: id"></td>
                             <td data-bind="text: username"></td>
                             <td data-bind="text: first_name"></td>
@@ -85,16 +85,8 @@
                             <td data-bind="text: email"></td>
                             <td data-bind="text: isAdmin"></td>
                             <td data-bind="text: isEnabled"></td>
-			    <td><button class="btn btn-primary glyphicon glyphicon-pencil" data-bind="click: $parent.selectUser"></button></td>
-                            <td>
-				<!--ko if: isEnabled-->
-					<button class="btn btn-danger glyphicon glyphicon-remove" data-bind="click: $parent.disableUser"></button>
-				<!--/ko-->
-				<!--ko ifnot: isEnabled-->
-					<button class="btn btn-primary glyphicon glyphicon-ok" data-bind="click: $parent.enableUser"></button>
-				<!--/ko-->
-			    </td>
-                            <td><button class="btn btn-danger glyphicon glyphicon-trash" data-bind="click: $parent.deleteUser"></button></td>
+                            <td><button class="btn btn-danger" data-bind="click: $parent.disableUser">Disable</button></td>
+                            <td><button class="btn btn-danger" data-bind="click: $parent.deleteUser">Delete</button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -110,7 +102,7 @@
                 <div class="edit-table-col table-header"><p>Current Value</p></div>
                 <div class="edit-table-col table-header"><p>New Value</p></div>
             </div>
-            <div class="row required">
+            <div class="row">
                 <div class="edit-table-col"><p>Username</p></div>
                 <div class="edit-table-col"><p data-bind="text: username"></p></div>
                 <div class="edit-table-col"><input data-bind="value: username" /></div>
@@ -130,15 +122,15 @@
                 <div class="edit-table-col"><p data-bind="text: email"></p></div>
                 <div class="edit-table-col"><input data-bind="value: email" /></div>
             </div>
-            <div class="row required">
+            <div class="row">
                 <div class="edit-table-col"><p>Password</p></div>
-                <div class="edit-table-col"><p data-bind="text: "*".repeat(password.length)"></p></div>
+                <div class="edit-table-col"><p data-bind="text: password"></p></div>
                 <div class="edit-table-col"><input type="password" data-bind="value: password" /></div>
             </div>
-            <div class="row required">
+            <div class="row">
                 <div class="edit-table-col"><p>Retype Password</p></div>
-                <div class="edit-table-col"><p data-bind="text: "*".repeat(repassword.length)"></p></div>
-                <div class="edit-table-col"><input type="password" data-bind="value: repassword" /></div>
+                <div class="edit-table-col"><p data-bind="text: re-password"></p></div>
+                <div class="edit-table-col"><input type="password" data-bind="value: re-password" /></div>
             </div>
             <div class="row">
                 <div class="edit-table-col"><p>Admin</p></div>
@@ -297,7 +289,6 @@
     <script src='{% static "javascript/all_global.js" %}'></script>
     <script src='{% static "javascript/third_party/bootstrap.min.js" %}'></script>
     <script src='{% static "javascript/third_party/knockout-3.3.0.js" %}'></script>
-    <script src='{% static "javascript/third_party/knockout.validation.min.js" %}'></script>
     <script src='{% static "javascript/admin_users.js" %}'></script>
 </body>
 </html>

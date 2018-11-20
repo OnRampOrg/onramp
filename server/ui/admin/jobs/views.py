@@ -20,7 +20,7 @@ def main(request):
 
 # @login_required
 def get_all_jobs(request):
-    """ Retrieve all Jobs
+    """ Gets all Jobs
 
         URL: /admin/Jobs/GetAll
 
@@ -36,7 +36,7 @@ def get_all_jobs(request):
 
 # @login_required
 def get_job(request):
-    """ Retrieve a specific Job
+    """ Get a specific Job
 
         URL: /admin/Jobs/GetOne
 
@@ -53,26 +53,14 @@ def get_job(request):
 
 # @login_required
 def create_job(request):
-    """ Create a new job
-
-        THIS IS TEMPORARY FOR TESTING
+    """ Creates a new Job
 
         URL: /admin/Jobs/Create
 
     :param request:
     :return:
     """
-    post = request.POST.dict()
-    job_obj = job.objects.create(
-        job_name = post.get('job_name')
-    )
-    job_obj.state = post.get('state')
-    job_obj.output_file = post.get('output_file')
-    # TODO add foreign key fields
-
-    job_obj.save()
-    response = {'status': 1, 'status_message': 'Success'}
-    return HttpResponse(json.dumps(response))
+    # TODO finish
 
 # @login_required
 def update_job(request):
@@ -83,26 +71,7 @@ def update_job(request):
     :param request:
     :return:
     """
-    post = request.POST.dict()
-    job_id = post.get('job_id')
-    if job_id is None:
-        response = {'status': -1, 'status_message': 'No job_id specified'}
-        return HttpResponse(json.dumps(response))
-    try: 
-        job_obj = job.objects.get(id = job_id)
-    except job.DoesNotExist:
-        response = {'status': -1, 'status_message': 'Invalid job_id: {}'.format(jobId)}
-        return HttpResponse(json.dumps(response))
-    job_obj.job_name = post.get('job_name')
-    job_obj.state = post.get('state')
-    job_obj.output_file = post.get('output_file')
-    job_obj.user = int(post.get('user'))
-    job_obj.workspace = int(post.get('workspace'))
-    job_obj.pce = int(post.get('pce'))
-    job_obj.module = int(post.get('module'))
-    job_obj.save()
-    response = {'status': 1, 'status_message': 'Success'}
-    return HttpResponse(json.dumps(response))
+    # TODO finish
 
 # @login_required
 def delete_job(request):
@@ -113,7 +82,7 @@ def delete_job(request):
         :param request:
         :return:
     """
-    id = request.POST.dict().get("id")
+    id = request.DELETE.dict().get("id")
     job.objects.filter(id=id).delete()
     response = {
         'status': 1,

@@ -26,7 +26,7 @@ def main(request):
 
 @login_required
 def get_job(request):
-    """ Retrieve information for a specific job
+    """ Gets information on the selected job
 
         URL:    /public/Jobs/GetJobInfo/
         TYPE:   POST
@@ -56,7 +56,7 @@ def get_job(request):
 
 @login_required
 def get_user_jobs(request):
-    """ Retrieve all jobs for the logged in user
+    """ Gets all jobs for the logged in user
 
         URL:    /public/Jobs/UserJobs
         TYPE:   GET

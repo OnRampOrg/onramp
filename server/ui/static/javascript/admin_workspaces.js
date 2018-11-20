@@ -127,7 +127,7 @@ function adminWorkspace(data){
 		// this will push the user info to the server as a new user
 		$.ajax({
 	        type: 'POST',
-	        url: '/admin/Workspaces/AddPCEModPair',
+	        url: '/admin/Workspaces/AddPceModPair',
 		    data: {'module_id':self.new_mod_id(), 'pce_id':self.new_pce_id(), 'workspace_id':self.id()},
 	        dataType: 'application/json',
 	        success: function(response) {
