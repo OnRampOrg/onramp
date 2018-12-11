@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 # throw some error here 
 import os
+import logging.config
 
 #Fix for chrome not loading all static files
 #from django.core.servers.basehttp import WSGIServer
@@ -140,3 +141,27 @@ STATIC_URL = '/static/'
 
 ########### Uncomment the following for DEBUG only #############
 DEBUG = True
+
+
+LOGGING = None
+logging.config.dictConfig({
+   'version': 1,
+   'disable_existing_loggers': False,
+   'formatters': {
+       'console': {
+           'format': '%(asctime)-15s %(levelname)-3s %(module)s: %(message)s',
+       },
+   },
+   'handlers': {
+       'console': {
+           'class': 'logging.StreamHandler',
+           'formatter': 'console',
+       },
+   },
+   'loggers': {
+       '': {
+           'level': 'DEBUG',
+           'handlers': ['console'],
+       },
+   },
+})
