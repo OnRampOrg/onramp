@@ -1,13 +1,15 @@
 import json
 
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
+from django.db import IntegrityError
 from ui.admin.models import job, user_to_workspace
 
-@login_required
+@staff_member_required
 def main(request):
     """ Renders the main Admin dashboard on login
 
@@ -19,7 +21,7 @@ def main(request):
     template = get_template('admin_users.html')
     return HttpResponse(template.render({}, request))
 
-# @login_required
+@staff_member_required
 def get_all_users(request):
     """ Retrieves all OnRamp users
 
@@ -47,7 +49,7 @@ def get_all_users(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@staff_member_required
 def update_user(request):
     """ Updates the specified user with new settings
 
@@ -66,23 +68,23 @@ def update_user(request):
     except User.DoesNotExist:
         response = {'status':-1, 'status_message':'Invalid user_id: {}'.format(user)}
         return HttpResponse(json.dumps(response))
-    user_obj.first_name = post.get('first_name')
-    user_obj.last_name = post.get('last_name')
+    user_obj.first_name = post.get('first_name', user_obj.first_name)
+    user_obj.last_name = post.get('last_name', user_obj.last_name)
     password = post.get('password')
     if password and password != "**********":
         # update the password
         user_obj.set_password(password)
     if post.get('username'):
         user_obj.username = post['username']
-    user_obj.email = post.get('email')
-    user_obj.is_superuser = json.loads(post.get('is_admin', 'false'))
-    user_obj.is_active = json.loads(post.get('is_enabled', 'false'))
+    user_obj.email = post.get('email', user_obj.email)
+    user_obj.is_superuser = json.loads(post.get('is_admin', user_obj.is_superuser))
+    user_obj.is_active = json.loads(post.get('is_enabled', user_obj.is_active))
     user_obj.save()
     response = {'status':1, 'status_message':'Success'}
     return HttpResponse(json.dumps(response))
 
 
-# @login_required
+@staff_member_required
 def create_user(request):
     """ Creates a new user with specified settings
 
@@ -102,19 +104,23 @@ def create_user(request):
         return HttpResponse(json.dumps(response))
     user_obj = User(
         username=username,
-        first_name=post.get('first_name'),
-        last_name=post.get('last_name'),
-        email=post.get('email'),
+        first_name=post.get('first_name', ""),
+        last_name=post.get('last_name', ""),
+        email=post.get('email', ""),
         is_superuser=json.loads(post.get('is_admin', 'false')),
         is_active=json.loads(post.get('is_enabled', 'false'))
     )
     user_obj.set_password(password)
-    user_obj.save()
+    try:
+        user_obj.save()
+    except IntegrityError, e:
+        response = {'status':-1, 'status_message': str(e)}
+        return HttpResponse(json.dumps(response))
     response = {'status':1, 'status_message':'Success'}
     return HttpResponse(json.dumps(response))
 
 
-# @login_required
+@staff_member_required
 def disable_user(request):
     """ Disables the specified user account so they cannot login
 
@@ -137,7 +143,31 @@ def disable_user(request):
     response = {'status':1, 'status_message':'Success'}
     return HttpResponse(json.dumps(response))
 
-# @login_required
+
+@staff_member_required
+def enable_user(request):
+    """ Disables the specified user account so they cannot login
+
+        URL: /admin/Users/Disable
+
+    :param request:
+    :return:
+    """
+    user_id = request.POST.get('user_id')
+    if user_id is None:
+        response = {'status':-1, 'status_message':'No user_id specified.'}
+        return HttpResponse(json.dumps(response))
+    try:
+        user_obj = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        response = {'status':-1, 'status_message':'No user with id {} exists'.format(user_id)}
+        return HttpResponse(json.dumps(response))
+    user_obj.is_active = True
+    user_obj.save()
+    response = {'status':1, 'status_message':'Success'}
+    return HttpResponse(json.dumps(response))
+
+@staff_member_required
 def delete_user(request):
     """ Removes the specified user account from the db
 
@@ -150,7 +180,7 @@ def delete_user(request):
     User.objects.filter(id=user_id).delete()
 
 
-# @login_required
+@staff_member_required
 def get_user_jobs(request):
     """ Gets all jobs ran by a specific user
 
@@ -160,18 +190,23 @@ def get_user_jobs(request):
     :return:
     """
     post = request.POST.dict()
-    user = post.get('user_id')
-    if not user:
+    user_id = post.get('user_id')
+    if not user_id:
         response = {'status':-1, 'status_message':'No user supplied'}
+        return HttpResponse(json.dumps(response))
+    try:
+        User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        response = {'status':-1, 'status_message':'No user with id {} exists'.format(user_id)}
         return HttpResponse(json.dumps(response))
     response = {
         'status':1,
         'status_message':'Success',
-        'jobs': list(job.objects.filter(user_id=user).defer('output_file'))
+        'jobs': list(job.objects.filter(user_id=user_id).defer('output_file'))
     }
     return HttpResponse(json.dumps(response))
 
-# @login_required
+@staff_member_required
 def get_user_workspaces(request):
     """ Gets all workspaces for a given user
 
@@ -181,16 +216,22 @@ def get_user_workspaces(request):
     :return:
     """
     post = request.POST.dict()
-    user = post.get('user_id')
-    if not user:
+    user_id = post.get('user_id')
+    print(post.get('user_id'))
+    if not user_id:
         response = {'status': -1, 'status_message': 'No user supplied'}
+        return HttpResponse(json.dumps(response))
+    try:
+        User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        response = {'status':-1, 'status_message':'No user with id {} exists'.format(user_id)}
         return HttpResponse(json.dumps(response))
     response = {
         'status': 1,
         'status_message': 'Success',
         'workspaces':[]
     }
-    qs = user_to_workspace.objects.filter(user_id=user)
+    qs = user_to_workspace.objects.filter(user_id=user_id)
     for row in qs:
         response['workspaces'].append({
             'workspace_id':row.workspace_id.workspace_id,

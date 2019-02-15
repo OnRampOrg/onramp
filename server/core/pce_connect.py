@@ -86,8 +86,9 @@ class PCEAccess(object):
 
     def _get_logger(self, pce_id):
         FORMAT = '%(asctime)-15s %(levelname)-3s %(module)s: %(message)s'
-        logfile = "/".join(self._cur_dir.split("/")[:-1])+"/log/pce_connect.log"
-        
+        # logfile = "/".join(self._cur_dir.split("/")[:-1])+"/log/pce_connect.log"
+        logfile = "/home/nick/Desktop/onramp/server/webserver/logs/pce_connect.log"
+
         logging.basicConfig(filename=logfile, level=logging.DEBUG, format=FORMAT)
         return logging.getLogger("[PCEAccess: {}]".format(pce_id))
 
