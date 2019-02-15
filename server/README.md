@@ -14,4 +14,4 @@ The following directories are automatically created and managed by the OnRamp PC
 
  * ```pce``` : Contains documentation from the PCE about that environment. See the ```pce/docs``` directory.
  * ```pce/module``` : Contains documentation about the Curriculum Module deployed on the PCE. 
- * ```users``` : Contains the OnRamp user's working directories. These directories contain temporary files as they move too and from the server. For example, when a job has finished the results from that run may be copied into this temporary location so that the user can download the files through the web service.
+ * ```users``` : Contains the OnRamp user's working directories. These directories contain temporary files as they move too and from the server. For example, when a job has finished the results from that run may be copied into this temporary location so that the user can download the files through the web service. 
