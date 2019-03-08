@@ -69,6 +69,7 @@ class PCEAccess(object):
         if not os.path.exists(self._pce_job_dir):
             os.makedirs(self._pce_job_dir)
 
+        #get pce_info from database
         pce_info = self._get_pce_info()
         self._url = self._get_url(pce_info.ip_addr, pce_info.ip_port)
         self._port = pce_info.ip_port

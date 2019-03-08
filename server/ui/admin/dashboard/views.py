@@ -1,6 +1,6 @@
 
 import json
-
+import logging
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -11,6 +11,10 @@ from django.template.loader import get_template
 from django.shortcuts import render
 from ui.admin.models import job, workspace, pce, module
 
+from core.pce_connect import PCEAccess
+
+#need to fix logger
+#logger = logging.getLogger(__name__)
 
 
 
@@ -49,6 +53,7 @@ def get_all_users(request):
         'status_message':'Success',
         'users':data
     }
+    
     return HttpResponse(json.dumps(response))
 
 @staff_member_required(login_url='/')
@@ -63,11 +68,25 @@ def get_all_jobs(request):
     :param request:
     :return:
     """
+    ################# WORKING CODE
+    #connector = PCEAccess(int(1))
+    #connector.check_on_job("1")
+    ##########################TEST CODE BELOW
+    #connector.get_jobs(1)
+    #try:
+     #   connector = PCEAccess(int(1))
+    #except Exception as e:
+     #   response = {'status':False, 'status_message':'Failed to create PCEAccess object',
+      #              'error_info':e.message}
+       # return HttpResponse(json.dumps(response))
+
     # TODO In production this could be a lot of data may need to limit it somehow
     response = {
         'status':0,
         'status_message':'Success',
         'jobs':list(job.objects.all().defer("output_file").values())
+        #sends a job to the client
+        #'jobs': connector.get_jobs(1)
     }
     return HttpResponse(json.dumps(response))
 
