@@ -58,9 +58,8 @@
             </div>
 
             <div class="row">
-                <button class="btn btn-primary" data-bind="click: addJob">Add new Job</button>
+                <button class="btn btn-primary" data-bind="click: showNewJobModal">Add new Job</button>
             </div>
-
             <!-- list of Jobs -->
             <div class="row">
 
@@ -80,6 +79,75 @@
                             <th>Delete</th>
                         </tr>
                     </thead>
+                    <tr>
+                        <div class="container" data-bind="with: newJob">
+                            <div class="row">
+                                <h3>Job to add: <span data-bind="text:name"></span></h3>
+                            </div>
+                            <div class="row">
+                                <div class="edit-table-col table-header">
+                                    <p>Field</p>
+                                </div>
+                                <div class="edit-table-col table-header">
+                                    <p>Current Value</p>
+                                </div>
+                                <div class="edit-table-col table-header">
+                                    <p>New Value</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="edit-table-col">
+                                    <p>Name</p>
+                                </div>
+                                <div class="edit-table-col">
+                                    <p data-bind="text: name"></p>
+                                </div>
+                                <div class="edit-table-col">
+                                    <input data-bind="value: name" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="edit-table-col">
+                                    <p>User_Id</p>
+                                </div>
+                                <div class="edit-table-col">
+                                    <p data-bind="text: user"></p>
+                                </div>
+                                <div class="edit-table-col">
+                                    <input data-bind="value: user" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="edit-table-col">
+                                    <p>PCE_ID</p>
+                                </div>
+                                <div class="edit-table-col">
+                                    <p data-bind="text: pce"></p>
+                                </div>
+                                <div class="edit-table-col">
+                                    <input data-bind="value: pce" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="edit-table-col">
+                                    <p>Module_id</p>
+                                </div>
+                                <div class="edit-table-col">
+                                    <p data-bind="text: mod"></p>
+                                </div>
+                                <div class="edit-table-col">
+                                    <input data-bind="value: mod" />
+                                </div>
+                            </div>
+            
+                            <!-- Add Job button -->
+                            <div class="row">
+                                <div class="col-lg-4 col-md-5 col-sm-6">
+                                    <button class="btn btn-primary" data-bind="click: $parent.postNewJob">Add Job</button>
+                                </div>
+                            </div>
+                        </div>
+                    </tr>
                     <tbody data-bind="foreach: Jobslist">
                         <tr data-bind="click: $parent.selectJob">
                             <td data-bind="text: jID"></td>

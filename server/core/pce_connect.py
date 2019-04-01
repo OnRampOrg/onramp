@@ -310,6 +310,7 @@ class PCEAccess(object):
             prefix = ("%srefresh_module_states(%s)" % (self._name, str(module_id)))
 
         self._refresh_modules_in_db(prefix, module_id)
+        return True
 
     def _refresh_modules_in_db(self, prefix, module_id=None, avail=False):
         if module_id is None:

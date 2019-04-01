@@ -5,6 +5,8 @@ from django.template import Context
 from django.template.loader import get_template
 from ui.admin.models import workspace, job
 
+from core.pce_connect import PCEAccess
+
 # @login_required
 def main(request):
     """ Renders the main Admin dashboard on login
@@ -51,16 +53,67 @@ def get_job(request):
     }
     return HttpResponse(json.dumps(response))
 
-# @login_required
+#working on this
+#@login_required
 def create_job(request):
-    """ Creates a new Job
 
-        URL: /admin/Jobs/Create
+    """ Creates a new Job and launches it
+
+        URL: /admin/jobs/newjob/
 
     :param request:
     :return:
     """
-    # TODO finish
+    #data is in the body of the request
+    post = json.loads(request.body)
+    print(post)
+    pce_id = post.get('pce_id')
+    response = json.loads(request.body)
+    if not pce_id:
+        response = {'status': False, 'status_message': 'No PCE ID specified'}
+        return HttpResponse(json.dumps(response))
+
+    try:
+        connector = PCEAccess(int(pce_id))
+        #TODO: need to add checking code
+        #---------------------------------------------------
+
+        #add job with module to a pce
+        #user id may have to be username
+        response = connector.launch_job(post.get('user_id'), post.get('module_id'), post.get('job_id'), post.get('job_name'))
+        job_info, created = job.objects.get_or_create(
+                                user = post.get('user_id'),
+                                module = post.get('module_id'),
+                                job_id = post.get('job_id'),
+                                job_name = post.get('job_name'),
+                                pce_id = post.get('pce_id'))
+        job_info.save()
+        print(response)
+        if created:
+            response = {'status':True, 'status_message':'Successfully created job and updated in DB'}
+        else:
+            response = {'status':False, 'status_message':'Failed to create job',
+                    'error_info':e.message}
+    except Exception as e:
+        response = {'status':False, 'status_message':'Failed to create PCEAccess object',
+                    'error_info':e.message}
+        return HttpResponse(json.dumps(response))
+
+    
+
+    return HttpResponse(json.dumps(response))
+
+
+
+
+
+
+
+
+
+
+
+
 
 # @login_required
 def update_job(request):

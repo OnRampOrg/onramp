@@ -146,6 +146,108 @@ def get_pce_workspaces(request):
         }
     return HttpResponse(json.dumps(response))
 
+
+
+
+
+@login_required
+def get_pce_modules(request):
+    """
+        URL: /admin/PCEs/Modules
+
+    :param request:
+    :return:
+    """
+    post = request.POST.dict()
+    pce_id = post.get('pce_id')
+    if not pce_id:
+        response = {'status':False, 'status_message':'No PCE ID specified'}
+        return HttpResponse(json.dumps(response))
+    try:
+        pm_pairs = module_to_pce.objects.filter(pce_id=int(pce_id))
+        modules = {}
+        for pair in pm_pairs:
+            module = pair.module
+            if module.module_id in modules: continue
+            modules[module.module_id] = {
+                'module_name':module.module_name,
+                'module_id':module.module_id,
+                'description':module.description,
+                'state':pair.state,
+                'state_str':MODULE_STATES.get(pair.state, 'N/A'),
+                'install_location':pair.install_location,
+                'src_location_type':pair.src_location_type,
+                'src_location_path':pair.src_location_path,
+                'is_visible':pair.is_visible
+            }
+        response = {'status':True, 'status_message':'Success', 'modules':modules.values()}
+    except Exception as e:
+        response = {
+            'status':False,
+            'status_message':'Error retrieving requested data',
+            'error_info':e.message
+        }
+    return HttpResponse(json.dumps(response))
+
+
+
+
+
+
+
+
+
+#working on this
+@login_required
+def add_module_to_pce(request):
+    """
+        URL: /admin/PCEs/addmodule/
+
+    :param request:
+    :return:
+    """
+    #data is in the body of the request
+    post = json.loads(request.body)
+    #print(post2.get('pce_id'))
+    print(post)
+    pce_id = post.get('pce_id')
+    if not pce_id:
+        response = {'status': False, 'status_message': 'No PCE ID specified'}
+        return HttpResponse(json.dumps(response))
+
+    try:
+        connector = PCEAccess(int(pce_id))
+        #TODO: need to add checking code
+        #---------------------------------------------------
+
+        #add module to a given pce
+        response = connector.add_module(post.get('module_id'), post.get('module_name'), post.get('src_location_type'), post.get('src_location_path'))
+        print(response)
+        if connector.refresh_module_states(None):
+            response = {'status':True, 'status_message':'Successfully created module and updated in DB'}
+        else:
+            response = {'status':False, 'status_message':'Failed to create PCEAccess object',
+                    'error_info':e.message}
+    except Exception as e:
+        response = {'status':False, 'status_message':'Failed to create PCEAccess object',
+                    'error_info':e.message}
+        return HttpResponse(json.dumps(response))
+
+    
+
+    return HttpResponse(json.dumps(response))
+
+
+
+
+
+
+
+
+
+
+
+
 @login_required
 def get_pce_jobs(request):
     """
@@ -197,6 +299,8 @@ def get_module_state(request):
 
 @login_required
 def deploy_module(request):
+
+    #broken currently pce asking for admin
     """
 
     :param request:

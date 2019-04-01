@@ -5,4 +5,5 @@ urlpatterns = [
 
     url(r'^All$', views.get_all_jobs),
     url(r'^$', views.main),
+    url(r'newjob/$', views.create_job)
 ]

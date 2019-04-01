@@ -9,5 +9,7 @@ urlpatterns = [
     url(r'GetPCEJobs/$', views.get_pce_jobs),
     url(r'GetModuleState/$', views.get_module_state),
     url(r'DeployModule/$', views.deploy_module),
+    #need to implement addmodule
+    url(r'addmodule/$', views.add_module_to_pce),
     url(r'^$', views.main),
 ]

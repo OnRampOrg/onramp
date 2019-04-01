@@ -8,5 +8,6 @@ urlpatterns = [
     url(r'^GetWorkspaces/$', views.get_all_workspaces),
     url(r'^GetPces/$', views.get_all_pces),
     url(r'^GetModules/$', views.get_all_modules),
+    
     url(r'^$', views.main),
 ]

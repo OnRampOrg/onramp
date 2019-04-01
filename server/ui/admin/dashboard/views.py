@@ -69,8 +69,8 @@ def get_all_jobs(request):
     :return:
     """
     ################# WORKING CODE
-    #connector = PCEAccess(int(1))
-    #connector.check_on_job("1")
+    connector = PCEAccess(int(1))
+    connector.get_jobs(2)
     ##########################TEST CODE BELOW
     #connector.get_jobs(1)
     #try:
