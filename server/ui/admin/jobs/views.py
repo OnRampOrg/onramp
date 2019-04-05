@@ -123,16 +123,34 @@ def update_job(request):
 def delete_job(request):
     """ Deletes a specific job
 
-            URL: /admin/Jobs/Delete
+            URL: /admin/Jobs/deletejob/
 
         :param request:
         :return:
     """
-    id = request.DELETE.dict().get("id")
-    job.objects.filter(id=id).delete()
+    bodyobj = json.loads(request.body)
+    print(bodyobj)
+
+    id = bodyobj.get("job_id")
+    jobToDelete = job.objects.get(job_id=id)
+    #workaround for getting foreign key from object
+    pce_id = getattr(getattr(jobToDelete, 'pce'), 'pce_id')
+    #delete from database
+    job.objects.filter(job_id=id).delete()
+    try:
+        connector = PCEAccess(int(pce_id))
+        #TODO: need to add checking code
+        #---------------------------------------------------
+        #delete job from pce server
+        response = connector.delete_job(id)
+        print(response)
+    except Exception as e:
+        response = {'status':False, 'status_message':'Failed to create PCEAccess object',
+                    'error_info':e.message}
+        return HttpResponse(json.dumps(response))
     response = {
         'status': 1,
-        'status_message': 'Success'
+        'status_message': 'Successfully delete job'
     }
     return HttpResponse(json.dumps(response))
     

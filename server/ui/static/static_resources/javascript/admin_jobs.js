@@ -31,10 +31,12 @@ function myJob(data){
 	};
 
 	self.removeOnServer = function () {
-        alert("removing on server - not implemented yet");
         $.ajax({
             type: "DELETE",
-            url: "jobs/" + this.id(),
+			url: "deletejob/",
+			data: JSON.stringify({
+				'job_id':this.jID(),
+			}),
             error: function (response) {
                 alert(response["status_message"]);
             }
@@ -56,7 +58,7 @@ function myJob(data){
 				'user': this.user()
 			}),
 			complete: function(){
-				alert("job added");
+				viewModelObj.refreshjobs();
 			},
 			dataType: 'application/json',
 			contentType: 'application/json'
@@ -98,8 +100,8 @@ function AdminJobsViewModel() {
 	self.deleteJob = function () {
 		// tell server to delete this job
 		// TODO this isn't implemented
+		this.removeOnServer();
 		self.Jobslist.remove(this);
-//		this.removeOnServer();
 	}
 
 	self.selectJob = function () {
@@ -148,4 +150,5 @@ function AdminJobsViewModel() {
 }
 
 // Activates knockout.js
-ko.applyBindings(new AdminJobsViewModel());
+var viewModelObj = new AdminJobsViewModel();
+ko.applyBindings(viewModelObj);
