@@ -68,6 +68,7 @@ def create_job(request):
     post = json.loads(request.body)
     print(post)
     pce_id = post.get('pce_id')
+    print(pce_id)
     response = json.loads(request.body)
     if not pce_id:
         response = {'status': False, 'status_message': 'No PCE ID specified'}
@@ -80,20 +81,12 @@ def create_job(request):
 
         #add job with module to a pce
         #user id may have to be username
-        response = connector.launch_job(post.get('user_id'), post.get('module_id'), post.get('job_id'), post.get('job_name'))
-        job_info, created = job.objects.get_or_create(
-                                user = post.get('user_id'),
-                                module = post.get('module_id'),
-                                job_id = post.get('job_id'),
-                                job_name = post.get('job_name'),
-                                pce_id = post.get('pce_id'))
-        job_info.save()
+        job_data = {
+            'name': post.get('job_name'),
+            'uioptions': "TODO"
+        }
+        response = connector.launch_a_job(int(post.get('user')), 1, int(post.get('module_id')), job_data)
         print(response)
-        if created:
-            response = {'status':True, 'status_message':'Successfully created job and updated in DB'}
-        else:
-            response = {'status':False, 'status_message':'Failed to create job',
-                    'error_info':e.message}
     except Exception as e:
         response = {'status':False, 'status_message':'Failed to create PCEAccess object',
                     'error_info':e.message}

@@ -708,12 +708,14 @@ class PCEAccess(object):
         # Get a job id from the DB
         #
         self._logger.debug("%s Getting Job ID from DB..." % prefix)
+        self._logger.debug("job_data - %s" % job_data['name'])
         try:
             job_row, created = job.objects.get_or_create(
                 user_id=user_id, workspace_id=workspace_id,
                 pce_id=self._pce_id, module_id=module_id,
                 job_name=job_data['name'])
-        except Exception:
+        except Exception as e:
+            print(e)
             return {'error_msg': "Failed to start_job - Bad ID (%s)" % (str(job_data))}
 
         exists = not created

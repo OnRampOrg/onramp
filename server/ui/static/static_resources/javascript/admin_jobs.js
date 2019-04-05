@@ -5,7 +5,7 @@
 //too different
 function myJob(data){
 	var self = this;
-	self.jID = data['job_id'];
+	self.jID = ko.observable(data['job_id']);
 	self.user = ko.observable(data['user_id']);
 	self.ws = data['workspace_id'];
 	self.pce = ko.observable(data['pce_id']);
@@ -53,10 +53,11 @@ function myJob(data){
 				'module_id':this.mod(),
 				'pce_id': this.pce(),
 				'job_name':this.name(),
-				'user': this.user(),
-				'job_id': this.jID()
+				'user': this.user()
 			}),
-			complete: alert("job added"),
+			complete: function(){
+				alert("job added");
+			},
 			dataType: 'application/json',
 			contentType: 'application/json'
         });
@@ -84,8 +85,9 @@ function AdminJobsViewModel() {
 			self.newJob(new myJob({'pce_id': '1'}));
 		}
 	self.postNewJob = function (){
-		console.log("TRYING TO ADD JOB")
-		self.newJob().postNewJobAjax()
+		console.log("TRYING TO ADD JOB");
+		self.newJob().postNewJobAjax();
+		self.newJob(null);
 	}
 
 
@@ -102,6 +104,25 @@ function AdminJobsViewModel() {
 
 	self.selectJob = function () {
 		self.selectedJob(this);
+	}
+
+	self.refreshjobs = function (){
+		// reinitialize values
+		self.Jobslist.removeAll();
+
+		// get data from server
+		$.ajax({
+		    url:'/admin/Jobs/All',
+		    type:'GET',
+		    dataType:'json',
+		    success: function(response) {
+		        for (var x = 0; x < response.jobs.length; x++){
+                    var job_data = response.jobs[x];
+                    self.Jobslist.push(new myJob(job_data));
+                }
+		    }
+		})
+		
 	}
 
 
