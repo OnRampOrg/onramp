@@ -7,7 +7,7 @@ function myJob(data){
 	var self = this;
 	self.jID = ko.observable(data['job_id']);
 	self.user = ko.observable(data['user_id']);
-	self.ws = data['workspace_id'];
+	self.ws = ko.observable(data['workspace_id']);
 	self.pce = ko.observable(data['pce_id']);
 	self.mod = ko.observable(data['module_id']);
 	self.name = ko.observable(data['job_name']);
@@ -55,7 +55,8 @@ function myJob(data){
 				'module_id':this.mod(),
 				'pce_id': this.pce(),
 				'job_name':this.name(),
-				'user': this.user()
+				'user': this.user(),
+				'workspace_id': this.ws()
 			}),
 			complete: function(){
 				viewModelObj.refreshjobs();

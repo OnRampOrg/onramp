@@ -85,7 +85,7 @@ def create_job(request):
             'name': post.get('job_name'),
             'uioptions': "TODO"
         }
-        response = connector.launch_a_job(int(post.get('user')), 1, int(post.get('module_id')), job_data)
+        response = connector.launch_a_job(int(post.get('user')), int(post.get('workspace_id')), int(post.get('module_id')), job_data)
         print(response)
     except Exception as e:
         response = {'status':False, 'status_message':'Failed to create PCEAccess object',
