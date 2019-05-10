@@ -20,14 +20,14 @@ This file sets up a mysql and a django container and specifies the following inf
 - Entrypoint: command runs upon entering the container
     - note: the django image's entrypoint script is located at onramp/server/
 #### Set up initial user(s)
-Initial users are created in a python script at onramp/server/createUsers.py. Modify this script as needed.
+Initial users are created in a python script at \<onramp_root\>/frontend/server/createUsers.py. Modify this script as needed.
 #### Set up mysql database credentials
-- Mysql credentials are initially set up here: onramp/mysql/conf/mysqlSetup.sql. This script is only run on
+- Mysql credentials are initially set up here: \<onramp_root\>/frontend/mysql/conf/mysqlSetup.sql. This script is only run on
     when building the container.
 - Django database connection credentials must be adjusted to match the new login: onramp/server/ui/settings.py
 #### Change mysql port
 - Change the exposed port for the mysql image in docker-compose.yml
-- Adjust the django settings file to connect to the new port: onramp/server/ui/settings.py
+- Adjust the django settings file to connect to the new port: \<onramp_root\>/frontend/server/ui/settings.py
 #### Change webserver port
 - Change the exposed port for the django image in docker-compose.yml
 ### 3. Docker
