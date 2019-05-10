@@ -1,0 +1,27 @@
+version: '3'
+services:
+  mysql:
+    build:
+      context: ./mysql
+    image: onramp:mysql
+    ports:
+      - "4306:3306"
+    volumes:
+      - mysqlDataDir:/var/lib/mysql
+    entrypoint: ["/usr/bin/mysqld_safe", "--user", "mysql", "--bind-address", "0.0.0.0"]
+  onramp:
+    build:
+      context: ./server
+    image: onramp:django_dev
+    ports:
+      - "8000:8000"
+    links:
+      - mysql
+    volumes:
+      - ./server:/usr/src/app/
+    entrypoint: ["/usr/src/app/.scripts/django-entrypoint.sh"]
+#    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    depends_on:
+      - mysql
+volumes:
+  mysqlDataDir:
