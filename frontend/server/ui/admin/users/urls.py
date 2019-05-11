@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^Update/$', views.update_user),
     url(r'^Disable/$', views.disable_user),
     url(r'^Enable/$', views.enable_user),
+    url(r'^Delete/$', views.delete_user),
     url(r'^Jobs/$', views.get_user_jobs),
     url(r'^Workspaces/$', views.get_user_workspaces),
     url(r'^$', views.main),

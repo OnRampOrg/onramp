@@ -5,8 +5,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
-from ui.admin.models import workspace, job, workspace_to_pce_module, user_to_workspace
-import logging
+from ui.admin.models import workspace, job, workspace_to_pce_module, module_to_pce, user_to_workspace
 
 @login_required
 def main(request):
@@ -28,6 +27,7 @@ def get_all(request):
 
     :param request:
     :return:
+
     """
     response = {
         'status':1,
@@ -67,7 +67,7 @@ def get_jobs(request):
     """
     workspace_id = request.POST.get('workspace_id')
     if workspace_id is None:
-        response = {'status':-1, 'status_message':'No workspace_id specified'}
+        response = {'status':-1, 'stauts_message':'No workspace_id specified'}
         return HttpResponse(json.dumps(response))
     response = {
         'status':1,
@@ -87,7 +87,7 @@ def get_pces(request):
     """
     workspace_id = request.POST.get('workspace_id')
     if workspace_id is None:
-        response = {'status':-1, 'status_message':'No workspace_id specified'}
+        response = {'status':-1, 'stauts_message':'No workspace_id specified'}
         return HttpResponse(json.dumps(response))
     pce_mod_pairs = {}
     wpm_pairs = workspace_to_pce_module.objects.filter(workspace_id=int(workspace_id))
@@ -148,7 +148,7 @@ def get_workspace_users(request):
     """
     workspace_id = request.POST.get('workspace_id')
     if workspace_id is None:
-        response = {'status':-1, 'status_message':'No workspace_id specified'}
+        response = {'status':-1, 'stauts_message':'No workspace_id specified'}
         return HttpResponse(json.dumps(response))
     qs = user_to_workspace.objects.filter(workspace_id=int(workspace_id))
     response = {
@@ -211,43 +211,37 @@ def add_pce_mod_pair(request):
     :param request:
     :return:
     """
-    # adds module to a pce
-    workspace_id = request.POST.get('workspace_id', None)
+    workspace_id = request.POST.get('workspace_id')
+
+    # Input Validation
     if workspace_id is None:
-        response = {'status':-1, 'status_message':'No workspace_id specified'}
+        response = {'status':-1, 'stauts_message':'No workspace_id specified'}
         return HttpResponse(json.dumps(response))
-    module_id = request.POST.get('module_id', None)
-    if module_id is None:
-        response = {'status': -1, 'status_message': 'No module_id specified'}
+    module_id = request.POST.get('module_id')
+    if workspace_id is None:
+        response = {'status': -1, 'stauts_message': 'No module_id specified'}
         return HttpResponse(json.dumps(response))
-    pce_id = request.POST.get('pce_id', None)
-    if pce_id is None:
-        response = {'status': -1, 'status_message': 'No pce_id specified'}
+    pce_id = request.POST.get('pce_id')
+    if workspace_id is None:
+        response = {'status': -1, 'stauts_message': 'No pce_id specified'}
         return HttpResponse(json.dumps(response))
 
-    # TODO validate workspace, module, and pce ids
+    # Save to db
+    pm_pair, created = module_to_pce.objects.get_or_create(
+        pce_id = int(pce_id),
+        module_id = int(module_id)
+    )
 
-    # TODO Save to the database
+    wpm_pair, created = workspace_to_pce_module.objects.get_or_create(
+        workspace_id = int(workspace_id),
+        pm_pair_id = int(pm_pair.pm_pair_id)
+    )
 
-    # row, created = user_to_workspace.objects.get_or_create(
-    #     workspace_id=int(post['workspace_id']),
-    #     user_id=int(post['user_id']))
-    # if created:
-    #     response = {'status':1, 'status_message':'Success'}
-    # else:
-    #     response = {'status':-1, 'status_message':"User already has permissions for this workspace."}
-    # return HttpResponse(json.dumps(response))
-
-    # TODO throw error if pce is not in the specified workspace
-    #
-    # created = module_to_pce.objects.get_or_create(
-    #     module_id=int(module_id),
-    #     pce_id=int(pce_id)
-    # )
-    # if created:
-    #     response = {'status':1, 'status_message':'Success'}
-    # else:
-    #     response = {'status':-1, 'status_message':"Module has already been added to this pce."}
+    if created:
+        response = {'status':1, 'status_message':'Success'}
+    else:
+        response = {'status':-1, 'status_message':"This PCE-Module pair is already associated with this workspace."}
+    return HttpResponse(json.dumps(response))
 
     response = {
         'status':1,

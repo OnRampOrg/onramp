@@ -29,84 +29,84 @@ def users_page(request):
     return HttpResponse(template.render({}, request))
 
 
-    
-# def get_user(request):
-#     """ Gets all attributes for a specific user
 
-#         URL: /admin/users/Get
+def get_user(request):
+    """ Gets all attributes for a specific user
 
-#     :param request:
-#     :return:
-#     """
-#     post = request.POST.dict()
-#     user_id = post.get('user_id')
-#     if not user_id:
-#         # TODO error
-#         return HttpResponse()
-#     user = User.objects.get(id=user_id)
-#     if not user:
-#         # TOO error
-#         return HttpResponse()
-#     # TODO have to turn user into dict
-#     return HttpResponse(json.dumps(user))
+        URL: /admin/users/Get
 
-# def update_user(request):
-#     """ Updates attributes for a user
+    :param request:
+    :return:
+    """
+    post = request.POST.dict()
+    user_id = post.get('user_id')
+    if not user_id:
+        # TODO error
+        return HttpResponse()
+    user = User.objects.get(id=user_id)
+    if not user:
+        # TOO error
+        return HttpResponse()
+    # TODO have to turn user into dict
+    return HttpResponse(json.dumps(user))
 
-#         URL: /admin/users/Update
+def update_user(request):
+    """ Updates attributes for a user
 
-#     :param request:
-#     :return:
-#     """
-#     post = request.POST.dict()
-#     # TODO not implemented
-#     return HttpResponse()
+        URL: /admin/users/Update
 
-# def enable_user(request):
-#     """ Enables the specified user account
+    :param request:
+    :return:
+    """
+    post = request.POST.dict()
+    # TODO not implemented
+    return HttpResponse()
 
-#         URL: /admin/users/enable
+def enable_user(request):
+    """ Enables the specified user account
 
-#     :param request:
-#     :return:
-#     """
-#     post = request.POST.dict()
-#     # TODO not implemented
-#     return HttpResponse()
+        URL: /admin/users/enable
 
-
-# def disable_user(request):
-#     """ Disables the specified user account
-
-#         URL: /admin/users/disable
-
-#     :param request:
-#     :return:
-#     """
-#     post = request.POST.dict()
-#     # TODO not implemented
-#     return HttpResponse()
-
-# def get_user_workspaces(request):
-#     """ Gets all workspaces for a specified user
-
-#         URL: /admin/users/workspaces
-
-#     :param request:
-#     :return:
-#     """
-#     return HttpResponse()
+    :param request:
+    :return:
+    """
+    post = request.POST.dict()
+    # TODO not implemented
+    return HttpResponse()
 
 
-# def get_user_jobs(request):
-#     """ Gets all jobs for a specified user
+def disable_user(request):
+    """ Disables the specified user account
 
-#         URL: /admin/users/jobs
+        URL: /admin/users/disable
 
-#     :param request:
-#     :return:
-#     """
-#     return HttpResponse()
+    :param request:
+    :return:
+    """
+    post = request.POST.dict()
+    # TODO not implemented
+    return HttpResponse()
+
+def get_user_workspaces(request):
+    """ Gets all workspaces for a specified user
+
+        URL: /admin/users/workspaces
+
+    :param request:
+    :return:
+    """
+    return HttpResponse()
+
+
+def get_user_jobs(request):
+    """ Gets all jobs for a specified user
+
+        URL: /admin/users/jobs
+
+    :param request:
+    :return:
+    """
+    return HttpResponse()
 
 #=========================== /admin/workspaces/* =============================#
 

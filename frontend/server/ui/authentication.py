@@ -1,10 +1,8 @@
 from django.contrib.auth.models import User
 
 import logging
-# logging.basicConfig(filename="/home/nick/Desktop/onramp/server/webserver/logs/pce_connect.log", level=logging.DEBUG, format='%(asctime)-15s %(levelname)-3s %(module)s: %(message)s') ### testing
 
-# logger = logging.getLogger(__name__)
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 class OnRampAuthenticator(object):
 
